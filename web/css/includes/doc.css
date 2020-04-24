@@ -1,8 +1,122 @@
-.card-doc {
-    border-radius: 6px;
-    margin-top:0;   
-    padding:4px 20px;
+.card.doc {
+    border-radius: 2px;
+    box-shadow: none;
+    margin: 0 0 64px;   
+    padding:86px 70px 0;
     line-height: 1.5em;
+}
+.card.doc > * {
+    display: inherit;
+}
+.card.doc .title{
+    display: inherit;
+    flex-flow: column;
+    align-items: flex-start;
+    color:var(--mlc);
+    margin: 0 0 44px;
+    font-size: 62px;
+    font-weight:700
+}
+
+.card.doc .view {
+    flex-flow: column;
+    color: var(--mdc70);
+    max-width: 680px;
+    font-weight: 300;
+}
+
+.card.doc p span{
+    font-weight:600;
+}
+
+.card.doc div.i90 {
+    display: inherit;
+    width: 84px;
+    height: 84px;
+    border: 1px solid var(--mdc70);
+    border-radius: 10px;
+    align-items: center;
+    justify-content: center;
+}
+.card.doc div.i90 img {
+    max-width: 60%;
+    max-height: 60%;
+    filter:var(--mseFilter);
+}
+
+.card.doc div.addr {
+    display: inherit;
+    flex-flow: column;
+    margin-top: 24px;
+    color:var(--mdc70)
+}
+
+
+.card.doc .page-footer{
+    display: inherit;
+    margin-top: 24px;
+    width: 100%;
+    padding: 0;
+}
+
+.card.doc .page-footer .sep {
+    position: relative;
+    width: 50%;
+    border-top:1px solid var(--mdc30);
+}
+.card.doc .page-footer .sep:before {
+    content: "";
+    position: absolute;
+    height: 3px;
+    width:60px;
+    left:0;
+    top:-2px;
+    background: var(--mlc);
+}
+
+
+
+
+.side {
+    flex:1 auto;
+    padding-inline-end:16px
+}
+
+.side ul {
+    display: inherit;
+    flex: inherit;
+    flex-flow: column;
+}
+.side li {
+    display: inherit;
+    border-bottom: thin solid var(--mdc12);
+}
+
+.side li a {
+    color:var(--mdc70);
+}
+
+.side li.on {
+    position: relative;    
+    color:var(--mlc);
+    justify-content: space-between;
+}
+
+.side li.on b:after {
+    content:"";
+    background:var(--mlc);
+    width: 20px;
+    height: 3px;
+    bottom: -2px;
+    left:0px;
+    position: absolute;
+}
+.side li.on i:after {
+    content:"›";
+    font-style: normal;
+    font-size: 16pt;
+    left:100%;
+    position: absolute;
 }
 
 .card-doc .block{display:block}
@@ -77,7 +191,7 @@
 .icn-microsoft{background-color:white !important;-webkit-mask:url(/web/css/1.0/fa/brands/microsoft.svg) no-repeat 50% 50%;}
 
 .group{position:relative;margin-bottom:36px;flex-grow: 1}
-.group>input,.group>textarea{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:none;border-bottom:1px solid #757575;resize:none}
+.group>input,.group>textarea{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none}
 .group>input:focus,.group>textarea:focus{outline:none;}
 .group label{color:var(--mColor90);font-size:18px;font-weight:normal;position:absolute;pointer-events:none;left:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
 .group input:focus ~ label, input:valid ~ label {top:-20px;font-size:14px;color:#5264AE;}

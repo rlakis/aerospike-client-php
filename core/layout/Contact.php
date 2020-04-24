@@ -64,16 +64,7 @@ class Contact extends Page {
     }
 
     
-    function main_pane(){
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-        //$this->renderSideSite();
-        //$this->contactHeader();
-        $this->contactForm();
-        echo '</div></div></div>';
-    }
-
-    
-    function contactForm() {
+    function main_pane(){               
         $name=''; $email=''; $message='';
         if (isset($_GET['payfort']) && is_numeric($_GET['payfort'])) {
             $message=$this->lang['payfort_fail_msg'].'#'.$_GET['payfort'].'#';
@@ -83,8 +74,14 @@ class Contact extends Page {
             $name=$this->user->info['name'];
             if (isset ($this->user->info['email']) && strpos($this->user->info['email'], "@")!==false) $email=$this->user->info['email'];
         }
+        ?><div class="row viewable mt-32"><?php
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         
-        ?><p class="ph phm"><?= $this->lang['header'] ?></p><div class="card-content"><form onsubmit="vf(this);return false;"><?php
+        ?><div class=col-10><div class="card doc"><div class=view style="color:var(--mdc70)"><?php
+        ?><h2 class=title>Drop us a line!</h2><?php
+        // $this->lang['header']
+        ?><p class="fw-300" style="font-size:23px;line-height:1.5em">Have a question? Feedback? Haven't found what you've been looking for? Let us know...</p><div><?php
+        ?><form class="mb-32" onsubmit="vf(this);return false;"><?php
         ?><div class=row><div class=group>
             <input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
@@ -109,8 +106,17 @@ class Contact extends Page {
             <span class=highlight></span>
             <span class=bar></span>
         </div></div><?php
-        ?><button class=btn type=submit style="float: right;background-color:#5bc236;color:white;"><?= $this->lang['send'] ?></button><?php
+        
+        ?><button class=btn type=submit style="min-width:160px;font-weight:500;font-size:16px"><?= $this->lang['send'] ?></button><?php
         ?></form><span class="omail <?= $this->router->language ?>"></span><span class="nb"></span></div><?php
+        
+        ?></div><?php
+        ?><div class=page-footer><?php
+        ?><div class=sep><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></div><?php
+        ?><div class=col-12 style="flex-flow:row;justify-content:flex-end;padding:0;margin:0;overflow:hidden"><img style="position:relative;top:56px;width:206px;transform:rotateX(180deg);filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="<?=$this->router->config->cssURL?>/1.0/assets/emblem.svg"/></div><?php
+        ?></div><?php
+        ?></div></div></div><?php
+        
         ?><script>dirElem=function(e){if(e.target){e=e.target;}var v=e.value;e.className=(!v)?'':((v.match(/[\u0621-\u064a\u0750-\u077f]/))?'ar':'en');};
         vf=function(e){
             let data={name:e.querySelector('#name').value, email:e.querySelector('#email').value, msg:e.querySelector('#msg').value, lang:'<?=$this->router->language?>'};
@@ -134,103 +140,7 @@ class Contact extends Page {
                 console.log('Error:', error);
             });
         };
-        </script><?php
-        
-        $this->inlineScript.='
-            window["pla"]=function(e){
-                e.prev().append("<span class=\'fia\'></span>");
-            };
-            window["vf"]=function(form){
-                var e=false;
-                var form=$(form);
-                var im=form.next();
-                var p=form.parent();
-                var data={};
-                var name=$("#name",form);
-                var email=$("#email",form);
-                var msg=$("#msg",form);
-                var nb=$("span.nb",p);
-                name.removeClass("err");
-                email.removeClass("err");
-                msg.removeClass("err");
-                $(".fia",form).remove();
-                nb.css("display","none");
-                nb.html("");
-                data.name=name.val();
-                if (data.name.length < 2){
-                    name.addClass("err");
-                    pla(name);
-                    e=true;
-                }
-                data.email=email.val();
-                if (!isEmail(data.email)){
-                    email.addClass("err");
-                    pla(email);
-                    e=true;
-                }
-                data.msg=msg.val();
-                if (data.msg.length < 10){
-                    msg.addClass("err");
-                    pla(msg);
-                    e=true;
-                }
-                if (e) {
-                    return false;
-                }
-                
-                form.animate({
-                    opacity:0
-                },200);
-                im.animate({
-                    opacity:0
-                },200);
-                p.addClass("load");
-                nb.html("'.$this->lang['sendingMsg'].'");
-                nb.fadeIn(); 
-                
-                data["lang"]=lang;
-                $.ajax({url: "/ajax-contact/",
-                    cache:false,
-                    data:data,
-                    dataType:"json",
-                    type:"POST",
-                    success:function(res){
-                        p.removeClass("load");
-                        nb.html(res.MSG+"<br /><br /><br /><br /><br /><br /><br /><br /><input type=\'button\' class=\'bt\' onclick=\'shwF(this,1)\' value=\''.$this->lang['continue'].'\' />");
-                        if (res.RP) {
-                            msg.val("");
-                            im.addClass("osent "+lang);
-                            im.animate({
-                                opacity:1
-                            },200);
-                        }else{
-                            nb.html("'.$this->lang['errSys'].'<br /><br /><input type=\'button\' class=\'bt\' onclick=\'shwF(this)\' value=\''.$this->lang['tryAgain'].'\' />");
-                        }
-                        nb.fadeIn();
-                    },
-                    error:function(){
-                        p.removeClass("load");
-                        nb.html("'.$this->lang['errSys'].'<br /><br /><input type=\'button\' class=\'bt\' onclick=\'shwF(this)\' value=\''.$this->lang['tryAgain'].'\' />");
-                        nb.fadeIn();
-                    }
-                  });};
-                  window["shwF"]=function(e,c){
-                        nb=$(e.parentNode);
-                        nb.fadeOut();
-                        var im=nb.prev();
-                        var f=im.prev();
-                        f.animate({
-                            opacity:1
-                        },200);
-                        im.animate({
-                            opacity:1
-                        },200);
-                        im.removeClass("osent");
-                        if(c){
-                            $("textarea",f).val("");
-                        }
-                  };
-            ';
+        </script><?php               
     }
 
     

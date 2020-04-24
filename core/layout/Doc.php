@@ -114,76 +114,12 @@ class Doc extends Page{
     
     
     function header() : void {        
-        if ($this->router->module==='advertise') {
-            if ($this->router->isArabic()) {
-                ?><style type="text/css">
-                    .doc ul{list-style:none;margin:0 !important;overflow:hidden}
-                    .doc li{float:right;padding:5px;border-left:1px solid #CCC;border-bottom:1px solid #CCC}
-                    .doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:13px !important;border-left:1px solid #fff}
-                    .h.v8{border-left:1px solid #CCC !important}
-                    li.v1,li.v2,li.v3,li.v4,li.v5,li.v6,li.v7,li.v8{border-top:1px solid #ccc;background-color:#143D55;color:#FFF;border-bottom:0;text-align:center}
-                    li.v1{width:200px;border-left:1px solid #ccc;text-align:right}
-                    li.v2{width:55px}
-                    li.v3{width:55px}
-                    li.v4{width:55px}
-                    li.v6{width:61px}
-                    li.v7{width:61px}
-                    li.v8{width:64px}
-                    li.v5{width:110px}
-                    li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16,li.v17{background-color:#FFFF8F;text-align:center;width:85px;font-size:13px !important}
-                    li.v10{width:200px;text-align:right !important;border-right:1px solid #CCC}
-                    li.v11{width:55px}
-                    li.v12{width:55px}
-                    li.v13{width:55px}
-                    li.v14{width:110px}
-                    li.v15{width:61px;text-align:left}
-                    li.v16{width:61px;text-align:left}
-                    li.v17{width:64px;text-align:left}
-                    li.br{width:100%;clear:both;border:0;height:25px;}
-                    li.vd{background-color:#F8F8F8;width:738px;border-right:1px solid #CCC}
-                    .vd img{width:200px;height:139px;border:1px solid #3087B4;margin:5px 0 5px 10px;float:right}
-                    .doc .bt{float:none;display:inline-block;margin:30px 225px 20px;width:300px;text-align:center;font-size:14px;line-height:33px}
-                    .doc .bt:hover{text-decoration:none}
-                    .doc .bt:active{border:0;-moz-box-shadow:none;-o-box-shadow:none;-webkit-box-shadow:none;box-shadow:none}
-                </style><?php 
-            }else {
-                ?><style type="text/css">
-                    .doc ul{list-style:none;margin:0 !important;overflow:hidden}
-                    .doc li{float:left;padding:5px;border-right:1px solid #CCC;border-bottom:1px solid #CCC}
-                    .doc li.h{font-weight:bold;background-color:#143D55 !important;color:#fff;font-size:11px;border-right:1px solid #fff}
-                    .h.v8{border-right:1px solid #CCC !important}
-                    li.v1,li.v2,li.v3,li.v4,li.v5,li.v6,li.v7,li.v8{border-top:1px solid #ccc;background-color:#143D55;color:#FFF;border-bottom:0;text-align:center}
-                    li.v1{width:200px;border-left:1px solid #ccc;text-align:left}
-                    li.v2{width:55px}
-                    li.v3{width:55px}
-                    li.v4{width:55px}
-                    li.v6{width:61px}
-                    li.v7{width:61px}
-                    li.v8{width:64px}
-                    li.v5{width:110px}
-                    li.v10,li.v11,li.v12,li.v13,li.v14,li.v15,li.v16,li.v17{background-color:#FFFF8F;text-align:center;width:85px;font-size:11px !important}
-                    li.v10{width:200px;text-align:left;border-left:1px solid #CCC}
-                    li.v11{width:55px}
-                    li.v12{width:55px}
-                    li.v13{width:55px}
-                    li.v14{width:110px}
-                    li.v15{width:61px;text-align:right}
-                    li.v16{width:61px;text-align:right}
-                    li.v17{width:64px;text-align:right}
-                    li.br{width:100%;clear:both;border:0;height:25px;}
-                    li.vd{background-color:#F8F8F8;width:738px;border-left:1px solid #CCC}
-                    .vd img{width:200px;height:139px;border:1px solid #3087B4;margin:5px 10px 5px 0;float:left}
-                    .doc .bt{float:none;display:inline-block;margin:30px 225px 20px;width:300px;text-align:center;font-size:14px;line-height:33px}
-                    .doc .bt:hover{text-decoration:none}
-                    .doc .bt:active{border:0;-moz-box-shadow:none;-o-box-shadow:none;-webkit-box-shadow:none;box-shadow:none}
-                </style><?php 
-            }
-        }
+       
         parent::header();
     }
 
     
-    function side_pane(){
+    function side_pane() {
         if (($this->router->module!=='buy' && $this->router->module!=='buyu') || (($this->router->module==='buyu' || $this->router->module==='buy') && $this->user()->isLoggedIn())) {
             $this->renderSideSite();
         }
@@ -284,6 +220,8 @@ class Doc extends Page{
     function main_pane() {
         $adLang='';
         if (!$this->router->isArabic()) { $adLang=$this->router->language.'/'; }
+        
+        ?><div class="row viewable mt-32"><?php
         switch ($this->router->module) {
             case 'buyu':
                 $this->renderBuyU();                
@@ -555,29 +493,32 @@ class Doc extends Page{
             default:
                 break;
         }
-        echo "</div>";
+        ?></div><?php
+        
     }
     
     
     private function renderGold() : void {
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-        echo '<h2 class="card-title">',$this->lang['gold_subtitle'], '</h2>';
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        
+        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        ?><h2 class=title>Everything<br>you need to know about</h2><?php
                 
-        $imgPath = $this->router->config->imgURL.'/presentation2/';
+        $imgPath=$this->router->config->imgURL.'/presentation2/';
                 
-        echo '<div class="col-12 block">';
-        echo '<p>', $this->lang['gold_p2'], '</p>';
+        ?><div class="col-12 ff-cols"><?php
+        ?><p><?=$this->lang['gold_p2']?></p><?php
         //echo '<p class="pad alt rc">', $this->lang['gold_p2_1'], '</p>';
-        ?><div class="col-12"><table class="col-6 pricelist block"><caption><?= $this->lang['gold_p2_1'] ?></caption>
-            <tr><th>Quantity</th><th>Price</th></tr>
+        ?><div class=col-12><table class="col-6 pricelist block"><caption><?=$this->lang['gold_p2_1']?></caption><?php
+        ?><tr><th>Quantity</th><th>Price</th></tr>
             <tr><td>1 Gold</td><td align="right">$0.99</td></tr>
             <tr><td>7 Gold</td><td align="right">$4.99</td></tr>
             <tr><td>14 Gold</td><td align="right">$8.99</td></tr>
             <tr><td>21 Gold</td><td align="right">$12.99</td></tr>
             <tr><td>30 Gold</td><td align="right">$17.99</td></tr>
-            <tr><td>100 Gold</td><td align="right">$49.99</td></tr>
-            <tfoot><tr><td colspan="2"><?= $this->lang['gold_p2_3'] ?></td></tr></tfoot>
-            </table></div><br><?php
+            <tr><td>100 Gold</td><td align="right">$49.99</td></tr><?php
+        ?><tfoot><tr><td colspan="2"><?= $this->lang['gold_p2_3'] ?></td></tr></tfoot><?php
+        ?></table></div><br><?php
         //echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
         //echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
         echo "<p>{$this->lang['gold_p2_0']}</p>";
@@ -596,7 +537,7 @@ class Doc extends Page{
             '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" /></a></li>', 
             '<li><a href="/iguide/'.($this->router->isArabic()?'':$this->router->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" /></a></li></ul>';
                 
-        echo '</div></div></div>';
+        ?></div></div></div></div><?php
     }
     
     
@@ -784,28 +725,34 @@ class Doc extends Page{
     }     
     
     
-    private function renderAbout() : void {
-        $this->router->isArabic();
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-        echo '<h2 class=card-title>', /*About Mourjan.com**/ $this->title, '</h2>';
-        echo '<div class=col-12 style="display:block">';  
+    private function docFooter() : void {
+        ?><div class=page-footer><?php
+        ?><div class=sep><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></div><?php
+        ?><div class=col-12 style="flex-flow:row;justify-content:flex-end;padding:0;margin:0;overflow:hidden"><img style="position:relative;top:56px;width:206px;transform:rotateX(180deg);filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="<?=$this->router->config->cssURL?>/1.0/assets/emblem.svg"/></div><?php
+        ?></div><?php
+    }
+    
+    
+    private function renderAbout() : void {        
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:206px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></h2><?php
+        ?><div class=col-12 style="flex-flow:column;color:var(--mdc70)"><?php
         if ($this->router->isArabic()) {
-            ?><p>لقد تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> في عام ٢٠١٠م .</p>
-        <p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات ، كنا نحن فريق العمل  وراء موقع مرجان ( Mourjan.com  ) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p>
-        <p> وعلى الرغم من أن الإعلانات المبوبة على الإنترنت لم تكن شيئًا جديدًا، ومع وجود العديد من مواقع الإعلانات المبوبة، فقد أدركنا أنه لتحقيق النجاح، كان علينا تقديم شيء جديد. لذلك، بدأنا العمل على موقع مرجان باهتمام وكان هدفنا الرئيسي يتمثل في عمل موقع ويب سريع الأداء من خلال محرك بحث عربي يوفر تجربة ممتعة للمستخدمين الذين يبحثون عن شقة للإيجار أو شراء سيارة.</p>
-        <p>في منتصف عام ٢٠١٢م، كان موقع مرجان ( Mourjan.com  ) يخطو بخطى سريعة أسرع من أي وقت مضى، واستجابة لآراء وتعليقات المستخدمين، مكّن الموقع مستخدميه من نشر إعلانات على الإنترنت مجانًا في بلدانهم المختارة مع تبني دائمًا أحدث التقنيات والاتجاهات في تطوير الموقع و وضع مصلحة المستخدمين نصب أعيننا في المقام اﻷول.</p>
-        <p>حاليا، ما زلنا نعمل على تحسين موقع مرجان وتقديم خدمات جديدة وسنستمر على هذا طوال الوقت. كما نعمل على إضافة بعض الخدمات التي نرى أنها مفيدة وغيرها من الخدمات التي قد تطلب منا ببساط من خلال آراء وتعليقات مستخدمين موقع مرجان اﻷعزاء ﻷنهم هم سبب نجاحنا وتقدمنا على مدار هذه اﻷعوام.</p>        
-    <?php
-            
+            ?><p>لقد تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> في عام ٢٠١٠م .</p><?php
+            ?><p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات ، كنا نحن فريق العمل  وراء موقع مرجان ( Mourjan.com  ) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p><?php
+            ?><p> وعلى الرغم من أن الإعلانات المبوبة على الإنترنت لم تكن شيئًا جديدًا، ومع وجود العديد من مواقع الإعلانات المبوبة، فقد أدركنا أنه لتحقيق النجاح، كان علينا تقديم شيء جديد. لذلك، بدأنا العمل على موقع مرجان باهتمام وكان هدفنا الرئيسي يتمثل في عمل موقع ويب سريع الأداء من خلال محرك بحث عربي يوفر تجربة ممتعة للمستخدمين الذين يبحثون عن شقة للإيجار أو شراء سيارة.</p><?php
+            ?><p>في منتصف عام ٢٠١٢م، كان موقع مرجان ( Mourjan.com  ) يخطو بخطى سريعة أسرع من أي وقت مضى، واستجابة لآراء وتعليقات المستخدمين، مكّن الموقع مستخدميه من نشر إعلانات على الإنترنت مجانًا في بلدانهم المختارة مع تبني دائمًا أحدث التقنيات والاتجاهات في تطوير الموقع و وضع مصلحة المستخدمين نصب أعيننا في المقام اﻷول.</p><?php
+            ?><p>حاليا، ما زلنا نعمل على تحسين موقع مرجان وتقديم خدمات جديدة وسنستمر على هذا طوال الوقت. كما نعمل على إضافة بعض الخدمات التي نرى أنها مفيدة وغيرها من الخدمات التي قد تطلب منا ببساط من خلال آراء وتعليقات مستخدمين موقع مرجان اﻷعزاء ﻷنهم هم سبب نجاحنا وتقدمنا على مدار هذه اﻷعوام.</p><?php            
         } 
         else {
-    ?><p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p>
-    <p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind Mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p>
-    <p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p>
-    <p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p>
-    <p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
+            ?><p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p><?php
+            ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind <span>Mourjan.com</span> - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
+            ?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on <span>Mourjan.com</span> with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p><?php
+            ?><p>In mid-2012, <span>mourjan.com</span> was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p><?php
+            ?><p>Currently, we are still working on improving <span>mourjan.com</span> and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
         }
-        echo '</div>';
+        ?></div><?php
         $streetAddress=$this->router->isArabic()?'سنتر دكوانة 1044، الطابق الرابع، السلاف العريض':'4th Floor, Dekwaneh 1044 bldg, New Slav Street';
         $addressLocality=$this->router->isArabic()?'الدكوانة، المتن':'Dekwaneh';
         $comma=$this->router->isArabic()?'، ':', ';
@@ -814,27 +761,34 @@ class Doc extends Page{
         $openingHours=$this->router->isArabic()?'دوام العمل':'Office hours';
         $days=$this->router->isArabic()?'الإثنين الى الجمعة':'Monday to Friday';
         $hours=$this->router->isArabic()?'7:00 ص إلى 3:00 م GMT':'7:00AM to 3:00PM GMT';
-?><div class=col-12 itemscope itemtype="https://schema.org/LocalBusiness">
-    <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress" class="card-footer">
-        <div class="addr float-left"><img itemprop="image" width="130" height="90" src="<?= $this->router->config->cssURL ?>/i/logo<?= $this->router->_jpg ?>" alt="Berysoft logo" /></div>
-        <div class="addr float-left xr-border" style="padding-inline-end:20px;-webkit-padding-end:20px"><b itemprop="name">mourjan.com</b><br>
-            <span itemprop="streetAddress"><?= $streetAddress ?></span><br><span itemprop="addressLocality"><?= $addressLocality ?></span><?= $comma ?><span itemprop="addressCountry"><?= $addressCountry ?></span>
-        </div>
-        <div class="addr float-left xr-border" style="margin: 0 8px;padding-inline-end:20px;-webkit-padding-end:20px">
-            <label><?=$this->lang['labelP1'] ?>&nbsp;/&nbsp;<?=$addressCountry?>:&nbsp;</label><span itemprop="telephone">+961 70 424 018</span><br>
-            <label><?=$this->lang['labelP1'] ?>&nbsp;/&nbsp;<?=$egypt?>:&nbsp;</label>&nbsp;&nbsp;&nbsp;<span itemprop="telephone">+20 109 136 5353</span>
-        </div>
-        <div class="addr float-left" style="margin: 0 8px;">
-        <label><?=$openingHours?>:</label><br><span class="ctr" itemprop="openingHours"><?=$days?><br /><?=$hours?></span>
-        </div>
-    </div>
-</div></div></div><?php 
+        
+        ?><div class="col-12 mt-32" itemscope itemtype="https://schema.org/LocalBusiness"><?php
+        ?><div class="col-4 ff-cols" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/location.svg"/></div><?php
+            ?><div class="addr"><?php
+            ?><span itemprop="streetAddress"><?=$streetAddress?></span><span><span itemprop="addressLocality"><?=$addressLocality?></span><?=$comma?><span itemprop="addressCountry"><?=$addressCountry?></span></span><?php
+            ?></div><?php        
+        ?></div><?php
+
+        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/phone.svg"/></div><?php
+        ?><div class="addr"><span><?=$addressCountry?></span><span class=fw-500 itemprop="telephone">+961 70 424 018</span></div><?php
+        ?><div class="addr"><span><?=$egypt?></span><span class=fw-500 itemprop="telephone">+20 109 136 5353</span></div><?php
+        ?></div><?php
+
+        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/hours.svg"/></div><?php
+            ?><div class="addr"><span class=fw-500><?=$openingHours?></span><span itemprop="openingHours"><?=$days?><br /><?=$hours?></span></div><?php
+        ?></div><?php
+        ?></div><?php
+        
+        ?></div><?php
+        $this->docFooter();
+        ?></div></div><?php
     }
  
     
     private function renderTerms() : void {
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-        echo '<h2 class=card-title>Mourjan Terms of Use</h2>';?>
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        echo '<h2 class=title>Mourjan Terms of Use</h2>';?>
 <h4>Introduction</h4>
 <p>Welcome to www.mourjan.com ("Mourjan"). By accessing Mourjan you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. This policy is effective January 1st, 2012.</p>
 <h4>Using Mourjan</h4>
@@ -883,13 +837,15 @@ General
 <p>Except for notices relating to illegal or infringing content, your notices to us must be sent by registered mail to Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. We will send notices to you via the email address you provide, or by registered mail. Notices sent by registered mail will be deemed received five days following the date of mailing.</p>
 <p>We may update this agreement at any time, with updates taking effect when you next post or 30 days after we post the updated policy on the site, whichever is sooner. No other amendment to this agreement will be effective unless made in writing, signed by users and by us.</p>
                 </div></div>
-        <?php                
+        <?php
+        ?></div><?php
     }
     
     
     private function renderPrivacy() : void {
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
-        echo '<h2 class="card-title">Privacy policy</h2>';?>
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        echo '<h2 class=title>Privacy policy</h2>';?>
 <p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
 <h4>Collection</h4>
 <p>Information posted on Mourjan is obviously publicly available. Our servers are located in Germany and Lebanon. Mourjan will hold and transmit your information in a safe, confidential and secure environment. If you choose to provide us with personal information, you are consenting to the transfer and storage of that information on our servers in Germany and Lebanon. We collect and store the following personal information:</p>
@@ -946,7 +902,7 @@ General
 <h4>General</h4>
 <p>We may update this policy at any time, with updates taking effect when you next post or after 30 days, whichever is sooner. If we or our corporate affiliates are involved in a merger or acquisition, we may share personal information with another company, and this other company shall be entitled to share your personal information with other companies but at all times otherwise respecting your personal information in accordance with this policy.</p>
 <p><b>Privacy Policy updated 4 Oct 2013</b></p><?php
-        echo '</div></div>';
+        ?></div></div></div><?php
     }
 }
 ?>
