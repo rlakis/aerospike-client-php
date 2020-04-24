@@ -3003,9 +3003,45 @@ class Page extends Site {
                 ?>'country': "<?php echo ($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri']:'Global';?>",<?php
                 ?>'city': "<?php echo ($this->router->cityId && isset($this->router->cities[$this->router->cityId]))?$this->router->cities[$this->router->cityId][3]:(($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri'].'all cities':'Global');?>"<?php
             ?>});<?php
-        ?></script><?php
-           
+        ?></script><?php           
         }
+        
+        $module = $this->router->module;
+        if ($module=='search') {
+            if  ($this->router->userId) {
+                $module = 'user_page_'.$this->router->userId;
+            }
+            elseif ($this->userFavorites) {
+                $module = 'favorites';
+            }
+            elseif ($this->router->watchId) {
+                $module = 'watchlist';
+            }
+            elseif($this->router->isPriceList) {
+                $module = 'pricelist';
+            }
+        }
+        
+        $CID = 0;
+        if(isset($_COOKIE['mourjan_user'])){
+            $data = json_decode($_COOKIE['mourjan_user']);
+            if(is_object($data) && isset($data->cv) && $data->cv > 0){
+                $CID = $data->cv;
+            }
+        }
+        
+        ?><script><?php 
+            ?>window.dataLayer = window.dataLayer || [];<?php
+            ?>window.dataLayer.push({'event' : 'dimension_event',<?php
+                ?>'cid': "<?php echo $CID ?>",<?php
+                ?>'module': "<?php echo $module ?>",<?php
+                ?>'root': "<?php echo $this->router->rootId?$this->router->roots[$this->router->rootId][2]:'AnyRoot';?>",<?php
+                ?>'section': "<?php echo ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))?$this->router->sections[$this->router->sectionId][2]:'AnySection'; ?>",<?php
+                ?>'purpose': "<?= $this->router->purposeId  ?>",<?php
+                ?>'country': "<?php echo ($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri']:'Global';?>",<?php
+                ?>'city': "<?php echo ($this->router->cityId && isset($this->router->cities[$this->router->cityId]))?$this->router->cities[$this->router->cityId][3]:(($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri'].'all cities':'Global');?>"<?php
+            ?>});<?php
+        ?></script><?php
         ?><!-- Google Tag Manager --><script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
