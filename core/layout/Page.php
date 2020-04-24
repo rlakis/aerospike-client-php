@@ -746,32 +746,36 @@ class Page extends Site {
         $cityId=$this->user->params['city']??0;
 
         $lang=$this->router->language==='ar'?'':$this->router->language.'/';
-        echo '<div class=title><h5>', $this->lang['mourjan'], '</h5></div>';
+        //echo '<div class=title><h5>', $this->lang['mourjan'], '</h5></div>';
         
-        echo '<ul class=sm>';
-        echo '<li><a href=\'', $this->router->getURL($countryId, $cityId), '\'>', $this->lang['homepage'], '</a></li>';
+        ?><ul><?php
+        //echo '<li><a href=\'', $this->router->getURL($countryId, $cityId), '\'>', $this->lang['homepage'], '</a></li>';
 
         if ($this->router->module==='about')
-            echo '<li class=on><b>', $this->lang['aboutUs'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['aboutUs'], '</b><i></i></li>';
         else
             echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
         if ($this->router->module==='contact')
-            echo '<li class=on><b>', $this->lang['contactUs'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['contactUs'], '</b><i></i></li>';
         else
             echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
         if ($this->router->module==='gold')
-            echo '<li class=on><b>', $this->lang['gold_title'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['gold_title'], '</b><i></i></li>';
         else
             echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
         if ($this->router->module==='privacy')
-            echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b><i></i></li>';
         else
             echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
         if ($this->router->module==='terms')
-            echo '<li class=on><b>', $this->lang['termsConditions'], '</b></li>';
+            echo '<li class=on><b>', $this->lang['termsConditions'], '</b><i></i></li>';
         else
             echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
-        echo "</ul>";
+        if ($this->router->module==='faq')
+            echo '<li class=on><b>', $this->lang['faqhc'], '</b><i></i></li>';
+        else
+            echo '<li><a href=\'/faq/', $lang, '\'>', $this->lang['faqhc'], '</a></li>';
+        ?></ul><?php
     }
 
 
@@ -2794,7 +2798,7 @@ class Page extends Site {
        
         ?><li><a href="<?=$this->router->getLanguagePath('/about/')?>"><span><?=$this->lang['aboutUs']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['contactUs']?></span></a></li><?php
-        ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['faqhc']?></span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/faq/')?>"><span><?=$this->lang['faqhc']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/terms/')?>"><span><?=$this->lang['termsConditions']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
