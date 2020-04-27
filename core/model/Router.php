@@ -158,11 +158,11 @@ class Router extends \Core\Model\Singleton {
         
         if (\filter_has_var(\INPUT_POST, 'mobile')) {
             if ($_POST['mobile']) {
-                $this->isMobile = TRUE;
+                $this->isMobile=true;
                 $_session_params['mobile']=1;
             }
             else {
-                $this->isMobile = false;
+                $this->isMobile=false;
                 $_session_params['mobile']=0;
             }
         }
@@ -342,7 +342,7 @@ class Router extends \Core\Model\Singleton {
                             else {
                                 $this->id=0;
                                 $this->http_status=410;
-                                $this->module = 'notfound';
+                                $this->module='notfound';
                             }
                         }
                         $idx=-1;
@@ -354,7 +354,7 @@ class Router extends \Core\Model\Singleton {
 
                         if ($this->params['start']<1) {
                             $this->http_status=410;
-                            $this->module = 'notfound';
+                            $this->module='notfound';
                         }
                         unset($_args[$idx]);
                         $idx--;
@@ -400,7 +400,7 @@ class Router extends \Core\Model\Singleton {
                     }
                     $_args=$tmp;                    
                     
-                    $this->uri = \implode("/", $_args);
+                    $this->uri=\implode("/", $_args);
                 }
             }
             elseif ($idx>1 && \substr($_args[$idx],0,2)=="c-") {
@@ -456,8 +456,8 @@ class Router extends \Core\Model\Singleton {
             }    
                     
             if (!isset($_session_params['visit'])) {
-                $current_uri = $this->uri;
-                $_SESSION['_u']['params'] = $_session_params;
+                $current_uri=$this->uri;
+                $_SESSION['_u']['params']=$_session_params;
                 $this->setGeoByIp();
                 if ($current_uri!==$this->uri) {                    
                     $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)==='/') ? '':'/' ).($this->language!=='ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
@@ -516,11 +516,7 @@ class Router extends \Core\Model\Singleton {
             $_session_params['lang']=$this->language;
         }
         
-        $_SESSION['_u']['params']=$_session_params;
-        
-        
-        //log(PHP_EOL. $this->uri.PHP_EOL. __CLASS__.'.'.__FUNCTION__."\n".\json_encode($_session_params, JSON_PRETTY_PRINT));
-        //error_error_log('cookie '. json_encode($this->cookie));
+        $_SESSION['_u']['params']=$_session_params;        
     }
         
     
@@ -1033,8 +1029,11 @@ class Router extends \Core\Model\Singleton {
                     if (\strstr($this->uri, '/facebook')) {
                         $this->module='facebook';
                     }
-                    elseif (strstr($this->uri, '/cse')) {
+                    elseif (\strstr($this->uri, '/cse')) {
                         $this->module='cse';
+                    }
+                    elseif (\strstr($this->uri, '/faq')) {
+                        $this->module='faq';
                     }
                     else {
                         if ($this->module==='search' && $this->purposeId===0 && $this->rootId===0 && $this->sectionId===0 && empty($this->params['q']) && $this->params['start']>0) {
@@ -1060,36 +1059,36 @@ class Router extends \Core\Model\Singleton {
         if ($this->http_status==200 && $this->module!='detail' && !$this->force_search) {
             if ($this->module==='search') {
                 if ($this->rootId && isset ($this->pageRoots[$this->rootId])) {
-		    $this->count = $this->pageRoots[$this->rootId]['counter'];
-                    $this->last_modified = $this->pageRoots[$this->rootId]['unixtime'];
+		    $this->count=$this->pageRoots[$this->rootId]['counter'];
+                    $this->last_modified=$this->pageRoots[$this->rootId]['unixtime'];
                     if ($this->purposeId && isset($this->pageRoots[$this->rootId]['purposes'][$this->purposeId])) {
-			$this->count = $this->pageRoots[$this->rootId]['purposes'][$this->purposeId]['counter'];
-                        $this->last_modified = $this->pageRoots[$this->rootId]['purposes'][$this->purposeId]['unixtime'];
+			$this->count=$this->pageRoots[$this->rootId]['purposes'][$this->purposeId]['counter'];
+                        $this->last_modified=$this->pageRoots[$this->rootId]['purposes'][$this->purposeId]['unixtime'];
 		    }
                 }
                 if ($this->sectionId && isset($this->pageSections[$this->sectionId])) {
-		    $this->count = $this->pageSections[$this->sectionId]['counter'];
-                    $this->last_modified = $this->pageSections[$this->sectionId]['unixtime'];
+		    $this->count=$this->pageSections[$this->sectionId]['counter'];
+                    $this->last_modified=$this->pageSections[$this->sectionId]['unixtime'];
                     if ($this->purposeId && isset($this->pageSections[$this->sectionId]['purposes'][$this->purposeId])) {
-			$this->count = $this->pageSections[$this->sectionId]['purposes'][$this->purposeId]['counter'];
-                        $this->last_modified = $this->pageSections[$this->sectionId]['purposes'][$this->purposeId]['unixtime'];
+			$this->count=$this->pageSections[$this->sectionId]['purposes'][$this->purposeId]['counter'];
+                        $this->last_modified=$this->pageSections[$this->sectionId]['purposes'][$this->purposeId]['unixtime'];
 		    }
                 }
             }
-            elseif ($this->module=='index') {
+            elseif ($this->module==='index') {
                 if ($this->countryId && isset ($this->countries[$this->countryId]))
-                    $this->last_modified = $this->countries[$this->countryId]['unixtime'];
+                    $this->last_modified=$this->countries[$this->countryId]['unixtime'];
                 if ($this->cityId && isset ($this->countries[$this->countryId]['cities'][$this->cityId]))
-                    $this->last_modified = $this->countries[$this->countryId]['cities'][$this->cityId]['unixtime'];
+                    $this->last_modified=$this->countries[$this->countryId]['cities'][$this->cityId]['unixtime'];
                 if ($this->rootId && isset($this->pageRoots[$this->rootId]))
-                    $this->last_modified = $this->pageRoots[$this->rootId]['unixtime'];
+                    $this->last_modified=$this->pageRoots[$this->rootId]['unixtime'];
 
             }
         
             $this->cacheHeaders($this->last_modified);
         }
         
-        $this->getCanonicalURL();        
+        $this->getCanonicalURL();
     }
     
     

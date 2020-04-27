@@ -334,6 +334,7 @@ $config=array(
                                 'terms'                 => array('Doc',1),
                                 'privacy'               => array('Doc',1),
                                 'about'                 => array('Doc',1),
+                                'faq'                   => array('Doc',1),
                                 'blocked'               => array('Blocked',1),
                                 'publication-prices'    => array('Doc',1),
                                 'advertise'             => array('Doc',1),

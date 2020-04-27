@@ -602,7 +602,7 @@ $lang=array(
     . '<p>&bull;&nbsp;Finally, premium ads have a <b>premium ad</b> <span class="vpdi en"></span> label which reflects more credibility to the ad listing.</p>',
     'back_to_gold'      =>  'Back To Mourjan Gold',
     'gold_p2'       =>  'One Mourjan gold <i class="icn icnsmall icn-coin"></i> is equal to one day of premium ad listing. click on <a href="/premium/en/">premium ad</a> to find out more about premium listing service.',
-    'gold_p2_0'       =>  '<b>Also please note</b> that if for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<div class="listnote"><p>&bull;&nbsp;the specified 10 days have expired</p><p>&bull;&nbsp;you have 0 gold left in your balance</p><p>&bull;&nbsp;you chose to end the premium listing</p><p>&bull;&nbsp;you chose to stop the ad</p></div>',
+    'gold_p2_0'       =>  'If, for example you choose to make your ad premium for 10 days for the value of 10 gold, the 10 gold will not be instantly deducted from your balance. Instead 1 gold will be deducted on daily basis for each new day of premium listing until:<div class="listnote mb-64"><p>&bull;&nbsp;the specified 10 days have expired</p><p>&bull;&nbsp;you have 0 gold left in your balance</p><p>&bull;&nbsp;you chose to end the premium listing</p><p>&bull;&nbsp;you chose to stop the ad</p></div>',
     'gold_p2_1'       =>  'Pricing for Mourjan gold packages are as follows:',
     'gold_p2_2'       =>  '<li><ul><li>1 Gold</li><li class="ctr">=</li><li>1 USD</li></ul></li>'
     . '<li><ul><li>7 Gold</li><li class="ctr">=</li><li>5 USD</li></ul></li>'
@@ -611,8 +611,9 @@ $lang=array(
     . '<li><ul><li>30 Gold</li><li class="ctr">=</li><li>18 USD</li></ul></li>'
     . '<li><ul><li>100 Gold</li><li class="ctr">=</li><li>50 USD</li></ul></li>',
     'gold_p2_3'     => '<b>nb: prices are in US dollar and may be subject to VAT (value added tax)</b>',
-    'gold_p2_5_0'   => 'Mourjan gold can be purchased directly using your credit card. Click on the cards to choose/purchase the package that is best suitable for you or keep on reading to find out other payment options.<div class="btH"><a href="/buyu/en/"><span class="credits"><i class="icn visa"></i><i class="icn mc"></i></span></a></div>',
-    'gold_p2_5'     => 'Also, Mourjan gold can be purchased using <a href="https://www.paypal.com/" target="_blank"><img width=100 height=26 class="ick" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png" alt="PayPal" /></a>',// OR <a href="https://sandbox.cashu.com/" target="_blank"><img class="ick" src="https://images.cashu.com/images/cashULogo/en/92-54.jpg" border="0" width="92" height="54" ></a>',
+    'gold_p2_5_0'   => 'Mourjan gold can be purchased directly using your credit card. Click on the cards to choose/purchase the package that is best suitable for you or keep on reading to find out other payment options.<div class="btH"><a href="/buyu/en/"><span class="credit-cards"></span></a></div>',
+    'gold_p2_5'     => 'Also, Mourjan gold can be purchased using <a href="https://www.paypal.com/" target="_blank"><img width=100 height=26 class="ick" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_100x26.png" alt="PayPal" /></a>',
+    
     'gold_p2_6'     => 'If you have a <b>PayPal</b> account and would like to purchase gold now, click on the suitable button below or continue reading for alternatives',
     'gold_p2_6_m'       =>  'If you have a <b>PayPal</b> account and would like to purchase gold now, click on the button below',
     'gold_p2_4'       =>  'As an alternative, mourjan gold can be purchased through mourjan app for <b>Apple</b> and <b>android</b>. If you do not have mourjan app yet and would like to download it, go to the <b>Google Play Store</b> or the <b>Apple App Store</b> from within your mobile and search for <b>mourjan</b> or click on one of the images below to go directly to the app page:',

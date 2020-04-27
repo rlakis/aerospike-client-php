@@ -169,6 +169,11 @@ footer .addr {
   clear: both;
   display: table
 }
+.tel{
+    unicode-bidi: plaintext;
+    text-align: match-parent;
+    text-align: -webkit-match-parent;
+}
 .w100{
     width: 100%;
 }
@@ -385,7 +390,7 @@ footer .addr {
 .search {
   display: inline-flex;
   width: 100%;
-  border: 1px solid rgba(0,122,255,.4);
+  border: 1px solid rgba(0,122,255,.2);
   border-radius: 5px;
   max-width: 1024px;
   margin: 36px 0
@@ -403,19 +408,22 @@ footer .addr {
   padding-inline-start: 20px;
   height: 56px!important;
   outline: 0;
-  color: var(--midnight);
+  color: var(--mdc50);
   font-size: 1em;
+  font-weight: 300;
   -webkit-appearance: none;
   font-family: inherit
 }
+
 .searchTerm:focus {
-  color: var(--mourjanC)
+  color: var(--mdc70)
 }
+
 .searchButton {
   width: 84px;
   height: 56px;
   border: 0;
-  border-left: 1px solid rgba(0,122,255,.4);
+  border-left: 1px solid rgba(0,122,255,.2);
   border-radius: 0 5px 5px 0;
   background: var(--mourjanC);
   cursor: pointer;
@@ -474,13 +482,13 @@ footer .addr {
   align-items: center;
   justify-content: space-between;
   padding: 0 8px;
-  font-size: 14pt;
+  font-size: 16px;
   font-weight: 700;
   color: var(--mdc70);
   height: 56px;
   line-height: 36px;
   cursor: pointer;
-  border-inline-end: 1px solid rgba(0,122,255,.4)
+  border-inline-end: 1px solid rgba(0,122,255,.2)
 }
 .strg > * {
   margin: 0 12px
@@ -618,13 +626,13 @@ footer .addr {
   margin:0;
   height:auto;
   overflow: hidden;
-  justify-content: space-between
+  justify-content: space-around
 }
 .mhbanner img {
   position: relative;
-  height: 176px;
-  top: -28px;
-  filter: invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);
+  height:250px;
+  top: -8px;
+  object-fit: cover;
   display: inline-flex
 }
 
@@ -706,6 +714,40 @@ body[dir=rtl] .mhbanner .p1 .um {
   font-weight: 400
 }
 
+
+.premium-banner {
+    display: inherit;
+    flex: 1;
+    padding: 6px 0 0;
+    line-height:1.8em;
+    align-items:center;
+    justify-content: center;
+    background-color: #fff
+}
+.premium-banner .vbar {
+    width: 2px;
+    height: 50%;
+    margin: 0 24px;
+    background: var(--mdc30);
+}
+.premium-banner div {
+    display: inherit;
+    flex-direction: column;
+}
+.premium-banner div span:first-child{
+    font-weight: 700;
+    font-size: 20px;
+}
+.premium-banner div span:last-child{
+    font-weight: 400;
+    font-size: 18px;
+}
+.premium-banner div span:last-child a {
+    color:inherit;
+    text-decoration: underline;
+    font-weight: 500;
+    margin-inline-start:16px;
+}
 .card.regions {
   font-size: 14px;
   margin: 0;

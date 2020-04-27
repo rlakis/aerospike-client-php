@@ -427,8 +427,8 @@ class Page extends Site {
                     }
                 ?></ul><?php
             ?></div><?php
-        }elseif( (!$this->userFavorites && !$this->router->watchId && !in_array ($this->router->module,array('myads','account','post','profile','signin','password'))) 
-                || ($this->pageUserId)){
+        }
+        elseif( (!$this->userFavorites && !$this->router->watchId && !in_array($this->router->module,array('myads','account','post','profile','signin','password'))) || ($this->pageUserId)) {
             ?><div class='lgb <?= $this->router->module ?>'><?php
                 ?><a class='h' href="/signin/<?= $lang ?>" onclick="tglLG(this)"><span class='i sn'></span><?= $this->lang['signin'] ?></a><?php
                 /* ?><div class='h' onclick="tglLG(this)"><span class='i sn'></span><?= $this->lang['signin'] ?></div><?php
@@ -509,10 +509,10 @@ class Page extends Site {
         $type = pathinfo($qrfile, PATHINFO_EXTENSION);
         $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);                
         
-        ?><div class="card card-doc"><?php
+        ?><div class="card doc"><?php
         ?><div class=title><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
-        ?><form method=post action="<?= $this->router->getLanguagePath('/a/') ?>" onsubmit="lgi(this);return false;"><?php 
-        ?><div class="card-content"><?php
+        ?><div class="content"><?php
+        ?><form style="width:100%;" method=post action="<?=$this->router->getLanguagePath('/a/')?>"><?php 
         ?><br><div class=group><input class=en name=u type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div><?php
         ?><div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div><?php
         ?><label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label><?php
@@ -520,19 +520,16 @@ class Page extends Site {
             ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error'] ?></span></p><?php                    
         }
         $uri=$this->router->uri;
-        \error_log($uri);
         if (\preg_match('/signin/', $this->router->uri)) {
             $uri=$this->router->getLanguagePath('/myads/');
-        }
-        \error_log($uri);
-        ?><div class=group style="margin:0"><input name=r type=hidden value="<?=$uri?>" /><i class="icn icn-sign-in"></i><input type=submit class=btn value="<?= $this->lang['signin'] ?>" /></div><?php            
-          
+        }        
+        ?><div class=group style="margin:0"><input name=r type=hidden value="<?=$uri?>" /><i class="icn icn-sign-in"></i><input type=submit class=btn value="<?= $this->lang['signin'] ?>" /></div><?php                      
         echo '<div class=group style="margin:0"><a class=btn href="', $this->router->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
         ?><p><a class=lnk href="<?= $this->router->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p><?php
-        ?></div></form></div><?php
+        ?></form></div></div><?php
         
-        ?><div class="card card-doc"><div class=title><h5><?= $this->lang['signin_m'] ?></h5></div><?php
-        ?><div class=card-content><?php            
+        ?><div class="card doc"><div class=title><h5><?= $this->lang['signin_m'] ?></h5></div><?php
+        ?><div class=content><?php            
         ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook">Facebook<i class="icn icn-facebook"></i></a><?php
         ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google">Google<i class="icn icn-google"></i></a><?php
         ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
@@ -542,17 +539,18 @@ class Page extends Site {
         ?></div></div><?php
         
         
-        echo '<div class="card card-doc"><div class=title><h5>Mourjan iPhone App</h5></div>';
-        echo '<div class=card-content style="text-align:center; padding:36px 0">', '<img width=200 height=200 src="', $base64, '" />';
-        echo '<p style="padding-top:30px;><span class="bt scan"><span class=apple></span><span class="apple up"></span> ', 
+        echo '<div class="card doc"><div class=title><h5>Mourjan iPhone App</h5></div>';
+        echo '<div class=content><img width=200 height=200 src="', $base64, '" />';
+        echo '<p style="padding-top:30px;color:var(--mdc70);font-weight:500"><span class="bt scan"><span class=apple></span><span class="apple up"></span> ', 
             $this->lang['hint_login_signin'],
             ' <span class="apple up"></span><span class=apple></span></span></p>';        
-        echo '</div></div>';
+        echo '</div></div>';        
+                
+        ?></div></div><?php
+        // close signin div
         
-        echo '</div></div>'; // close signin div
-        
-        ?><div class="row viewable"><div class=col-12><div class="card card-doc"><div class=card-title><h4><?= $this->lang['NB'] ?></h4></div><?php 
-        ?><div class=card-content><p>&bull;&nbsp;<?=$this->lang['disclaimer']?></p><p>&bull;&nbsp;<?= $this->lang['disclaimer_social'] ?></p></div><?php
+        ?><div class="row viewable"><div class=col-12><div class="card" style="color:var(--mdc70)"><h4 style="display:flex;align-items:center;font-size:36px;margin:0; margin-inline-start:24px;margin-block-start:12px"><img style="width:100px;margin:24px" src="<?= $this->router->config->cssURL?>/1.0/assets/notice.svg" /><?=$this->lang['NB']?></h4><?php 
+        ?><div style="position:relative;top:-42px;margin-inline-start:172px;margin-inline-end:64px;line-height: 1.5em;font-weight:300;font-size:20px"><p><?=$this->lang['disclaimer']?></p><p><?= $this->lang['disclaimer_social'] ?></p></div><?php
         ?></div></div></div><?php                         
                                
         $this->requireLogin=true;
@@ -2733,7 +2731,7 @@ class Page extends Site {
             'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتــــــــــــــك', 'en'=>'YOUR SERVICES'],
             ];
         $ln=$this->router->language;
-        ?><div class="row ff-cols viewable"><div class="col-12 mhbanner"><img src="<?=$this->router->config->imgURL?>/emblem.svg" /><?php
+        ?><div class="row ff-cols viewable"><div class="col-12 mhbanner"><img src="<?=$this->router->config->imgURL?>/grid.svg" /><?php
         ?><div><div class=p1><div><span class=um><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div><?php
         if ($ln==='ar') {
             ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php                        
@@ -2751,14 +2749,14 @@ class Page extends Site {
         }
         
         // premuim promotion
-        ?><div class=row><div class=col-12 style="background-color:white;height:90px;align-items:center;justify-content:center;line-height:1.8em"><?php
-            ?><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>.svg" width=284 /><?php
-            ?><span style="height:43px;width:2px;background-color:var(--mColor03);margin:0 24px"></span><?php
-            ?><div style="color:var(--mColor03);"><?php
-            ?><span style="font-size:20pt;font-weight:bold"><?=$this->lang['go_premium']?>!</span><br><?php
-            ?><span style="font-size:16pt;"><?=$this->lang['gold_note']?>.&nbsp;&nbsp;<a href=<?=$this->router->getLanguagePath('/gold/')?>><?=$this->lang['learn_more']?></a></span><?php
-            ?></div><?php
-        ?></div></div><?php
+        if ($this->user->isLoggedIn()) {
+            ?><div class=row><div class=premium-banner><?php
+                ?><a href=<?=$this->router->getLanguagePath('/gold/')?>><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>-v1.svg" width=284 /></a><?php
+                ?><span class=vbar></span><?php
+                ?><div><span><?=$this->lang['go_premium']?>!</span><span><?=$this->lang['gold_note']?>.<a href=<?=$this->router->getLanguagePath('/gold/')?>><?=$this->lang['learn_more']?></a></span><?php
+                ?></div><?php
+            ?></div></div><?php
+        }
         
                
         $scn=$this->supportedCountries();
@@ -2772,7 +2770,7 @@ class Page extends Site {
         
         echo '</main>';
         
-        ?><footer class=row><div class="viewable ff-rows"><?php
+        ?><footer class="row ha-center"><div class="viewable ff-rows"><?php
         ?><div class="col-4 ff-cols"><?php
         ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200 /><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->

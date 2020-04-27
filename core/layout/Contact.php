@@ -80,9 +80,9 @@ class Contact extends Page {
         ?><div class=col-10><div class="card doc"><div class=view style="color:var(--mdc70)"><?php
         ?><h2 class=title>Drop us a line!</h2><?php
         // $this->lang['header']
-        ?><p class="fw-300" style="font-size:23px;line-height:1.5em">Have a question? Feedback? Haven't found what you've been looking for? Let us know...</p><div><?php
+        ?><p class="fw-300" style="font-size:23px;line-height:1.5em;margin-top:-40px">Have a question? Feedback? Haven't found what you've been looking for? Let us know...</p><div><?php
         ?><form class="mb-32" onsubmit="vf(this);return false;"><?php
-        ?><div class=row><div class=group>
+        ?><div class=row style="margin-top:24px"><div class=group>
             <input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
                 echo '<label>', $this->lang['hint_name'], '</label>';

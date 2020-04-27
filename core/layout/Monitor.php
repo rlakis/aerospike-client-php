@@ -71,16 +71,17 @@ class Monitor extends Page {
         });
         $keys = array_keys($tasks);
         asort($keys);
+        ?><style>table{direction:ltr;width:100%;margin-top:40px;margin-bottom:60px} tr{height:42px;} th,td{padding: 15px} td,th{border-bottom: 1px solid var(--mdc30)}</style><?php
         ?><div class="row viewable"><?php
-        ?><table style="direction:ltr;width:100%;margin-top:40px;margin-bottom:60px"><?php
-        echo '<tr><th>Task</th><th>host/sid</th><th>datetime</th><th>status</th><th>success</th><th>failure</th><th>message</th><th>since</th></tr>';
+        ?><table><?php
+        echo '<tr><th align=left>Task</th><th align=left>host/sid</th><th align=left>datetime</th><th align=left>status</th><th align=right>success</th><th align=right>failure</th><th align=left>message</th><th>since</th></tr>';
         
         foreach ($keys as $key) {                        
             $bins=$tasks[$key];
             
             $since=$this->formatSinceDate($bins['last_completed']);
-            $success = isset($bins['success']) ? $bins['success'] : '-';
-            $failure = isset($bins['failure']) ? $bins['failure'] : '-';
+            $success = isset($bins['success']) ? number_format($bins['success']) : '-';
+            $failure = isset($bins['failure']) ? number_format($bins['failure']) : '-';
             
             echo '<tr><td>', $bins['task'], '</td>';
             echo '<td class="ctr">', $bins['host'],'/', $bins['server_id'],'</td>';

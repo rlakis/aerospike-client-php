@@ -82,11 +82,6 @@ class Doc extends Page{
             $this->lang['title']        = 'About Mourjan.com';
             $this->lang['description']  = 'Mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
         }
-        //elseif ($this->router->module=='publication-prices') {
-        //    $this->load_lang(array('pricing'));
-        //    $this->title=$this->lang['header'];
-        //    $this->lang['description']=  $this->lang['desc'];
-        //}
         elseif($this->router->module==='advertise'){ 
             if ($this->router->isArabic()) {
                 $this->title='أعلن مع مرجان';
@@ -113,8 +108,7 @@ class Doc extends Page{
     }
     
     
-    function header() : void {        
-       
+    function header() : void {       
         parent::header();
     }
 
@@ -489,7 +483,11 @@ class Doc extends Page{
             case 'privacy':
                 $this->renderPrivacy();
                 break;
-                        
+                       
+            case 'faq':
+                $this->renderFAQ();
+                break;
+            
             default:
                 break;
         }
@@ -499,45 +497,77 @@ class Doc extends Page{
     
     
     private function renderGold() : void {
+        ?><script>
+function chapter(n) {
+    let chapter=document.querySelector('div#chapter'+n);
+    let li=chapter.closest('li');
+    li.classList.toggle('open');
+    //li.querySelector('span').classList.toggle('t90');
+    //chapter.classList.toggle('open');
+}
+</script><?php
+
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         
-        ?><div class=col-10><div class="card doc"><div class="view"><?php
-        ?><h2 class=title>Everything<br>you need to know about</h2><?php
+        ?><div class=col-10><div class="card doc"><div class="view" style="min-height:600px"><?php
+        ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:348px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
                 
         $imgPath=$this->router->config->imgURL.'/presentation2/';
                 
         ?><div class="col-12 ff-cols"><?php
+        ?><ul class=menu><?php
+        
+        ?><li><a href="javascript:chapter(1)">How it works<span class=disclosure>›</span></a><?php
+        ?><div id="chapter1"><?php
         ?><p><?=$this->lang['gold_p2']?></p><?php
-        //echo '<p class="pad alt rc">', $this->lang['gold_p2_1'], '</p>';
-        ?><div class=col-12><table class="col-6 pricelist block"><caption><?=$this->lang['gold_p2_1']?></caption><?php
-        ?><tr><th>Quantity</th><th>Price</th></tr>
-            <tr><td>1 Gold</td><td align="right">$0.99</td></tr>
-            <tr><td>7 Gold</td><td align="right">$4.99</td></tr>
-            <tr><td>14 Gold</td><td align="right">$8.99</td></tr>
-            <tr><td>21 Gold</td><td align="right">$12.99</td></tr>
-            <tr><td>30 Gold</td><td align="right">$17.99</td></tr>
-            <tr><td>100 Gold</td><td align="right">$49.99</td></tr><?php
-        ?><tfoot><tr><td colspan="2"><?= $this->lang['gold_p2_3'] ?></td></tr></tfoot><?php
-        ?></table></div><br><?php
-        //echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
-        //echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
+        ?><table><caption>PACKAGES</caption><?php
+        ?><tr><th>Quantity<br><small class="small">1 PREMIUM/day</small></th><th><small class="small">*</small>Price<br><small class="small">USD</small></th></tr><?php
+        ?><tr><td>1</td><td>$0.99</td></tr><?php
+        ?><tr><td>7</td><td>$4.99</td></tr><?php
+        ?><tr><td>14</td><td>$8.99</td></tr><?php
+        ?><tr><td>21</td><td>$12.99</td></tr><?php
+        ?><tr><td>30</td><td>$17.99</td></tr><?php
+        ?><tr><td>100</td><td>$49.99</td></tr><?php
+        ?></table><?php
+        ?><p class="tfoot">*Prices are in US dollar and may be subject to VAT (value added tax)</p><?php
         echo "<p>{$this->lang['gold_p2_0']}</p>";
-        echo '<hr><h4 id=how-to>', $this->lang['buy_gold'], '</h4>';
+        ?></div></li><?php
+        
+        
+        ?><li><a href="javascript:chapter(2)">How to buy it<span class=disclosure>›</span></a><?php
+        ?><div id="chapter2"><?php
         echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
         echo "<p>{$this->lang['gold_p2_5']}</p>";
         echo "<p>".$this->lang['gold_p2_6'.($this->router->isMobile ? '_m':'')]."</p>";
-        ?><div class="btH"><a href="<?= $this->router->getLanguagePath('/buy') ?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a></div><br /><?php 
-        ?><div class="btH"><a href="<?= $this->router->getLanguagePath('/buy') ?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a></div><br /><?php 
-
+        ?><div class="btH"><php
+        ?><a href="<?=$this->router->getLanguagePath('/buy')?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a><br /><?php 
+        ?><a href="<?=$this->router->getLanguagePath('/buy')?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a><br /><?php 
+        ?></div><?php
+        //echo '<p>', $this->lang['buy_gold_0'], '</p>';
         echo '<p>', $this->lang['gold_p2_4'], '</p>';
-        echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class="android"></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class="ios"></span></a></li></ul>';
-        echo '<br><h4>', $this->lang['buy_gold_0'], '</h4>';
+        echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a></li></ul>';
+        ?></div></li><?php
+        
+        
+        ?><li><a href="javascript:chapter(3)">Why premium ads matter<span class=disclosure>›</span></a><div id="chapter3"></div></li><?php
+        ?></ul><?php
+        
+        //echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
+        //echo "<p class='pad alt rc'>{$this->lang['gold_p2_3']}</p>";
+        //echo '<hr><h4 id=how-to>', $this->lang['buy_gold'], '</h4>';
+        
+        
+        
+
+        /*
         echo "<p>{$this->lang['buy_gold_1']}</p>";
         echo '<ul class="alinks"><li><a href="'. $this->router->getLanguagePath('/guide/') .'">', 
             '<img width=119 height=230 src="'.$imgPath.'guide'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" /></a></li>', 
             '<li><a href="/iguide/'.($this->router->isArabic()?'':$this->router->language.'/' ).'"><img width=119 height=230 src="'.$imgPath.'iguide'.($this->router->isArabic()?'-ar':'').$this->router->_jpg.'" /></a></li></ul>';
-                
-        ?></div></div></div></div><?php
+        */        
+        ?></div></div><?php
+        $this->docFooter();
+        ?></div></div><?php
     }
     
     
@@ -733,7 +763,8 @@ class Doc extends Page{
     }
     
     
-    private function renderAbout() : void {        
+    private function renderAbout() : void {
+        $ar=$this->router->isArabic();
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         ?><div class=col-10><div class="card doc"><div class="view"><?php
         ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:206px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></h2><?php
@@ -746,14 +777,23 @@ class Doc extends Page{
             ?><p>حاليا، ما زلنا نعمل على تحسين موقع مرجان وتقديم خدمات جديدة وسنستمر على هذا طوال الوقت. كما نعمل على إضافة بعض الخدمات التي نرى أنها مفيدة وغيرها من الخدمات التي قد تطلب منا ببساط من خلال آراء وتعليقات مستخدمين موقع مرجان اﻷعزاء ﻷنهم هم سبب نجاحنا وتقدمنا على مدار هذه اﻷعوام.</p><?php            
         } 
         else {
+            /*
             ?><p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p><?php
             ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind <span>Mourjan.com</span> - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
             ?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on <span>Mourjan.com</span> with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p><?php
             ?><p>In mid-2012, <span>mourjan.com</span> was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p><?php
             ?><p>Currently, we are still working on improving <span>mourjan.com</span> and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
+             * */            
+            ?><p>In 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span>, owned and managed by Mourjan Classifieds FZ-LLC, was founded.</p><?php 
+            ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
+            ?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p><?php
+            ?><p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedback, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p><?php
+            ?><p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p><?php 
+    
         }
         ?></div><?php
-        $streetAddress=$this->router->isArabic()?'سنتر دكوانة 1044، الطابق الرابع، السلاف العريض':'4th Floor, Dekwaneh 1044 bldg, New Slav Street';
+        
+        $streetAddress=$ar?'سنتر دكوانة 1044، الطابق الرابع، السلاف العريض':'4th Floor, Dekwaneh 1044 bldg, New Slav Street';
         $addressLocality=$this->router->isArabic()?'الدكوانة، المتن':'Dekwaneh';
         $comma=$this->router->isArabic()?'، ':', ';
         $addressCountry=$this->router->isArabic()?'لبنان':'Lebanon';
@@ -764,14 +804,18 @@ class Doc extends Page{
         
         ?><div class="col-12 mt-32" itemscope itemtype="https://schema.org/LocalBusiness"><?php
         ?><div class="col-4 ff-cols" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/location.svg"/></div><?php
-            ?><div class="addr"><?php
+            ?><div class=addr><?php
+            ?><span itemprop="streetAddress"><?=$ar?'مركز الاعمال راكز':'Business Center RAKEZ'?></span><span><span itemprop="addressLocality"><?=$ar?'رأس الخيمة':'Ras Al Khaimah'?></span><br><span itemprop="addressCountry"><?=$ar?'الامارات العربية المتحدة':'United Arab Emirates'?></span></span><?php
+            ?></div><?php        
+            ?><div class=addr><?php
             ?><span itemprop="streetAddress"><?=$streetAddress?></span><span><span itemprop="addressLocality"><?=$addressLocality?></span><?=$comma?><span itemprop="addressCountry"><?=$addressCountry?></span></span><?php
             ?></div><?php        
         ?></div><?php
 
         ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/phone.svg"/></div><?php
-        ?><div class="addr"><span><?=$addressCountry?></span><span class=fw-500 itemprop="telephone">+961 70 424 018</span></div><?php
-        ?><div class="addr"><span><?=$egypt?></span><span class=fw-500 itemprop="telephone">+20 109 136 5353</span></div><?php
+        ?><div class="addr"><span><?=$ar?'الامارات العربية المتحدة':'United Arab Emirates'?></span><span class="fw-500 tel" itemprop="telephone">+971 7 204 8438</span></div><?php
+        ?><div class="addr"><span><?=$addressCountry?></span><span class="tel fw-500" itemprop="telephone">+961 70 424 018</span></div><?php
+        ?><div class="addr"><span><?=$egypt?></span><span class="tel fw-500" itemprop="telephone">+20 109 136 5353</span></div><?php
         ?></div><?php
 
         ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/hours.svg"/></div><?php
@@ -786,122 +830,160 @@ class Doc extends Page{
  
     
     private function renderTerms() : void {
+        ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
+        
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         ?><div class=col-10><div class="card doc"><div class="view"><?php
-        echo '<h2 class=title>Mourjan Terms of Use</h2>';?>
-<h4>Introduction</h4>
-<p>Welcome to www.mourjan.com ("Mourjan"). By accessing Mourjan you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. This policy is effective January 1st, 2012.</p>
-<h4>Using Mourjan</h4>
-<p>As a condition of your use of Mourjan you agree that you will not:</p>
-<div>
-    <p>-&nbsp;violate any laws;</p>
-    <p>-&nbsp;violate the Posting Rules;</p>
-    <p>-&nbsp;post any threatening, abusive, defamatory, obscene or indecent material;</p>
-    <p>-&nbsp;be false or misleading;</p>
-    <p>-&nbsp;infringe any third-party right;</p>
-    <p>-&nbsp;distribute or contain spam, chain letters, or pyramid schemes;</p>
-    <p>-&nbsp;distribute viruses or any other technologies that may harm Mourjan or the interests or property of Mourjan users;</p>
-    <p>-&nbsp;impose an unreasonable load on our infrastructure or interfere with the proper working of Mourjan;</p>
-    <p>-&nbsp;copy, modify, or distribute any other person's content without their consent;</p>
-    <p>-&nbsp;use any robot spider, scraper or other automated means to access Mourjan and collect content for any purpose without our express written permission;</p>
-    <p>-&nbsp;harvest or otherwise collect information about others, including email addresses, without their consent;</p>
-    <p>-&nbsp;bypass measures used to prevent or restrict access to Mourjan.</p>
-</div>
+        echo '<h2 class=title>Mourjan Terms of Use</h2>';
+                    
+?><h3>Introduction</h3>
+<p>Welcome to www.mourjan.com ("Mourjan"). By accessing Mourjan you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209. This policy is effective January 1st, 2012.</p><?php
+?><h3>Using Mourjan</h3><?php
+?><p>As a condition of your use of Mourjan you agree that you will not:</p><?php
+?><ul class=ul>
+    <li>violate any laws;</li>
+    <li>violate the Posting Rules;</li>
+    <li>post any threatening, abusive, defamatory, obscene or indecent material;</li>
+    <li>be false or misleading;</li>
+    <li>infringe any third-party right;</li>
+    <li>distribute or contain spam, chain letters, or pyramid schemes;</li>
+    <li>distribute viruses or any other technologies that may harm Mourjan or the interests or property of Mourjan users;</li>
+    <li>impose an unreasonable load on our infrastructure or interfere with the proper working of Mourjan;</li>
+    <li>copy, modify, or distribute any other person's content without their consent;</li>
+    <li>use any robot spider, scraper or other automated means to access Mourjan and collect content for any purpose without our express written permission;</li>
+    <li>harvest or otherwise collect information about others, including email addresses, without their consent;</li>
+    <li>bypass measures used to prevent or restrict access to Mourjan.</li>
+</ul>
 <p>You are solely responsible for all information that you submit to Mourjan and any consequences that may result from your post. We reserve the right at our discretion to refuse or delete content that we believe is inappropriate or breaching the above terms. We also reserve the right at our discretion to restrict a user's usage of the site either temporarily or permanently, or refuse a user's registration.</p>
-<h4>Abusing Mourjan</h4>
-<p>Mourjan and the Mourjan community work together to keep the site working properly and the community safe. Please report problems, offensive content and policy breaches to us using the reporting system.</p>
+<h3>Abusing Mourjan</h3>
+<p>Mourjan and the Mourjan community work together to keep the site working properly and the community safe. Please report problems, offensive content and policy breaches to us using the reporting system.</p>
 <p>Without limiting other remedies, we may issue warnings, limit or terminate our service, remove hosted content and take technical and legal steps to keep users off Mourjan if we think that they are creating problems or acting inconsistently with the letter or spirit of our policies. However, whether we decide to take any of these steps, remove hosted content or keep a user off Mourjan or not, we do not accept any liability for monitoring Mourjan or for unauthorized or unlawful content on Mourjan or use of Mourjan by users.</p>
-<h4>Global Marketplace</h4>
+<h3>Global Marketplace</h3>
 <p>Some of Mourjan's features may display your ad on other sites such search engines or our classifieds sites in other countries. By using Mourjan, you agree that your ads can be displayed on these other sites. The terms for our other sites are similar to these terms, but you may be subject to additional laws or other restrictions in the countries where your ad is posted. When you choose to post your ad on another site, you may be responsible for ensuring that it does not violate our other site policies. We may remove your ad if it is reported on any our sites, or if we believe it causes problems or violates any law or policy.</p>
-<h4>Fees and Services</h4>
+<h3>Fees and Services</h3>
 <p>Using Mourjan is generally free, but we sometimes charge a fee for certain services. If the service you use incurs a fee, you'll be able to review and accept terms that will be clearly disclosed at the time you post your ad. Our fees are quoted in your local currency and/or US Dollar, and we may change them from time to time. We'll notify you of changes to our fee policy by posting such changes on the site. We may choose to temporarily change our fees for promotional events or new services; these changes are effective when we announce the promotional event or new service.</p>
 <p>Our fees are non-refundable, and you are responsible for paying them when they're due. If you don't, we may limit your ability to use the services. If your payment method fails or your account is past due, we may collect fees owed using other collection mechanisms.</p>
-<h4>Content</h4>
-<p>Mourjan contains content from us, you, other users, and other classifieds publications affiliates. Mourjan is protected by copyright laws and international treaties. Content displayed on or via Mourjan is protected as a collective work and/or compilation, pursuant to copyrights laws and international conventions. You agree not to copy, distribute or modify content from Mourjan without our express written consent. You may not disassemble or decompile, reverse engineer or otherwise attempt to discover any source code contained in Mourjan. Without limiting the foregoing, you agree not to reproduce, copy, sell, resell, or exploit for any purposes any aspect of Mourjan (other than your own content). When you give us content, you are granting us and representing that you have the right to grant us, a non-exclusive, worldwide, perpetual, irrevocable, royalty-free, sub-licensable right to exercise the copyright, publicity, and database rights to that content.</p>
-<h4>Infringement</h4>
+<h3>Content</h3>
+<p>Mourjan contains content from us, you, and other users. Mourjan is protected by copyright laws and international treaties. Content displayed on or via Mourjan is protected as a collective work and/or compilation, pursuant to copyrights laws and international conventions. You agree not to copy, distribute or modify content from Mourjan without our express written consent. You may not disassemble or decompile, reverse engineer or otherwise attempt to discover any source code contained in Mourjan. Without limiting the foregoing, you agree not to reproduce, copy, sell, resell, or exploit for any purposes any aspect of Mourjan (other than your own content). When you give us content, you are granting us and representing that you have the right to grant us, a non-exclusive, worldwide, perpetual, irrevocable, royalty-free, sub-licensable right to exercise the copyright, publicity, and database rights to that content.</p><?php
+
+?><p>By using Mourjan and any of it's paid services, you acknowledge that:</p><?php
+?><ul class=ul>
+    <li>Your age is 18 or above.</li>
+    <li>If you make a payment for our products or services on our website, the details you are asked to submit will be provided directly to our payment provider via a secured connection.</li>
+    <li>The cardholder must retain a copy of transaction records and Merchant policies and rules.</li>
+    <li>We accept payments online using Visa and MasterCard credit/debit card in AED (or any other agreed currencies).</li>
+    <li>Multiple transactions may result in multiple postings to the cardholder’s monthly statement.</li>
+    <li>Mourjan will NOT deal or provide any services or products to any of OFAC (Office of Foreign Assets Control) sanctions countries in accordance with the law of United Arab Emirates.</li>
+</ul><?php
+
+?><h3>Infringement</h3>
 <p>Do not post content that infringes the rights of third parties, This includes, but is not limited to, content that infringes on intellectual property rights such as copyright and trademark (e.g. offering counterfeit items for sale). A large number of very varied products are offered on Mourjan by private individuals. Entitled parties, in particular the owners of copyright, trademark rights or other rights owned by third parties can report any offers which many infringe on their rights, and submit a request for this offer to be removed. If a legal representative of the entitled party reports this to us in the correct manner, products infringing on the intellectual property rights will be removed by Mourjan.</p>
-<h4>Liability</h4>
+<h3>Liability</h3>
 <p>Nothing in these terms shall limit our liability for fraudulent misrepresentation, for death or personal injury resulting from our negligence or the negligence of our agents or employees. You agree not to hold us responsible for things other users post or do.</p>
 <p>We do not review users' postings and are not involved in the actual transactions between users. As most of the content on Mourjan comes from other users, we do not guarantee the accuracy of postings or user communications or the quality, safety, or legality of what's offered.</p>
 <p>In no event do we accept liability of any description for the posting of any unlawful, threatening, abusive, defamatory, obscene or indecent information, or material of any kind which violates or infringes upon the rights of any other person, including without limitation any transmissions constituting or encouraging conduct that would constitute a criminal offence, give rise to civil liability or otherwise violate any applicable law.</p>
 <p>We cannot guarantee continuous, error-free or secure access to our services or that defects in the service will be corrected. While we will use reasonable efforts to maintain an uninterrupted service, we cannot guarantee this and we do not give any promises or warranties (whether express or implied) about the availability of our services.</p>
-<p>Accordingly, to the extent legally permitted we expressly disclaim all warranties, representations and conditions, express or implied, including those of quality, merchantability, merchantable quality, durability, fitness for a particular purpose and those arising by statute. We are not liable for any loss, whether of money (including profit), goodwill, or reputation, or any special, indirect, or consequential damages arising out of your use of Mourjan, even if you advise us or we could reasonably foresee the possibility of any such damage occurring. Some jurisdictions do not allow the disclaimer of warranties or exclusion of damages, so such disclaimers and exclusions may not apply to you. Despite the previous paragraph, if we are found to be liable, our liability to you or any third party (whether in contract, tort, negligence, strict liability in tort, by statute or otherwise) is limited to the greater of (a) the total fees you pay to us in the 12 months prior to the action giving rise to liability, and (b) 100 US Dollar.</p>
-Personal Information
-<p>By using Mourjan, you agree to the collection, transfer, storage and use of your personal information by Mourjan on servers located in the Germany, and Lebanon as further described in our Privacy Policy. You also agree to receive marketing communications from us unless you tell us that you prefer not receive such communications.</p>
-<h4>Resolution of disputes</h4>
-<p>If a dispute arises between you and Mourjan, we strongly encourage you to first contact us directly to seek a resolution by going to the Mourjan contact page. We will consider reasonable requests to resolve the dispute through alternative dispute resolution procedures, such as mediation or arbitration, as alternatives to litigation.</p>
-General
+<p>Accordingly, to the extent legally permitted we expressly disclaim all warranties, representations and conditions, express or implied, including those of quality, merchantability, merchantable quality, durability, fitness for a particular purpose and those arising by statute. We are not liable for any loss, whether of money (including profit), goodwill, or reputation, or any special, indirect, or consequential damages arising out of your use of Mourjan, even if you advise us or we could reasonably foresee the possibility of any such damage occurring. Some jurisdictions do not allow the disclaimer of warranties or exclusion of damages, so such disclaimers and exclusions may not apply to you.</p>
+<p>Despite the previous paragraph, if we are found to be liable, our liability to you or any third party (whether in contract, tort, negligence, strict liability in tort, by statute or otherwise) is limited to the greater of (a) the total fees you pay to us in the 12 months prior to the action giving rise to liability, and (b) 100 US Dollar.</p>
+<p>Refunds will be done only through the Original Mode of Payment.</p>
+<h3>Personal Information</h3>
+<p>By using Mourjan, you agree to the collection, transfer, storage and use of your personal information by Mourjan on servers located in the Germany, and Lebanon as further described in our <a href="/privacy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>">Privacy Policy</a>. You also agree to receive marketing communications from us unless you tell us that you prefer not receive such communications.</p>
+<h3>Account Termination/Delete</h3>
+<p>By using Mourjan, you agree that your account and any collected data cannot and will not be deleted for the sole reason of having the required material to respond to a claim or resolve a dispute that might rise in the future.</p>
+<h3>Resolution of disputes</h3>
+<p>If a dispute arises between you and Mourjan, we strongly encourage you to first contact us directly to seek a resolution by going to the Mourjan <a href="/contact/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>">contact page</a>. We will consider reasonable requests to resolve the dispute through alternative dispute resolution procedures, such as mediation or arbitration, as alternatives to litigation.</p>
+<h3>General</h3>
 <p>These terms and the other policies posted on Mourjan constitute the entire agreement between Mourjan and you, superseding any prior agreements.</p>
-<p>This Agreement shall be governed and construed in all respects by the laws of Lebanon. You agree that any claim or dispute you may have against Berysoft SARL must be resolved by the courts of Lebanon. You and Mourjan both agree to submit to the exclusive jurisdiction of the Lebanese Courts.</p>
+<p>This Agreement shall be governed and construed in all respects by the laws of United Arab Emirates. You agree that any claim or dispute you may have against Mourjan Classifieds FZ-LLC must be resolved by the courts of United Arab Emirates. You and Mourjan both agree to submit to the exclusive jurisdiction of the United Arab Emirates Courts.</p>
 <p>If we don't enforce any particular provision, we are not waiving our right to do so later. If a court strikes down any of these terms, the remaining terms will survive. We may automatically assign this agreement in our sole discretion in accordance with the notice provision below.</p>
-<p>Except for notices relating to illegal or infringing content, your notices to us must be sent by registered mail to Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda. We will send notices to you via the email address you provide, or by registered mail. Notices sent by registered mail will be deemed received five days following the date of mailing.</p>
-<p>We may update this agreement at any time, with updates taking effect when you next post or 30 days after we post the updated policy on the site, whichever is sooner. No other amendment to this agreement will be effective unless made in writing, signed by users and by us.</p>
-                </div></div>
+<p>Except for notices relating to illegal or infringing content, your notices to us must be sent by registered mail to Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209, P.O. Box No. 294474. We will send notices to you via the email address you provide, or by registered mail. Notices sent by registered mail will be deemed received five days following the date of mailing.</p>
+<p>Mourjan Policies and Terms & Conditions may be changed or updated occasionally to meet the requirements and standards. Therefore Users are encouraged to frequently visit these sections in order to be updated about the changes on the website. Modifications will be effective on the day they are posted.</p>
+<p><b>Terms Of Use updated 20 Feb 2020</b></p>
         <?php
-        ?></div><?php
+        ?></div></div></div><?php
     }
     
     
     private function renderPrivacy() : void {
+        ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
+
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         ?><div class=col-10><div class="card doc"><div class="view"><?php
-        echo '<h2 class=title>Privacy policy</h2>';?>
-<p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Berysoft SARL, Le Point Center, Fouad Shehab Street, Dekwaneh, registered in Lebanon with number 2013375-Baabda, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
-<h4>Collection</h4>
+        ?><h2 class=title>Privacy policy</h2><?php
+?><p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
+<h3>Collection</h3>
 <p>Information posted on Mourjan is obviously publicly available. Our servers are located in Germany and Lebanon. Mourjan will hold and transmit your information in a safe, confidential and secure environment. If you choose to provide us with personal information, you are consenting to the transfer and storage of that information on our servers in Germany and Lebanon. We collect and store the following personal information:</p>
-<div>
-    <p>email address, physical contact information, and (depending on the service used) sometimes financial information;</p>
-    <p>computer sign-on data, statistics on page views, traffic to and from Mourjan and ad data (all through cookies - you can take steps to disable the cookies on your browser although this is likely to affect your ability to use the site);</p>
-    <p>other information, including users IP address and standard web log information.</p>
-    <p>Google Analytics data such as age, gender and interests based on Display Advertising (e.g., Remarketing, Google Display Network Impression Reporting, the DoubleClick Campaign Manager integration, or Google Analytics Demographics and Interest Reporting).</p>
-    <p>Visitors can opt-out of Google Analytics for Display Advertising and customize Google Display Network ads using the <a href='https://www.google.com/settings/ads'>Ads Settings</a> or by downloading and installing <a href='https://tools.google.com/dlpage/gaoptout/'>Google Analytics opt-out browser add-on</a>.</p>
-</div>
-<h4>Use</h4>
+<ul class=ul>
+    <li>email address, physical contact information;</li>
+    <li>computer sign-on data, statistics on page views, traffic to and from Mourjan and ad data (all through cookies - you can take steps to disable the cookies on your browser although this is likely to affect your ability to use the site);</li>
+    <li>other information, including users IP address and standard web log information.</li>
+    <li>Google Analytics data such as age, gender and interests based on Display Advertising (e.g., Remarketing, Google Display Network Impression Reporting, the DoubleClick Campaign Manager integration, or Google Analytics Demographics and Interest Reporting).</li>
+    <li>Visitors can opt-out of Google Analytics for Display Advertising and customize Google Display Network ads using the <a href='https://www.google.com/settings/ads'>Ads Settings</a> or by downloading and installing <a href='https://tools.google.com/dlpage/gaoptout/'>Google Analytics opt-out browser add-on</a>.</li>
+    <li>All credit/debit cards details and personally identifiable information will <b>NOT</b> be stored, sold, shared, rented or leased to any third parties.</li>
+</ul>
+<h3>Use</h3>
 <p>We use users' personal and collected information to:</p>
-<div>
-    <p>provide our services;</p>
-    <p>resolve disputes and troubleshoot problems;</p>
-    <p>encourage safe trading and enforce our policies;</p>
-    <p>customize users' experience, measure interest in our services, and inform users about services and updates;</p>
-    <p>communicate marketing and promotional offers to you;</p>
-    <p>do other things for users as described when we collect the information.</p>
-</div>
-<h4>Disclosure</h4>
+<ul class=ul>
+    <li>provide our services;</li>
+    <li>resolve disputes and troubleshoot problems;</li>
+    <li>encourage safe trading and enforce our policies;</li>
+    <li>customize users' experience, measure interest in our services, and inform users about services and updates;</li>
+    <li>communicate marketing and promotional offers to you;</li>
+    <li>do other things for users as described when we collect the information.</li>
+</ul>
+<h3>Disclosure</h3>
 <p>We don't sell or rent your personal information to third parties for their marketing purposes without your explicit consent. We may disclose personal information to respond to legal requirements, enforce our policies, respond to claims that a posting or other content violates others' rights, or protect anyone's rights, property, or safety (for example, if you submit false contact details or impersonate another person, we may pass your personal information to any aggrieved third party, their agent or to any law enforcement agency). We may also share personal information with service providers who help with our business operations.</p>
-<h4>Cookies</h4>
-    <p>Our website uses cookies, web beacons, and third-parties to provide you with services that support your buying and selling activities within our online marketplace. To protect your privacy, use of these tools is limited.</p>
-    <p>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookies) and third-party cookies (such as the DoubleClick cookie) together to report how Mourjan's ad impressions, other uses of ad services, and interactions with these ad impressions and ad services are related to visits to Mourjan.</p>
-<h4>About cookies</h4>
+<h3>Cookies</h3>
+<ul class=ul>
+    <li>Our website uses cookies, web beacons, and third-parties to provide you with services that support your buying and selling activities within our online marketplace. To protect your privacy, use of these tools is limited.</li>
+    <li>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookies) and third-party cookies (such as the DoubleClick cookie) together to report how Mourjan's ad impressions, other uses of ad services, and interactions with these ad impressions and ad services are related to visits to Mourjan.</li>
+</ul>
+<h3>About cookies</h3>
 <p>Cookies are small files placed on the hard drive of your computer. Mourjan uses both persistent/permanent and session cookies to provide services to you and help ensure account security. Most cookies are 'session cookies', meaning that they are automatically deleted from your hard drive once you end your session (log out or close your browser).</p>
-<h4>Mourjan uses cookies on certain pages of the website to:</h4>
-    <p>Enable you to enter your password less frequently during a session.</p>
-    <p>Provide information that is targeted to your interests.</p>
-    <p>Promote and enforce trust and safety.</p>
-    <p>Offer certain features that are only available through the use of cookies.</p>
-    <p>Measure promotional effectiveness.</p>
-    <p>Analyse our site traffic.</p>
-<h4>Cookies we use for trust and safety</h4>
+<h3>Mourjan uses cookies on certain pages of the website to:</h3>
+<ul class=ul>
+    <li>Enable you to enter your password less frequently during a session.</li>
+    <li>Provide information that is targeted to your interests.</li>
+    <li>Promote and enforce trust and safety.</li>
+    <li>Offer certain features that are only available through the use of cookies.</li>
+    <li>Measure promotional effectiveness.</li>
+    <li>Analyse our site traffic.</li>
+</ul>
+<h3>Cookies we use for trust and safety</h3>
 <p>Mourjan uses cookies, to help ensure that your account security is not compromised and to spot irregularities in behaviour to prevent your account from being fraudulently taken over.</p>
-<h4>Your choices about cookies</h4>
+<h3>Your choices about cookies</h3>
 <p>We offer certain features that are only available through the use of a cookie. You're always free to decline cookies if your browser permits. However, if you decline cookies, you may not be able to use certain features on the website, and you may be required to re-enter your password more frequently during a session.</p>
-<h4>Web beacons</h4>
+<h3>Web beacons</h3>
 <p>A web beacon is an electronic image, called a single-pixel (1x1) or clear GIF placed in the web page code. Web beacons serve many of the same purposes as cookies. In addition, web beacons are used to track the traffic patterns of users from one page to another in order to maximise web traffic flow.</p>
-<h4>Use of cookies and web beacons by third parties</h4>
+<h3>Use of cookies and web beacons by third parties</h3>
 <p>We may work with other companies who place cookies or web beacons on our websites. These service providers help operate our websites, by for example compiling anonymous site metrics and analytics. We require these companies to use the information they collect only to provide us with these services under contract, and not for their own purposes.</p>
-<p>We don't permit third-party content on Mourjan (such as item listings) to include cookies or web beacons. If you believe a listing might be collecting personal information or using cookies, please report it to support@berysoft.com.</p>
-<h4>Using Information from Mourjan</h4>
-<p>You may use personal information gathered from Mourjan only to follow up with another user about a specific posting, not to send spam or collect personal information from someone who hasn't agreed to that.</p>
-<h4>Marketing</h4>
+<p>Some of the advertisements you see on the Site are selected and delivered by third parties, such as ad networks, advertising agencies, advertisers, and audience segment providers. These third parties may collect information about you and your online activities, either on the Site or on other websites, through cookies, web beacons, and other technologies in an effort to understand your interests and deliver to you advertisements that are tailored to your interests.</p>
+<p>Please remember that we do not have access to, or control over, the information these third parties may collect therefore the information practices of these third parties are not covered by this privacy policy.</p>
+<p>We do not permit third-party content on Mourjan (such as classifieds item listings) to include cookies or web beacons. If you believe a listing might be collecting personal information or using cookies, please report it to support@mourjan.com.</p>
+<h3>Using Information from Mourjan</h3>
+<p>You may use personal information gathered from Mourjan only to follow up with another user about a specific posting, not to send spam or collect personal information from someone who has not agreed to that.</p>
+<h2>Marketing</h2>
 <p>If you do not wish to receive marketing communications from us, you can simply email us at any time.</p>
-<h4>Remarketing with Google Analytics</h4>
-    <p>Mourjan uses Remarketing with Google Analytics to advertise online.</p>
-    <p>Third-party vendors, including Google, show Mourjan ads on sites across the Internet.</p>
-    <p>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookie) and third-party cookies (such as the DoubleClick cookie) together to inform, optimize, and serve ads based on someone's past visits to Mourjan.</p>
-<h4>Security</h4>
+<h3>Remarketing with Google Analytics</h3>
+<ul class=ul>
+    <li>Mourjan uses Re-marketing with Google Analytics to advertise online.</li>
+    <li>Third-party vendors, including Google, show Mourjan ads on sites across the Internet.</li>
+    <li>Mourjan and third-party vendors, including Google, use first-party cookies (such as the Google Analytics cookie) and third-party cookies (such as the DoubleClick cookie) together to inform, optimize, and serve ads based on someone's past visits to Mourjan.</li>
+</ul>
+<h3>Security</h3>
 <p>We use many tools to protect your personal information against unauthorized access and disclosure, but as you probably know, nothing's perfect, so we make no guarantees.</p>
-<h4>General</h4>
-<p>We may update this policy at any time, with updates taking effect when you next post or after 30 days, whichever is sooner. If we or our corporate affiliates are involved in a merger or acquisition, we may share personal information with another company, and this other company shall be entitled to share your personal information with other companies but at all times otherwise respecting your personal information in accordance with this policy.</p>
-<p><b>Privacy Policy updated 4 Oct 2013</b></p><?php
+<h3>General</h3>
+<p>If we or our corporate affiliates are involved in a merger or acquisition, we may share personal information with another company, and this other company shall be entitled to share your personal information with other companies but at all times otherwise respecting your personal information in accordance with this policy.</p>
+<p>Mourjan Policies and Terms & Conditions may be changed or updated occasionally to meet the requirements and standards. Therefore Users are encouraged to frequently visit these sections in order to be updated about the changes on the website. Modifications will be effective on the day they are posted.</p>
+<p><b>Privacy Policy updated 20 Feb 2020</b></p><?php
+        ?></div></div></div><?php
+    }
+    
+    
+    public function renderFAQ() : void {
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        ?><h2 class=title>FAQ / Help Center</h2><?php
         ?></div></div></div><?php
     }
 }

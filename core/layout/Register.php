@@ -470,7 +470,7 @@ class Register extends Page{
             };               
             </script><?php
             */
-            ?><div class=row style="align-items: center; justify-content: center"><div class=col-8><div class="card card-doc"><?php
+            ?><div class=row style="align-items: center; justify-content: center"><div class=col-8><div class="card doc"><?php
             ?><div class=card-title><p style="line-height: 1.5em"><?= $this->lang['title_pass_reset'] ?></p></div><?php
             ?><div class=card-content><p style="line-height: 1.5em"><?= $this->lang['account_pass_reset'] ?></p><br><br><div id="eform"><?php
             ?><div class=row><div class=group><?php

@@ -1,3 +1,123 @@
+.side li.on {
+    color:var(--mdc70);
+}
+.side li.on b::after {
+    content: "";
+    background: var(--premium);
+}
+.side li.on i::after {
+    color:var(--premium)
+}
+
+.menu {
+    font-weight:400;
+    font-size:20px;
+    color:var(--mdc70)
+} 
+.menu li {
+    line-height:64px;
+    color:inherit;
+    flex-direction:column
+} 
+.menu li:hover{background-color:initial} 
+.menu .disclosure{font-weight:300;font-size:48px;color:inherit;margin-top: -4px}
+.menu li a{flex-direction:row;justify-content:space-between;color:inherit;width:100%}
+
+.menu li.open {
+    font-size: 24px;
+    font-weight: 700;    
+}
+
+
+.menu li.open .disclosure {
+    transform: rotate(90deg);
+    font-weight: 500;
+}
+
+.menu li.open:hover {
+    color:var(--mdc70);
+}
+.menu li > div{
+    display: none;
+    flex-direction: column;
+    color:var(--mdc70);
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.35em;
+    max-height: 0;
+    max-width: 0;
+    opacity: 0;
+    -webkit-transition:all 0.5s ease;  
+    -moz-transition:all 0.5s ease;  
+    -o-transition:all 0.5s ease;  
+    transition:all 0.5s ease;
+}
+
+.menu li.open > div {
+    display: inline-flex;
+    position: relative;
+    border-top: 1px solid var(--mdc30);
+    max-height: 100%;
+    max-width: 100%;
+    opacity: 1;
+}
+.menu li.open > div:before {
+    content: "";
+    position: absolute;
+    height: 3px;
+    width:190px;
+    left:0;
+    top:-2px;
+    background: var(--premium);
+}
+
+
+.menu table {
+    border-collapse: collapse; 
+    border-spacing:0;
+    width:360px
+}
+
+.menu td, th {
+    padding:8px;
+    height:44px; 
+    border:1px solid var(--mdc12);
+    text-align: center;
+}
+
+.menu td:first-child{font-weight: 700}
+.menu td:last-child{font-weight: 500}
+.menu th {
+    border-bottom: 0;
+    border-top: 0;
+    border-color: var(--mdc12);
+    background-color:var(--premium);
+}
+
+
+caption{font-size:24px;text-align:start;margin:16px 0 4px}
+.t90{transform: rotate(90deg)}
+.small{font-weight:300;font-size: 14px}
+.tfoot{font-weight:300;margin-top:8px}
+
+.listnote {
+    font-weight:500;
+    font-size:16px;
+    line-height: 2em;
+}
+
+.btH{
+    text-align:center;
+    margin: 24px 0 48px;
+}
+
+.alinks {
+    flex-direction: row !important;
+    margin:16px auto 64px !important;
+}
+
+.alinks li{border: 0; margin: 0 16px}
+
 .prices{margin:0!important;list-style:disc inside!important;padding:0 40px;}
 .prices ul{display:inline-block;line-height:1em;margin:0!important}
 .prices ul li{float:left;width:100px;list-style:none}
@@ -5,11 +125,8 @@ p.pad{margin:0;padding:5px 10px}
 .ar .prices ul li{float:right}
 li.ctr{width:50px!important}
 .alt{background-color:#ececec;}
-.alinks{display:block !important;overflow:hidden;margin:0!important;list-style:none!important}
-.alinks li{float:left;width:50%;text-align:center;}
 .android{margin:0}
 .ar{line-height:25px}
-.btH{text-align:center;margin-top:20px}
 .bt{color:#FFF!important}
 .bt:hover{text-decoration:none!important}
 .ick{vertical-align:middle}
@@ -21,6 +138,16 @@ th, td {
   border: 1px solid #3C4858;
   border-collapse: collapse;
 }
-.credits {text-align: center;margin-bottom: 40px;}
+
+.credit-cards {
+    display: block;
+    text-align: center;
+    margin: 0 auto 40px;
+    width: 320px;
+    height: 66px;
+    background:url(/web/css/1.0/assets/credit-cards.svg) no-repeat 50% 50%;
+    background-size: contain;
+}
+
 .credits .mc{width:160px;height:100px;background:url(/web/css/1.0/assets/mc.svg) no-repeat 50% 50%; background-size: contain;}
 .credits .visa{width:160px;height:100px;background:url(/web/css/1.0/assets/visa.svg) no-repeat 50% 50%;background-size: contain;}
