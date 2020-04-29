@@ -342,8 +342,8 @@ $lang=array(
     //about mourjan.com
     'aboutUs'               =>  'About us',
     'advertiseUs'               =>  'Marketing',
-    "mod_about_title"       =>      "About Mourjan.com",
-    "mod_about_content"       =>     "Mourjan.com is an online classified search engine that helps you search and browse ads listed in major classified newspapers, websites and user submitted free ads",
+    "mod_about_title"       =>      "About mourjan.com",
+    "mod_about_content"       =>     "mourjan.com is an online classified search engine that helps you search and browse ads listed in major classified newspapers, websites and user submitted free ads",
     "mod_post_title"       =>      "Post a free ad with Mourjan.com",
     "mod_post_content"       =>     "<p class='nb'>Coming soon!</p>",
     "mod_country_home"       =>      "Mourjan.com by country",

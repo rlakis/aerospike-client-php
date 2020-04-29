@@ -79,8 +79,8 @@ class Doc extends Page{
         $this->router->config->setValue('enabled_sharing', 0);
 
         if ($this->router->module==='about') {
-            $this->lang['title']        = 'About Mourjan.com';
-            $this->lang['description']  = 'Mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
+            $this->lang['title']        = 'About mourjan.com';
+            $this->lang['description']  = 'mourjan.com is an online classifieds search engine that helps you search and browse ads listed in major classifieds newspapers, websites and user submitted free ads';
         }
         elseif($this->router->module==='advertise'){ 
             if ($this->router->isArabic()) {
@@ -88,7 +88,7 @@ class Doc extends Page{
                 $this->lang['description']='قم بتسويق شركتك، منتجاتك أو خدماتك بأسلوب متميز مستفيداً من أكثر من 3.5 مليون انطباع وأكثر من 250،000 زائر فريد شهريا على موقع مرجان';
             }
             else {
-                $this->title='Advertise with Mourjan.com';
+                $this->title='Advertise with mourjan.com';
                 $this->lang['description']=  'Market your online business with style and benefit from over 3.5 million impressions and over 250,000 unique visitors per month';
             }
         }
@@ -757,7 +757,7 @@ function chapter(n) {
     
     private function docFooter() : void {
         ?><div class=page-footer><?php
-        ?><div class=sep><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></div><?php
+        ?><div<?=$this->router->module==='about'?' class=sep':''?>><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></div><?php
         ?><div class=col-12 style="flex-flow:row;justify-content:flex-end;padding:0;margin:0;overflow:hidden"><img style="position:relative;top:56px;width:206px;transform:rotateX(180deg);filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="<?=$this->router->config->cssURL?>/1.0/assets/emblem.svg"/></div><?php
         ?></div><?php
     }
@@ -767,29 +767,34 @@ function chapter(n) {
         $ar=$this->router->isArabic();
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         ?><div class=col-10><div class="card doc"><div class="view"><?php
-        ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:206px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></h2><?php
+        if ($ar) {
+            ?><h2 class=title>كل ما<br>تحتاج ان تعرفه عن<span style="display:inherit;margin-top:20px"><s style="line-height:49px;text-decoration:none">com.</s><img alt="mourjan" style="width:208px;margin-top:6px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></span></h2><?php            
+        }
+        else {
+            ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:320px;margin-top:32px" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></h2><?php
+        }
         ?><div class=col-12 style="flex-flow:column;color:var(--mdc70)"><?php
         if ($this->router->isArabic()) {
-            ?><p>لقد تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> في عام ٢٠١٠م .</p><?php
-            ?><p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات ، كنا نحن فريق العمل  وراء موقع مرجان ( Mourjan.com  ) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p><?php
-            ?><p> وعلى الرغم من أن الإعلانات المبوبة على الإنترنت لم تكن شيئًا جديدًا، ومع وجود العديد من مواقع الإعلانات المبوبة، فقد أدركنا أنه لتحقيق النجاح، كان علينا تقديم شيء جديد. لذلك، بدأنا العمل على موقع مرجان باهتمام وكان هدفنا الرئيسي يتمثل في عمل موقع ويب سريع الأداء من خلال محرك بحث عربي يوفر تجربة ممتعة للمستخدمين الذين يبحثون عن شقة للإيجار أو شراء سيارة.</p><?php
-            ?><p>في منتصف عام ٢٠١٢م، كان موقع مرجان ( Mourjan.com  ) يخطو بخطى سريعة أسرع من أي وقت مضى، واستجابة لآراء وتعليقات المستخدمين، مكّن الموقع مستخدميه من نشر إعلانات على الإنترنت مجانًا في بلدانهم المختارة مع تبني دائمًا أحدث التقنيات والاتجاهات في تطوير الموقع و وضع مصلحة المستخدمين نصب أعيننا في المقام اﻷول.</p><?php
-            ?><p>حاليا، ما زلنا نعمل على تحسين موقع مرجان وتقديم خدمات جديدة وسنستمر على هذا طوال الوقت. كما نعمل على إضافة بعض الخدمات التي نرى أنها مفيدة وغيرها من الخدمات التي قد تطلب منا ببساط من خلال آراء وتعليقات مستخدمين موقع مرجان اﻷعزاء ﻷنهم هم سبب نجاحنا وتقدمنا على مدار هذه اﻷعوام.</p><?php            
+            ?><p>في عام ٢٠١٠ تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> الذي تملكه وتديره شركة مرجان كلاسيفايدس.</p><?php
+            ?><p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات، كنا نحن فريق العمل  وراء موقع مرجان (<span>mourjan.com</span>) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p><?php
+            ?><p>وعلى الرغم من أن الإعلانات المبوبة على الإنترنت لم تكن شيئًا جديدًا، ومع وجود العديد من مواقع الإعلانات المبوبة، فقد أدركنا أنه لتحقيق النجاح، كان علينا تقديم شيء جديد. لذلك، بدأنا العمل على <span>موقع مرجان</span> باهتمام وكان هدفنا الرئيسي يتمثل في عمل موقع ويب سريع الأداء من خلال محرك بحث عربي يوفر تجربة ممتعة للمستخدمين الذين يبحثون عن شقة للإيجار أو شراء سيارة.</p><?php
+            ?><p>في منتصف عام ٢٠١٢م، كان موقع مرجان (<span>Mourjan.com</span>) يخطو بخطى سريعة أسرع من أي وقت مضى، واستجابة لآراء وتعليقات المستخدمين، مكّن الموقع مستخدميه من نشر إعلانات على الإنترنت مجانًا في بلدانهم المختارة مع تبني دائمًا أحدث التقنيات والاتجاهات في تطوير الموقع و وضع مصلحة المستخدمين نصب أعيننا في المقام اﻷول.</p><?php
+            ?><p>حاليا، ما زلنا نعمل على تحسين <span>موقع مرجان</span> وتقديم خدمات جديدة وسنستمر على هذا طوال الوقت. كما نعمل على إضافة بعض الخدمات التي نرى أنها مفيدة وغيرها من الخدمات التي قد تطلب منا ببساط من خلال آراء وتعليقات مستخدمين موقع مرجان اﻷعزاء ﻷنهم هم سبب نجاحنا وتقدمنا على مدار هذه اﻷعوام.
+</p><?php
         } 
         else {
             /*
-            ?><p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span> was founded.</p><?php
+            ?><p>In July 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">mourjan.com</span> was founded.</p><?php
             ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind <span>Mourjan.com</span> - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
             ?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on <span>Mourjan.com</span> with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p><?php
             ?><p>In mid-2012, <span>mourjan.com</span> was faster than ever and in response to the overwhelming users’ feedbacks, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p><?php
             ?><p>Currently, we are still working on improving <span>mourjan.com</span> and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php
              * */            
-            ?><p>In 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">Mourjan.com</span>, owned and managed by Mourjan Classifieds FZ-LLC, was founded.</p><?php 
-            ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind mourjan.com - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
-            ?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on Mourjan.com with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p><?php
-            ?><p>In mid-2012, mourjan.com was faster than ever and in response to the overwhelming users’ feedback, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p><?php
-            ?><p>Currently, we are still working on improving mourjan.com and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="/contact/<?= $adLang ?>">Let us know your opinion</a>.</p><?php 
-    
+            ?><p>In 2010, <span itemscope itemtype="https://schema.org/LocalBusiness">mourjan.com</span>, owned and managed by Mourjan Classifieds FZ-LLC, was founded.</p><?php 
+            ?><p>With over 15 years of experience in the field of classifieds and IT solutions, we - the team behind <span>mourjan.com</span> - were looking for a new venture and specifically in the fast evolving World Wide Web.</p><?php
+            ?><p>While online classifieds was not something new and with many top of mind classifieds websites, we knew that in order to succeed we had to deliver something new. Therefore, we started working on <span>mourjan.com</span> with a main concern of achieving a fast performing website with an Arabic oriented search engine which would deliver a pleasant experience for users who are seeking an apartment to rent or a car to buy.</p><?php
+            ?><p>In mid-2012, <span>mourjan.com</span> was faster than ever and in response to the overwhelming users’ feedback, the site enabled its users with free online ad posting in their countries of choice while always adopting the latest techniques and trends in website development and having users’ best interest at heart.</p><?php
+            ?><p>Currently, we are still working on improving <span>mourjan.com</span> and providing new services. Some services that we see to be helpful and other services that you might simply ask us for. <a href="<?= $this->router->getLanguagePath('/contact/') ?>">Let us know your opinion</a>.</p><?php     
         }
         ?></div><?php
         
@@ -803,7 +808,7 @@ function chapter(n) {
         $hours=$this->router->isArabic()?'7:00 ص إلى 3:00 م GMT':'7:00AM to 3:00PM GMT';
         
         ?><div class="col-12 mt-32" itemscope itemtype="https://schema.org/LocalBusiness"><?php
-        ?><div class="col-4 ff-cols" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/location.svg"/></div><?php
+        ?><div class="col-4 ff-cols" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-location.svg"/></div><?php
             ?><div class=addr><?php
             ?><span itemprop="streetAddress"><?=$ar?'مركز الاعمال راكز':'Business Center RAKEZ'?></span><span><span itemprop="addressLocality"><?=$ar?'رأس الخيمة':'Ras Al Khaimah'?></span><br><span itemprop="addressCountry"><?=$ar?'الامارات العربية المتحدة':'United Arab Emirates'?></span></span><?php
             ?></div><?php        
@@ -812,13 +817,13 @@ function chapter(n) {
             ?></div><?php        
         ?></div><?php
 
-        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/phone.svg"/></div><?php
+        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-phone.svg"/></div><?php
         ?><div class="addr"><span><?=$ar?'الامارات العربية المتحدة':'United Arab Emirates'?></span><span class="fw-500 tel" itemprop="telephone">+971 7 204 8438</span></div><?php
         ?><div class="addr"><span><?=$addressCountry?></span><span class="tel fw-500" itemprop="telephone">+961 70 424 018</span></div><?php
         ?><div class="addr"><span><?=$egypt?></span><span class="tel fw-500" itemprop="telephone">+20 109 136 5353</span></div><?php
         ?></div><?php
 
-        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/hours.svg"/></div><?php
+        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-time.svg"/></div><?php
             ?><div class="addr"><span class=fw-500><?=$openingHours?></span><span itemprop="openingHours"><?=$days?><br /><?=$hours?></span></div><?php
         ?></div><?php
         ?></div><?php
@@ -833,11 +838,9 @@ function chapter(n) {
         ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
         
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
-        ?><div class=col-10><div class="card doc"><div class="view"><?php
-        echo '<h2 class=title>Mourjan Terms of Use</h2>';
-                    
-?><h3>Introduction</h3>
-<p>Welcome to www.mourjan.com ("Mourjan"). By accessing Mourjan you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209. This policy is effective January 1st, 2012.</p><?php
+        ?><div class=col-10><div class="card doc"><div class=view><h2 class=title>Mourjan Terms of Use</h2><?php                    
+        ?><h3>Introduction</h3><?php
+        ?><p>Welcome to <span>www.mourjan.com</span> ("Mourjan"). By accessing <span>Mourjan</span> you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209. This policy is effective January 1st, 2012.</p><?php
 ?><h3>Using Mourjan</h3><?php
 ?><p>As a condition of your use of Mourjan you agree that you will not:</p><?php
 ?><ul class=ul>
@@ -871,7 +874,7 @@ function chapter(n) {
     <li>Your age is 18 or above.</li>
     <li>If you make a payment for our products or services on our website, the details you are asked to submit will be provided directly to our payment provider via a secured connection.</li>
     <li>The cardholder must retain a copy of transaction records and Merchant policies and rules.</li>
-    <li>We accept payments online using Visa and MasterCard credit/debit card in AED (or any other agreed currencies).</li>
+    <li>We accept payments online using Visa and MasterCard credit/debit card in AED and USD currencies.</li>
     <li>Multiple transactions may result in multiple postings to the cardholder’s monthly statement.</li>
     <li>Mourjan will NOT deal or provide any services or products to any of OFAC (Office of Foreign Assets Control) sanctions countries in accordance with the law of United Arab Emirates.</li>
 </ul><?php
@@ -887,18 +890,18 @@ function chapter(n) {
 <p>Despite the previous paragraph, if we are found to be liable, our liability to you or any third party (whether in contract, tort, negligence, strict liability in tort, by statute or otherwise) is limited to the greater of (a) the total fees you pay to us in the 12 months prior to the action giving rise to liability, and (b) 100 US Dollar.</p>
 <p>Refunds will be done only through the Original Mode of Payment.</p>
 <h3>Personal Information</h3>
-<p>By using Mourjan, you agree to the collection, transfer, storage and use of your personal information by Mourjan on servers located in the Germany, and Lebanon as further described in our <a href="/privacy/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>">Privacy Policy</a>. You also agree to receive marketing communications from us unless you tell us that you prefer not receive such communications.</p>
+<p>By using Mourjan, you agree to the collection, transfer, storage and use of your personal information by Mourjan on servers located in the Germany, and Lebanon as further described in our <a href="<?=$this->router->getLanguagePath("/privacy/")?>">Privacy Policy</a>. You also agree to receive marketing communications from us unless you tell us that you prefer not receive such communications.</p>
 <h3>Account Termination/Delete</h3>
 <p>By using Mourjan, you agree that your account and any collected data cannot and will not be deleted for the sole reason of having the required material to respond to a claim or resolve a dispute that might rise in the future.</p>
 <h3>Resolution of disputes</h3>
-<p>If a dispute arises between you and Mourjan, we strongly encourage you to first contact us directly to seek a resolution by going to the Mourjan <a href="/contact/<?= $this->urlRouter->siteLanguage == 'ar' ? '' : $this->urlRouter->siteLanguage.'/' ?>">contact page</a>. We will consider reasonable requests to resolve the dispute through alternative dispute resolution procedures, such as mediation or arbitration, as alternatives to litigation.</p>
+<p>If a dispute arises between you and Mourjan, we strongly encourage you to first contact us directly to seek a resolution by going to the Mourjan <a href="<?=$this->router->getLanguagePath("/contact/")?>">contact page</a>. We will consider reasonable requests to resolve the dispute through alternative dispute resolution procedures, such as mediation or arbitration, as alternatives to litigation.</p>
 <h3>General</h3>
 <p>These terms and the other policies posted on Mourjan constitute the entire agreement between Mourjan and you, superseding any prior agreements.</p>
 <p>This Agreement shall be governed and construed in all respects by the laws of United Arab Emirates. You agree that any claim or dispute you may have against Mourjan Classifieds FZ-LLC must be resolved by the courts of United Arab Emirates. You and Mourjan both agree to submit to the exclusive jurisdiction of the United Arab Emirates Courts.</p>
 <p>If we don't enforce any particular provision, we are not waiving our right to do so later. If a court strikes down any of these terms, the remaining terms will survive. We may automatically assign this agreement in our sole discretion in accordance with the notice provision below.</p>
 <p>Except for notices relating to illegal or infringing content, your notices to us must be sent by registered mail to Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209, P.O. Box No. 294474. We will send notices to you via the email address you provide, or by registered mail. Notices sent by registered mail will be deemed received five days following the date of mailing.</p>
 <p>Mourjan Policies and Terms & Conditions may be changed or updated occasionally to meet the requirements and standards. Therefore Users are encouraged to frequently visit these sections in order to be updated about the changes on the website. Modifications will be effective on the day they are posted.</p>
-<p><b>Terms Of Use updated 20 Feb 2020</b></p>
+<p><b>Terms Of Use updated 29 Apr 2020</b></p>
         <?php
         ?></div></div></div><?php
     }

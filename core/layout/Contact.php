@@ -64,7 +64,8 @@ class Contact extends Page {
     }
 
     
-    function main_pane(){               
+    function main_pane(){            
+        $rtl=$this->router->isArabic();
         $name=''; $email=''; $message='';
         if (isset($_GET['payfort']) && is_numeric($_GET['payfort'])) {
             $message=$this->lang['payfort_fail_msg'].'#'.$_GET['payfort'].'#';
@@ -78,9 +79,10 @@ class Contact extends Page {
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         
         ?><div class=col-10><div class="card doc"><div class=view style="color:var(--mdc70)"><?php
-        ?><h2 class=title>Drop us a line!</h2><?php
+        ?><h2 class=title><?=$rtl?'راسلنا ولَو بسطر!':'Drop us a line!'?></h2><?php
         // $this->lang['header']
-        ?><p class="fw-300" style="font-size:23px;line-height:1.5em;margin-top:-40px">Have a question? Feedback? Haven't found what you've been looking for? Let us know...</p><div><?php
+        $subTitle=$rtl?'عندك سؤال؟ تعليق؟ لم تجد ما كنت تبحث عنه؟ دعنا نعرف...':"Have a question? Feedback? Haven't found what you've been looking for? Let us know...";
+        ?><p class="fw-300" style="font-size:23px;line-height:1.5em;margin-top:-40px"><?=$subTitle?></p><div><?php
         ?><form class="mb-32" onsubmit="vf(this);return false;"><?php
         ?><div class=row style="margin-top:24px"><div class=group>
             <input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
@@ -112,7 +114,7 @@ class Contact extends Page {
         
         ?></div><?php
         ?><div class=page-footer><?php
-        ?><div class=sep><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></div><?php
+        ?><div><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></div><?php
         ?><div class=col-12 style="flex-flow:row;justify-content:flex-end;padding:0;margin:0;overflow:hidden"><img style="position:relative;top:56px;width:206px;transform:rotateX(180deg);filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="<?=$this->router->config->cssURL?>/1.0/assets/emblem.svg"/></div><?php
         ?></div><?php
         ?></div></div></div><?php

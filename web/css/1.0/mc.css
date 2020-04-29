@@ -314,6 +314,7 @@ footer .addr {
 }
 
 .btn {
+    font-family: inherit;
   background-color: var(--mlc);
   color: #fff;
   display: inline-block;
