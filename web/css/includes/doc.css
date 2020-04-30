@@ -228,6 +228,15 @@ body[dir=rtl] .side li.on b:after {
 .group input:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
 .group textarea:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
 
+.bluebar.group:after{
+    content:"";
+    position: absolute;
+    height: 2px;
+    width: 60px;
+    bottom: 1px;
+    background: var(--mlc);
+}
+
 @-webkit-keyframes inputHighlighter{from{background:#5264AE;} to{width:0;background:transparent;}}
 @-moz-keyframes inputHighlighter{from{background:#5264AE;} to{width:0;background:transparent;}}
 @keyframes inputHighlighter{from{background:#5264AE;} to{width:0;background:transparent;}}

@@ -2796,10 +2796,10 @@ class Page extends Site {
        
         ?><li><a href="<?=$this->router->getLanguagePath('/about/')?>"><span><?=$this->lang['aboutUs']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/contact/')?>"><span><?=$this->lang['contactUs']?></span></a></li><?php
-        ?><li><a href="<?=$this->router->getLanguagePath('/faq/')?>"><span><?=$this->lang['faqhc']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/terms/')?>"><span><?=$this->lang['termsConditions']?></span></a></li><?php
         ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
-        ?><li><a href="<?=$this->router->getLanguagePath('/privacy/')?>"><span><?=$this->lang['privacyPolicy']?></span></a></li><?php
+        ?><li><a href="<?=$this->router->getLanguagePath('/faq/')?>"><span><?=$this->lang['faqhc']?></span></a></li><?php
+        
         
         $req=\preg_replace('/[?&]newlook=[01]/','',$_SERVER["REQUEST_URI"]);
         $link="https://{$_SERVER["HTTP_HOST"]}{$req}".(\preg_match('/\?/', $req) ? '&' : '?')."newlook=0";
@@ -2814,6 +2814,7 @@ class Page extends Site {
             ?><a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
             ?><a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
         ?></div></li><?php
+        ?><li class=bold><a href="javascript:regionWidget()" class="inline-flex va-center"><i class="icn icn-region invert i20"></i><span style="padding-top:3px;color:#fff"><span style="font-size:30px;margin:0 6px"><?=$this->lang['mourjan']?></span><?=$this->lang['around_mst']?></span></a></li><?php
         /*
             <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
@@ -2824,6 +2825,7 @@ class Page extends Site {
          */
         ?></ul></div></div><?php
             
+        /*
         if ($this->router->module==='index') {
             ?><div class="row viewable mt-64"><div class=col-12><div class="card regions"><?php
             ?><header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px"><?=$this->lang['mourjan']?></span> <?=$this->lang['around_mst']?></h4></header><?php
@@ -2833,7 +2835,8 @@ class Page extends Site {
             echo '<dl class="dl col-4">', $cc['lb'], $cc['jo'], $cc['eg'], $cc['ma'], $cc['tn'], $cc['dz'], '</dl>'; 
             ?></div></div></div></div></div><?php
         }
-
+        */
+        
         ?></footer><?php                               
     }
 
@@ -4586,7 +4589,8 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
                 \header("Link: <".$this->router->config->jsURL."/1.0/load-image-scale.js>; rel=preload; as=script;", false);
                 break;
-            
+
+            case 'contact':            
             case 'account':
                 \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
 
@@ -4620,6 +4624,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/load-image-scale.js></script><?php
                 break;
             
+            case 'contact':
             case 'account':
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
                 break;

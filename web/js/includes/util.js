@@ -69,4 +69,13 @@ regionWidget=function(e){
     });
     s+='</div></div></div></div></div>';
     d.innerHTML=s;
+    var bounding=d.getBoundingClientRect();
+    if (!(bounding.top >= 0 &&
+	bounding.left >= 0 &&
+	bounding.right <= (window.innerWidth || document.documentElement.clientWidth) &&
+	bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight))) {
+        window.scrollTo(0, 0);
+        //d.scrollIntoView(true);
+    }
+   
 };

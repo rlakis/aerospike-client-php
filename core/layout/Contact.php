@@ -30,37 +30,12 @@ class Contact extends Page {
         ?><textarea onkeyup="idir(this)" tabindex="3" id="msg" title="<?= $this->lang['message'] ?>" req="<?= $this->lang['errMsg'] ?>"></textarea><?php 
         ?><input tabindex="4" class="button bt hf" type="submit" value="<?= $this->lang['send'] ?>" /></form></div><?php
         
-       /* ?><div class="loader"><div class='load'><?= $this->lang['aSending'] ?></div></div><?php */
-        
-        $this->globalScript.='
-            function vf(e){
-                var data=psf(e);
-                if(data){
-                    dsl(e.parentNode,"'.$this->lang['aSending'].'",1,0,getWSct());
-                    data["lang"]=lang;
-                    $.ajax({
-                        type:"POST",
-                        url:"/ajax-contact/",
-                        data:data,        
-                        dataType:"json",
-                        success:function(rp){
-                            if(rp && rp.RP){
-                                e.childNodes[5].value="";
-                                dsl(e.parentNode,"<span class=\'done\'></span>"+rp.MSG,0,1,0);
-                            }else {
-                                dsl(e.parentNode,"<span class=\'fail\'></span>"+rp.MSG,0,1);
-                            }
-                        }
-                    });
-                }
-        };';
+       /* ?><div class="loader"><div class='load'><?= $this->lang['aSending'] ?></div></div><?php */              
     }
    
 
     function side_pane() {      
         $this->renderSideSite();
-        //$this->renderSideUserPanel();
-        //$this->renderSideLike();
     }
 
     
@@ -84,8 +59,8 @@ class Contact extends Page {
         $subTitle=$rtl?'عندك سؤال؟ تعليق؟ لم تجد ما كنت تبحث عنه؟ دعنا نعرف...':"Have a question? Feedback? Haven't found what you've been looking for? Let us know...";
         ?><p class="fw-300" style="font-size:23px;line-height:1.5em;margin-top:-40px"><?=$subTitle?></p><div><?php
         ?><form class="mb-32" onsubmit="vf(this);return false;"><?php
-        ?><div class=row style="margin-top:24px"><div class=group>
-            <input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
+        ?><div class=row style="margin-top:24px"><div class="bluebar group"><?php
+            ?><input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
                 echo '<label>', $this->lang['hint_name'], '</label>';
             }
@@ -93,7 +68,7 @@ class Contact extends Page {
             <span class=bar></span>
         </div></div><?php
             
-        ?><div class=row><div class=group>
+        ?><div class=row><div class="bluebar group">
             <input type=email required onkeydown="dirElem(this)" onchange="dirElem(this)" onkeyup="this.setAttribute('value', this.value);" id=email value="<?= $email ?>" <?= $email ? "disabled='disabled'":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
                 echo '<label>', $this->lang['hint_email'], '</label>';
@@ -109,7 +84,7 @@ class Contact extends Page {
             <span class=bar></span>
         </div></div><?php
         
-        ?><button class=btn type=submit style="min-width:160px;font-weight:500;font-size:16px"><?= $this->lang['send'] ?></button><?php
+        ?><button class=btn type=submit style="min-width:160px;height:60px;font-weight:500;font-size:18px"><?=$this->lang['send']?></button><?php
         ?></form><span class="omail <?= $this->router->language ?>"></span><span class="nb"></span></div><?php
         
         ?></div><?php
@@ -131,15 +106,14 @@ class Contact extends Page {
             fetch('/ajax-contact/', opt).then(res => res.json()).then(response => {
                 console.log('Success:', response);
                 if (response.success===1) {
-                    alert(response.result);
-                    history.go(-1);
+                    Swal.fire('Done!', response.result, 'success' ).then((result)=>{history.go(-1);});
                 }
                 else {
-                    alert(response.error);
+                    Swal.fire('Error', response.error, 'error');
                 }
             })
             .catch(error => {
-                console.log('Error:', error);
+                Swal.fire('Error', error, 'error');
             });
         };
         </script><?php               

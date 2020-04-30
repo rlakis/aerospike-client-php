@@ -590,15 +590,18 @@ class Site {
 
     
     function zammad(string $toName, string $toEmail, string $fromName, string $fromEmail, string $subject, string $message, string $sender_account='', int $reference=0) : int {
-        $client = new Client([
+        $client=new Client([
             'url'           => 'http://ws.mourjan.com', // URL to your Zammad installation
             'username'      => 'admin@berysoft.com',    // Username to use for authentication
             'password'      => 'GQ71BUT2',              // Password to use for authentication
             'debug'         => false,                   // Enables debug output
-        ]);      
+        ]);
         
-        $users = $client->resource( ResourceType::USER )->search($fromEmail);        
+        //$users=$client->resource(ResourceType::USER)->search(\trim($fromEmail));        
         
+        //\error_log($fromEmail.PHP_EOL.var_export($users, true).PHP_EOL.var_export( $client->getLastResponse(), true));
+        
+        /*
         if ( !\is_array($users) ) {
             if ( $users->hasError() ) {
                 \error_log(__FUNCTION__.'('.__LINE__.') '. $users->getError() );                
@@ -627,17 +630,38 @@ class Site {
                 \error_log(__FUNCTION__.'('.__LINE__.') '. $user->getError() );
                 return 0;
             }                        
-        }
+        }*/
                
+        $name = \trim($fromName);
+        $last_name = (strpos($name, ' ') === false) ? '' : preg_replace('#.*\s([\w-]*)$#', '$1', $name);
+        $first_name = trim( preg_replace('#'.$last_name.'#', '', $name ) );
+        $user_data = [
+            'login' => $fromEmail,
+            'email' => $fromEmail,
+            'firstname' => $first_name,
+            'lastname' => $last_name                
+        ];
+                
+        $user = $client->resource(ResourceType::USER);
+        $user->setValues($user_data);
+        $user->save();
+        if ( $user->hasError() ) {
+            if (!preg_match('/is already used for other user/', $user->getError())) {
+                \error_log(__FUNCTION__.'('.__LINE__.') '. $user->getError() );
+                return 0;
+            }
+        }                        
+        
+        $client->setOnBehalfOfUser($fromEmail);        
         
         $ticket_data = [
             'group_id'      => 1,
             'priority_id'   => 2,
             'state_id'      => 1,
             'title'         => $subject,
-            'customer_id'   => $user->getID(),
+            /*'customer_id'   => $user->getID(),*/
             'article'       => [
-                'origin_by_id'  => $user->getID(),
+                /*'origin_by_id'  => $user->getID(),*/
                 'reply_to'      => trim($fromName)." <".trim($fromEmail).">",
                 'subject'       => $subject,
                 'body'          => $message,
@@ -649,10 +673,8 @@ class Site {
                 'time_unit'     => 12,
             ],
         ];
-        
-        //error_log(json_encode($ticket_data, JSON_PRETTY_PRINT));
-        
-        $ticket = $client->resource( ResourceType::TICKET );
+                
+        $ticket=$client->resource(ResourceType::TICKET);
         $ticket->setValues($ticket_data);
         $ticket->save();
         
