@@ -114,8 +114,10 @@ class Router extends \Core\Model\Singleton {
         
         $this->cookie=\json_decode(\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]));
         
+        error_log('start with '.var_export($this->cookie, true));
+        
         $this->session_key=\session_id();
-        $_session_params = $_SESSION['_u']['params'] ?? [];
+        $_session_params=$_SESSION['_u']['params'] ?? [];
                 
         $this->isAcceptWebP=(\strpos(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]), 'image/webp')!==false);
 
@@ -167,7 +169,7 @@ class Router extends \Core\Model\Singleton {
             }
         }
         elseif (isset($_session_params['mobile'])) {
-            $this->isMobile = $_session_params['mobile'];
+            $this->isMobile=$_session_params['mobile'];
         }
                 
         $this->explodedRequestURI=\explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));        
@@ -420,11 +422,14 @@ class Router extends \Core\Model\Singleton {
                 
                 
         if ((!$this->internal_referer || \strstr($this->referer, '/oauth/')) && empty($got) && ($this->uri===''||$this->uri==='/') && !$this->userId && !$this->watchId) {
-            $this->countries=$this->db->getCountriesData($this->language);
-            
-            if (isset($_session_params['visit']) && isset($_session_params['user_country'])) { 
-                if (!$this->countryId && \strpos($this->config->baseURL, '.mourjan.com')===false) {  
-                    $curi = $this->uri;
+                        
+            $this->countries=$this->db->getCountriesData($this->language);            
+
+            if (isset($_session_params['visit']) && isset($_session_params['user_country'])) {                
+                
+                if ($this->countryId<=0 /*&& \strpos($this->config->baseURL, '.mourjan.com')===false*/) {
+                    //\error_log($this->countryId.' '.var_export($_session_params, true));
+                    $curi=$this->uri;
                     if (isset($this->cookie->cn) && $this->cookie->cn) {
                         if (!isset($_GET['app']) && isset($this->cookie->lg) && \in_array($this->cookie->lg, ['ar','en'])) {
                             $this->language=$_session_params['lang']=$this->cookie->lg;                            
@@ -441,12 +446,12 @@ class Router extends \Core\Model\Singleton {
                         }
                         
                         if ($this->uri!==$curi) {
-                            $_SESSION['_u']['params'] = $_session_params;
+                            $_SESSION['_u']['params']=$_session_params;
                             $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     } 
                     else {
-                        $_SESSION['_u']['params'] = $_session_params;
+                        $_SESSION['_u']['params']=$_session_params;
                         $this->setGeoByIp();
                         if ($this->uri!=$curi) {                            
                             $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
@@ -475,7 +480,7 @@ class Router extends \Core\Model\Singleton {
                             }
                         }
                         if ($current_uri!=$this->uri) {
-                            $_SESSION['_u']['params'] = $_session_params;
+                            $_SESSION['_u']['params']=$_session_params;
                             $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
                         }
                     }
@@ -505,7 +510,7 @@ class Router extends \Core\Model\Singleton {
         if (!isset($_session_params['lang'])) {
             if (!isset($_GET['app']) && isset($this->cookie->lg) && \in_array($this->cookie->lg, ['ar','en'])) {
                 $this->language=$_session_params['lang']=$this->cookie->lg;
-                $_SESSION['_u']['params'] = $_session_params;
+                $_SESSION['_u']['params']=$_session_params;
                 $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
             } 
             else {
@@ -521,7 +526,12 @@ class Router extends \Core\Model\Singleton {
         
     
     public function setUser(\User $kUser) : void {
-        $this->user = $kUser;
+        $this->user=$kUser;
+        if (isset($this->cookie->cn) && $this->countryId>0 && $this->countryId!==$this->cookie->cn) {            
+            $this->user->params['country']=$this->countryId;
+            $this->user->update();
+            $this->user->setCookieData();
+        }
     }
     
     
@@ -531,7 +541,7 @@ class Router extends \Core\Model\Singleton {
     
     
     public function setLogger(\Core\Lib\Logger $klogger) : void {
-        $this->logger = $klogger;  
+        $this->logger=$klogger;  
     }
     
     
@@ -969,14 +979,14 @@ class Router extends \Core\Model\Singleton {
             if ($this->uri) {
                 $url_codes=$this->FetchUrl($this->uri);
                 if (!empty($url_codes)) {
-                    $this->countryId = $url_codes['country_id'];// $url_codes[0];
-                    $this->cityId = $url_codes['city_id'];//$url_codes[1];
-                    $this->rootId = $url_codes['root_id'];//$url_codes[2];
-                    $this->sectionId = $url_codes['section_id'];//$url_codes[3];
-                    $this->purposeId = $url_codes['purpose_id'];//$url_codes[4];
-                    $this->module = $url_codes['module'];//$url_codes[5];
-                    $this->pageTitle['en'] = $url_codes['name_en'];//trim($url_codes[6]);
-                    $this->pageTitle['ar'] = $url_codes['name_ar'];//trim($url_codes[7]);
+                    $this->countryId=$url_codes['country_id'];// $url_codes[0];
+                    $this->cityId=$url_codes['city_id'];//$url_codes[1];
+                    $this->rootId=$url_codes['root_id'];//$url_codes[2];
+                    $this->sectionId=$url_codes['section_id'];//$url_codes[3];
+                    $this->purposeId=$url_codes['purpose_id'];//$url_codes[4];
+                    $this->module=$url_codes['module'];//$url_codes[5];
+                    $this->pageTitle['en']=$url_codes['name_en'];//trim($url_codes[6]);
+                    $this->pageTitle['ar']=$url_codes['name_ar'];//trim($url_codes[7]);
                     //if (!$this->userId) {
                     //    $this->userId = $url_codes[8];
                     //}
@@ -1056,7 +1066,7 @@ class Router extends \Core\Model\Singleton {
         $this->uri.='/';
         $this->cache();               
         
-        if ($this->http_status==200 && $this->module!='detail' && !$this->force_search) {
+        if ($this->http_status==200 && $this->module!=='detail' && !$this->force_search) {
             if ($this->module==='search') {
                 if ($this->rootId && isset ($this->pageRoots[$this->rootId])) {
 		    $this->count=$this->pageRoots[$this->rootId]['counter'];
@@ -1076,19 +1086,21 @@ class Router extends \Core\Model\Singleton {
                 }
             }
             elseif ($this->module==='index') {
-                if ($this->countryId && isset ($this->countries[$this->countryId]))
+                if ($this->countryId && isset($this->countries[$this->countryId])) {
                     $this->last_modified=$this->countries[$this->countryId]['unixtime'];
-                if ($this->cityId && isset ($this->countries[$this->countryId]['cities'][$this->cityId]))
+                }
+                if ($this->cityId && isset ($this->countries[$this->countryId]['cities'][$this->cityId])) {
                     $this->last_modified=$this->countries[$this->countryId]['cities'][$this->cityId]['unixtime'];
-                if ($this->rootId && isset($this->pageRoots[$this->rootId]))
+                }
+                if ($this->rootId && isset($this->pageRoots[$this->rootId])) {
                     $this->last_modified=$this->pageRoots[$this->rootId]['unixtime'];
-
+                }
             }
         
             $this->cacheHeaders($this->last_modified);
         }
         
-        $this->getCanonicalURL();
+        $this->getCanonicalURL();               
     }
     
     

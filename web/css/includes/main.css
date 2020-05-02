@@ -409,6 +409,7 @@ body[dir=rtl] .icntop {
 }
 .card .card-content {
   display: inline-block;
+  line-height: 1.5em;
   width: 100%;
   padding: 15px 20px;
   position: relative

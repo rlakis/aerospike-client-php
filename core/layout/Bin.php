@@ -3934,117 +3934,64 @@ class Bin extends AjaxHandler {
                 }else $this->fail('101');
                 break;
                 
-            case 'ajax-pay':
-                if ($this->user->info['id'] && isset ($_POST['i'])) {
-                    $id=$this->post('i','numeric');
-                    $lang = $this->post('hl');
-                    if (is_numeric($id)){
-                        $product=$this->urlRouter->db->queryResultArray(
-                            "select * from product where id=?",
-                            array($id), true);
-                        if(isset($product[0]['ID']) && $product[0]['ID']){
-                            $product = $product[0];
-                            $product['MCU'] = (int)$product['MCU'];
-                            $product['USD_PRICE'] = number_format($product['USD_PRICE'],2);
-                            $orderId='';
-                            $order=$this->urlRouter->db->queryResultArray(
+            case 'pay':
+                $this->authorize(true);
+                if (!isset($_POST['i'])) {
+                    $this->error(self::ERR_DATA_INVALID_META);
+                }
+                
+                $id=\filter_var($this->_JPOST['i'], FILTER_SANITIZE_NUMBER_INT)+0;
+                
+                $lang=$this->router->language;                    
+                $product=$this->router->db->queryResultArray("select ID, PRODUCT_ID, MCU, USD_PRICE, AED_PRICE from product where id=? and web=1 and blocked=0", [$id], true);
+                \error_log(print_r($product));
+                if (isset($product[0]['ID']) && $product[0]['ID']==$id) {
+                    $product=$product[0];
+                    
+                    //$product['MCU']=$product['MCU'];
+                    
+                    $product['USD_PRICE']=\number_format($product['USD_PRICE'], 2);
+                    $orderId='';
+                    
+                    $order=$this->urlRouter->db->queryResultArray(
                                 "insert into t_order (uid, currency_id, amount, debit, credit, usd_value, server_id, flag) values (?, ?, ?, ?, ?, ?, ?, ?) returning id",
-                                [
-                                    $this->user->info['id'],
-                                    'USD',
-                                    $product['USD_PRICE'],
-                                    0,
-                                    $product['MCU'],
-                                    $product['USD_PRICE'],
-                                    $this->urlRouter->cfg['server_id'],
-                                    $this->router->isMobile ? 1 : 0
-                                ], true);
+                                [$this->user->id(), 'USD', $product['USD_PRICE'], 0, $product['MCU'], $product['USD_PRICE'], $this->router->config->serverId, $this->router->isMobile?1:0], true);
                             
-                            if(isset($order[0]['ID']) && $order[0]['ID'])
-                            {
-                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile'] ? 1:0);   
+                    if (isset($order[0]['ID']) && $order[0]['ID']) {
+                        $orderId=$this->user->id().'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile']?1:0);   
                                 
-                                require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
-                                //require_once $this->urlRouter->cfg['dir'].'/core/lib/MCPayfort.php';
+                        $this->router->config->incLibFile('PayfortIntegration');                        
+                        $objFort=new PayfortIntegration();
+                        $objFort->setAmount($product['USD_PRICE']);
+                        $objFort->setCustomerEmail($this->user->info['email']);
+                        $objFort->setItemName($product['MCU'].($lang!=='ar'?' mourjan gold':' ذهبية مرجان'));
+                        $objFort->setMerchantReference($orderId);
+                        $objFort->setLanguage($lang);
+                        $objFort->setCommand('PURCHASE');
                                 
-                                $objFort = new PayfortIntegration();
-                                /*
-                                $objFort = new MCPayfort();
-                                $objFort->setAmount($product['USD_PRICE'])
-                                        ->setLanguage($lang)
-                                        ->setCommand('PURCHASE')
-                                        ->setCustomerEmail($this->user->info['email'])
-                                        ->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'))
-                                        ->setMerchantReference($orderId);
-                                        
-                                */
-                                $objFort->setAmount($product['USD_PRICE']);
-                                $objFort->setCustomerEmail($this->user->info['email']);
-                                $objFort->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'));
-                                $objFort->setMerchantReference($orderId);
-                                $objFort->setLanguage($lang);
-                                $objFort->setCommand('PURCHASE');
+                        if (($token=NoSQL::instance()->getUserPayfortToken($this->user->id()))!=false) {
+                            $objFort->token_name=$token;
+                        }
                                 
-                                if (($token= NoSQL::instance()->getUserPayfortToken($this->user->info['id']))!=FALSE)
-                                {
-                                    $objFort->token_name = $token;
-                                    //$objFort->setTokenName($token);                                    
-                                }
-                                
-                                $form = $objFort->getRedirectionData('');
-                                $formData = '';
-                                foreach($form['params'] as $k => $v){
-                                    $formData .= '<input type="hidden" name="' . $k . '" value="' . $v . '">';
-                                }
-                                
+                        $form=$objFort->getRedirectionData('');
+                        $formData='';
+                        foreach ($form['params'] as $k=>$v) {
+                            $formData.='<input type="hidden" name="'.$k.'" value="'.$v .'">';
+                        }                                
                                
-                                $this->setData($formData, "D");
-                                $this->setData($form['url'], "U");
-                                /*
-                                $product['MCU'] = (int)$product['MCU'];
-                                $passPhrase = $this->urlRouter->cfg['payfor_pass_phrase_out'];
-                                $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
-                                $access_code = $this->urlRouter->cfg['payfor_access_code'];
-                                $webscr = $sandbox ? $this->urlRouter->cfg['payfor_url_test'] : $this->urlRouter->cfg['payfor_url'];
-                                $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->language!='ar' ? $this->urlRouter->language . '/' : '');
-                                $merchant_id = $this->urlRouter->cfg['payfor_merchant_id'];
-
-                                $requestParams = [
-                                    'access_code' => $access_code ,
-                                    'amount' => $product['USD_PRICE'],
-                                    'currency' => 'USD',
-                                    'customer_email' => $this->user->info['email'],
-                                    'merchant_reference' => '1-3',
-                                    'order_description' =>  $product['MCU'].(1 ? ' mourjan gold':' ذهبية مرجان'),
-                                    'language' => $lang,
-                                    'merchant_identifier' => $merchant_id,
-                                    'command' => 'PURCHASE',
-                                    'return_url'=>$return_url,
-                                    'dynamic_descriptor' => $product['MCU']. ' mourjan gold'
-                                ];
-
-                                ksort($requestParams);
-
-                                $signature = '';
-                                foreach ($requestParams as $a => $b) {
-                                    $signature .= $a . '=' .$b;
-                                }
-                                $signature = $passPhrase.$signature.$passPhrase; 
+                        $this->setData($formData, "D");
+                        $this->setData($form['url'], "U");                        
+                        $this->process();
                                 
-                                $signature = hash('sha256', $signature);  
-                                
-                                
-
-                                $this->setData($signature, "S");
-                                $this->setData($orderId, "O");
-                                 * 
-                                 */
-                                $this->process();
-                                
-                            }else $this->fail('104');                            
-                        }else $this->fail('103');
-                    }else $this->fail('102');
-                }else $this->fail('101');
+                    }
+                    else {
+                        $this->error(self::ERR_SYS_FAILURE);
+                    }
+                }
+                else {
+                    $this->error(self::ERR_DATA_INVALID_PARAM);
+                }
+                                    
                 break;
                 
             case 'ajax-adel':

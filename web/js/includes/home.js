@@ -1,14 +1,12 @@
 rootWidget=function(e){
     let ses=JSON.parse(e.dataset.sections), assetsURL="https://dev.mourjan.com/css/2020/1.0/assets";
     let h=document.querySelector('div#rs.lrs');
-    if (!e.classList.contains('open')) {
-        console.log(e.dataset);
+    if (!e.classList.contains('open')) {       
         for (const i of e.closest('div.roots').querySelectorAll('div.large')) {
             i.classList.remove('open'); 
         }
         
         let rootId=parseInt(e.dataset.ro); sb=['<div class=card><div class="col-8 ls"><ul>'];
-        console.log('root', rootId);
         for (var s in ses) {
             let ss=ses[s];
             sb.push('<li id=');

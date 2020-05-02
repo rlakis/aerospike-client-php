@@ -76,7 +76,7 @@ body[dir=rtl] .card.doc .page-footer .sep:before {
     right: 0;
 }
 
-
+input{border:0;outline: none}
 
 .side {
     flex:1 auto;

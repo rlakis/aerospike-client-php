@@ -1,16 +1,51 @@
 <?php
-\Config::instance()->incLayoutFile('Page');
+\Config::instance()->incLayoutFile('Page')->incLibFile('IPQuality');
 
 class Doc extends Page{
 
+    private string $countryCode='XX';
+    
     function __construct() {
         header('Vary: User-Agent');
         parent::__construct(); 
+        
         if ($this->router->module==='buy' || $this->router->module==='buyu') {
             if ($this->router->config->get('active_maintenance')) {
                 $this->user()->redirectTo($this->router->getLanguagePath('/maintenance/'));
             }
-            $this->checkBlockedAccount();            
+            $this->checkBlockedAccount();
+            
+            $allow=false;
+            $ip=IPQuality::fetchJson(false);
+            if (isset($ip['ipquality'])) {
+                $tor=($ip['ipquality']['tor']??1)+0;
+                $vpn=($ip['ipquality']['vpn']??1)+0;
+                $this->countryCode=$ip['ipquality']['country_code']??'XX'; 
+                
+                if ($this->router->module==='buy') {
+                    $allow=($tor===0 && $vpn===0 && \in_array($this->countryCode, ['AE', 'SA', 'BH', 'KW', 'QA']));
+                }
+                else {
+                    $allow=($tor===0 && \in_array($this->countryCode, ['AE', 'SA', 'BH', 'KW', 'QA', 'EG', 'JO', 'LB', 'MA', 'SD', 'OM']));
+                }
+                
+                if ($allow===false) {
+                    $extraRe='';
+                    if ($tor===1) {
+                        $extraRe.='tor=1';
+                    }
+                    if($vpn===1) {
+                        if ($extraRe) {
+                            $extraRe.='&';
+                        }
+                        $extraRe.='vpn=1';
+                    }
+                    if ($extraRe) {
+                        $extraRe='?'.$extraRe;
+                    }
+                    $this->user->redirectTo($this->router->getLanguagePath('/disallowed/').$extraRe);
+                }
+            }                        
         }
                            
 /*
@@ -110,6 +145,7 @@ class Doc extends Page{
     
     function header() : void {       
         parent::header();
+        $this->inlineJS('buy.js');
     }
 
     
@@ -152,8 +188,8 @@ class Doc extends Page{
 
     
     private function payforButton($product) {
-        echo '<form method="post" onsubmit="buy('.$product[5].',this);" action="javascript:void(0);" name="payment">';        
-        echo "<input type=image name=submit border='0' src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";        
+        echo '<form method=post onsubmit="buy('.$product['ID'].',this);" action="javascript:void(0);" name=payment>';        
+        echo "<input type=image name=submit src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";        
         echo "</form>";
         
     }
@@ -497,59 +533,66 @@ class Doc extends Page{
     
     
     private function renderGold() : void {
-        ?><script>
-function chapter(n) {
-    let chapter=document.querySelector('div#chapter'+n);
-    let li=chapter.closest('li');
-    li.classList.toggle('open');
-    //li.querySelector('span').classList.toggle('t90');
-    //chapter.classList.toggle('open');
-}
-</script><?php
-
+        ?><script>function chapter(n){
+            let c=document.querySelector('div#chapter'+n);
+            let li=c.closest('li');
+            for(const i of c.closest('ul').querySelectorAll('li')) {if (i!==li)i.classList.remove('open');}
+            li.classList.toggle('open');li.scrollIntoView(true);}</script><?php
+            
+        $rtl=$this->router->isArabic();
+                
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         
         ?><div class=col-10><div class="card doc"><div class="view" style="min-height:600px"><?php
-        ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:348px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
+        ?><h2 class=title><?=$rtl?'كل ما تريد ان تعرفه عن':'Everything<br>you need to know about'?><img alt="mourjan" style="width:348px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
                 
         $imgPath=$this->router->config->imgURL.'/presentation2/';
                 
         ?><div class="col-12 ff-cols"><?php
         ?><ul class=menu><?php
         
-        ?><li><a href="javascript:chapter(1)">How it works<span class=disclosure>›</span></a><?php
-        ?><div id="chapter1"><?php
+        ?><li><a href="javascript:chapter(1)"><?=$rtl?'كيف يعمل؟ وما هو؟':'How it works'?><span class=disclosure>›</span></a><?php
+        ?><div id=chapter1><?php
         ?><p><?=$this->lang['gold_p2']?></p><?php
-        ?><table><caption>PACKAGES</caption><?php
-        ?><tr><th>Quantity<br><small class="small">1 PREMIUM/day</small></th><th><small class="small">*</small>Price<br><small class="small">USD</small></th></tr><?php
-        ?><tr><td>1</td><td>$0.99</td></tr><?php
-        ?><tr><td>7</td><td>$4.99</td></tr><?php
-        ?><tr><td>14</td><td>$8.99</td></tr><?php
-        ?><tr><td>21</td><td>$12.99</td></tr><?php
-        ?><tr><td>30</td><td>$17.99</td></tr><?php
-        ?><tr><td>100</td><td>$49.99</td></tr><?php
+        ?><table><caption><?=$rtl?'الباقات':'PACKAGES'?></caption><?php
+        ?><tr><th><?=$rtl?'ذهبيات':'Quantity'?><br><small class=small><?=$rtl?'مميز ليوم':'1 PREMIUM/day'?></small></th><?php
+        ?><th><small class=small>*</small><?=$rtl?'السعر':'Price'?><br><small class=small><?=$rtl?'دولار':'USD'?></small></th><?php
+        ?><th><small class=small>**</small><?=$rtl?'السعر':'Price'?><br><small class=small><?=$rtl?'درهم اماراتي':'AED'?></small></th></tr><?php
+        ?><tr><td>1</td><td>$0.99</td><td>3.99</td></tr><?php
+        ?><tr><td>7</td><td>$4.99</td><td>19.99</td></tr><?php
+        ?><tr><td>14</td><td>$8.99</td><td>34.99</td></tr><?php
+        ?><tr><td>21</td><td>$12.99</td><td>49.99</td></tr><?php
+        ?><tr><td>30</td><td>$17.99</td><td>69.99</td></tr><?php
+        ?><tr><td>100</td><td>$49.99</td><td>194.99</td></tr><?php
         ?></table><?php
-        ?><p class="tfoot">*Prices are in US dollar and may be subject to VAT (value added tax)</p><?php
+        ?><p class="tfoot">*<?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
+        ?><p class="tfoot">**<?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, including 5% value-added tax.'?></p><?php
         echo "<p>{$this->lang['gold_p2_0']}</p>";
         ?></div></li><?php
         
         
-        ?><li><a href="javascript:chapter(2)">How to buy it<span class=disclosure>›</span></a><?php
-        ?><div id="chapter2"><?php
-        echo '<p>', $this->lang['gold_p2_5_0'], '</p>';
-        echo "<p>{$this->lang['gold_p2_5']}</p>";
-        echo "<p>".$this->lang['gold_p2_6'.($this->router->isMobile ? '_m':'')]."</p>";
-        ?><div class="btH"><php
+        ?><li><a href="javascript:chapter(2)"><?=$rtl?'كيفية الشراء':'How to buy it'?><span class=disclosure>›</span></a><?php
+        ?><div id=chapter2><?php
+        ?><p><?=$this->lang['gold_p2_5_0']?></p><?php
+        ?><p><?=$this->lang['gold_p2_5']?></p><?php
+        ?><p><?=$this->lang['gold_p2_6'.($this->router->isMobile ? '_m':'')]?></p><?php
+        ?><div class=btH><?php
         ?><a href="<?=$this->router->getLanguagePath('/buy')?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a><br /><?php 
         ?><a href="<?=$this->router->getLanguagePath('/buy')?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a><br /><?php 
         ?></div><?php
         //echo '<p>', $this->lang['buy_gold_0'], '</p>';
-        echo '<p>', $this->lang['gold_p2_4'], '</p>';
-        echo '<ul class="alinks"><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a></li><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a></li></ul>';
+        ?><p><?=$this->lang['gold_p2_4']?></p><?php
+        ?><ul class=alinks><?php
+        ?><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a></li><?php
+        ?><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a></li></ul><?php
         ?></div></li><?php
         
         
-        ?><li><a href="javascript:chapter(3)">Why premium ads matter<span class=disclosure>›</span></a><div id="chapter3"></div></li><?php
+        ?><li><a href="javascript:chapter(3)"><?=$rtl?'أهمية الإعلانات المميزة':'Why premium ads matter'?><span class=disclosure>›</span></a><?php
+        ?><div id=chapter3><?php
+        echo \file_get_contents($this->router->config->baseDir.'/web/doc/premium-'.$this->router->language.'.html');
+        //echo '<div class=uld>', $this->lang['gold_p1_desc'], '</div></li>';
+        ?></div></li><?php
         ?></ul><?php
         
         //echo "<ul class='prices alt rc'>{$this->lang['gold_p2_2']}</ul>";
@@ -572,12 +615,11 @@ function chapter(n) {
     
     
     private function renderPremium() : void {
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card doc">';
         echo '<h2 class="card-title">',$this->lang['gold_p1_title'], '</h2>';
         echo '<div class="col-12 block"><div><p>';
         $imgPath = $this->router->config->imgURL.'/presentation2/';
-        $this->lang['gold_p1_desc'] = preg_replace(
-                        ['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
+        $this->lang['gold_p1_desc']=\preg_replace(['/{IMG1}/','/{IMG2}/','/{IMG3}/','/{IMG4}/','/{IMG5}/','/{IMG6}/'], 
                         [
                             '<img width=200 height=150 src="'.$imgPath.'desktop-premium'.$this->router->_jpg.'" />',
                             '<img width=74 height=150 src="'.$imgPath.'mobile-site-premium'.$this->router->_jpg.'" />',
@@ -595,19 +637,22 @@ function chapter(n) {
     
     
     private function renderBuyU() : void {        
-        if ($this->user->info['id']==0) { 
+        if (!$this->user->isLoggedIn()) { 
             $this->renderLoginPage();
             return;
         }
 
-        echo '<div class=row><div class="col-2 side">', $this->side_pane(), '</div><div class=col-10><div class="card card-doc">';
+        ?><div class=row><?php
+        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        ?><h2 class="title">Pay with credit card</h2><?php
                                         
         if (!$this->user->info['email']) {
-            $message = $this->lang['requireEmailPay'];
+            $message=$this->lang['requireEmailPay'];
             if ((isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']))) {
                 $message = preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmailPay']);                    
             }
-            echo '<div class="htf">'.$message.'</div>';
+            ?><div class="htf"><?=$message?></div><?php
         }
         else {                    
             if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) {
@@ -677,29 +722,41 @@ function chapter(n) {
                 }
             }                    
                 
-            $products = $this->router->db->queryCacheResultSimpleArray("products_payfort",
-                                    "select product_id, name_ar, name_en, usd_price, mcu, id  
-                                    from product 
-                                    where iphone=0 
-                                    and blocked=0 
-                                    and usd_price > 3 
-                                    order by mcu asc",
-                                    null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
-
-            echo '<ul class="table">';
-            $i=1;$j=0;
-            foreach ($products as $product) {
-                $alt = $i++%2;
-                $product[3] = number_format($product[3],2);
-                echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>{$product[3]} USD</li><li class='tt'>";
-                    $this->payforButton($product);
-                    echo "</li>";
-                    $j++;
+            $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id  
+                    from product 
+                    where web=1 
+                    and blocked=0 
+                    order by mcu asc");
+          
+            
+            $number=$this->user->getProfile()->getMobileNumber();
+            echo "verified {$this->isUserMobileVerified} {$number}";
+            if ($this->user->getProfile()->isMobileVerified()||$this->user->level()===9) {
+                $currency=(\substr(\strval($number), 0, 3)==='961')?'AED':'USD';
+                ?><table style="display:table;border-collapse:collapse;border-spacing:0;width:460px;margin:0 auto;margin-bottom:64px"><?php
+                //$i=1;$j=0;
+                foreach ($products as $product) {
+                        //$alt=$i++%2;
+                    //$product[3]=\number_format($product[3], 2);
+                    ?><tr><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:start;font-weight:700"><?=$product['NAME_'.strtoupper($this->router->language)]?></td><?php
+                    ?><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:center;font-weight:500"><?=\number_format($product[$currency.'_PRICE'], 2).' '.$currency?></td><?php
+                    ?><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:end"><?=$this->payforButton($product)?></td></tr><?php
+                    //$j++;
+                }
+                ?></table><?php
+                ?><div style="margin:0 auto 32px;width:288px"><img src="<?=$this->router->config->cssURL?>/1.0/assets/payfort.svg" alt="Verified by PAYFORT" /></div><?php
+            }
+            else {
+                if ($number>0) {
+                    $alert="Your mobile number +".$number." is expired!<br>Please verify your ownership of this number or change it to new one.";
+                }
+                else {
+                    $alert="Your account is not verified";
+                    
+                }
+                ?><div class="alert alert-danger"><?=$alert?></div><?php
             }
 
-            echo '</ul>';
-
-            ?><br /><br /><div class="bth ctr"><img width="288" height="60" src="<?= $this->urlRouter->cfg['url_css'] ?>/i/payfort<?= $this->urlRouter->_jpg ?>" alt="Verified by PAYFORT"></div><br /><?php
                     
             $this->globalScript .= '
             var xhr;
@@ -743,15 +800,22 @@ function chapter(n) {
                 };
                 ';
         
-        ?><div id=paypro class=dialog><?php
-        ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
-            ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
+            /*
+            ?><div id=paypro class=dialog><?php
+                ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
+                ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
+            ?></div><?php
+            
+            ?><div id="alert_dialog" class="dialog"><?php
+                ?><div class="dialog-box ctr"></div><?php 
+                ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
+            ?></div><?php
+            */ 
+             
+        }
         ?></div><?php
-        ?><div id="alert_dialog" class="dialog"><?php
-                        ?><div class="dialog-box ctr"></div><?php 
-                        ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-        ?></div><?php
-                    }
+        $this->docFooter();
+        ?></div></div></div><?php
     }     
     
     
@@ -838,7 +902,8 @@ function chapter(n) {
         ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
         
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
-        ?><div class=col-10><div class="card doc"><div class=view><h2 class=title>Mourjan Terms of Use</h2><?php                    
+        
+        ?><div class=col-10><div class="card doc en"><div class=view><h2 class=title>Mourjan Terms of Use</h2><?php                    
         ?><h3>Introduction</h3><?php
         ?><p>Welcome to <span>www.mourjan.com</span> ("Mourjan"). By accessing <span>Mourjan</span> you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209. This policy is effective January 1st, 2012.</p><?php
 ?><h3>Using Mourjan</h3><?php
@@ -901,9 +966,10 @@ function chapter(n) {
 <p>If we don't enforce any particular provision, we are not waiving our right to do so later. If a court strikes down any of these terms, the remaining terms will survive. We may automatically assign this agreement in our sole discretion in accordance with the notice provision below.</p>
 <p>Except for notices relating to illegal or infringing content, your notices to us must be sent by registered mail to Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209, P.O. Box No. 294474. We will send notices to you via the email address you provide, or by registered mail. Notices sent by registered mail will be deemed received five days following the date of mailing.</p>
 <p>Mourjan Policies and Terms & Conditions may be changed or updated occasionally to meet the requirements and standards. Therefore Users are encouraged to frequently visit these sections in order to be updated about the changes on the website. Modifications will be effective on the day they are posted.</p>
-<p><b>Terms Of Use updated 29 Apr 2020</b></p>
-        <?php
-        ?></div></div></div><?php
+<p><b>Terms Of Use updated 29 Apr 2020</b></p><?php
+?></div><?php
+        $this->docFooter();
+        ?></div></div><?php
     }
     
     
@@ -911,7 +977,7 @@ function chapter(n) {
         ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
 
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
-        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        ?><div class=col-10><div class="card doc en"><div class=view><?php
         ?><h2 class=title>Privacy policy</h2><?php
 ?><p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
 <h3>Collection</h3>
@@ -965,7 +1031,7 @@ function chapter(n) {
 <p>We do not permit third-party content on Mourjan (such as classifieds item listings) to include cookies or web beacons. If you believe a listing might be collecting personal information or using cookies, please report it to support@mourjan.com.</p>
 <h3>Using Information from Mourjan</h3>
 <p>You may use personal information gathered from Mourjan only to follow up with another user about a specific posting, not to send spam or collect personal information from someone who has not agreed to that.</p>
-<h2>Marketing</h2>
+<h3>Marketing</h3>
 <p>If you do not wish to receive marketing communications from us, you can simply email us at any time.</p>
 <h3>Remarketing with Google Analytics</h3>
 <ul class=ul>
@@ -979,15 +1045,20 @@ function chapter(n) {
 <p>If we or our corporate affiliates are involved in a merger or acquisition, we may share personal information with another company, and this other company shall be entitled to share your personal information with other companies but at all times otherwise respecting your personal information in accordance with this policy.</p>
 <p>Mourjan Policies and Terms & Conditions may be changed or updated occasionally to meet the requirements and standards. Therefore Users are encouraged to frequently visit these sections in order to be updated about the changes on the website. Modifications will be effective on the day they are posted.</p>
 <p><b>Privacy Policy updated 20 Feb 2020</b></p><?php
-        ?></div></div></div><?php
+        ?></div><?php
+        $this->docFooter();
+        ?></div></div><?php
     }
     
     
     public function renderFAQ() : void {
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
-        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        
+        ?><div class=col-10><div class="card doc en"><div class="view"><?php
         ?><h2 class=title>FAQ / Help Center</h2><?php
-        ?></div></div></div><?php
+        ?></div><?php
+        $this->docFooter();
+        ?></div></div><?php
     }
 }
 ?>

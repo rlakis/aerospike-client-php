@@ -643,9 +643,9 @@ class MCMobile extends MCJsonMapper {
     
     
     public function isVerified() : bool {
-        if ($this->flag==2) {
-            return ($this->number>0);
-        }
+        //if ($this->flag==2) {
+        //    return ($this->number>0);
+        //}
         return ($this->number && ($this->ats+31536000)>time());
     }
     

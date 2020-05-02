@@ -258,24 +258,22 @@ var UI={
     
     init:function(){
         let _=this;
-        
-        //console.log(_.adForm.dataset);
-        //console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));
-        
-        fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
-            .then(res=>res.json())
-            .then(response => {
-                console.log(response);
-                if(response.success===1){
-                    Ad.init();
-                    let rs=response.result;
-                    _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
-                    if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
-                    Prefs.init(rs.prefs);
-                    for(i in _.dic){
-                        _.dic[i].menu=[];
-                        let m=_.dic[i].menu;
-                        switch(i){
+        if (_.adForm) {
+            //console.log('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''));       
+            fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
+                .then(res=>res.json())
+                .then(response => {
+                    console.log(response);
+                    if(response.success===1){
+                        Ad.init();
+                        let rs=response.result;
+                        _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
+                        if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
+                        Prefs.init(rs.prefs);
+                        for(i in _.dic){
+                            _.dic[i].menu=[];
+                            let m=_.dic[i].menu;
+                            switch(i){
                             case '1':                            
                                 m.push({'id':1, 'en':'Sell a property', 'ar':'عرض عقار للبيع'});
                                 m.push({'id':2, 'en':'Offer a property for rent', 'ar':'عرض عقار للايجار'});
@@ -364,6 +362,7 @@ var UI={
             .catch(error => { 
                 console.log(error);
             });
+        }
     },
     
     submit:function(e){

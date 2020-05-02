@@ -39,9 +39,9 @@ class PostAd extends Page {
         }
         
         $this->ad=new Core\Model\Ad();
-        $this->hasLeadingPane = $this->user()->id() && !$this->isUserMobileVerified;
+        $this->hasLeadingPane=$this->user()->isLoggedIn() && !$this->isUserMobileVerified;
         
-        if ($this->user()->isLoggedIn()) {
+        if ($this->user->isLoggedIn()) {
             if (!$this->isUserMobileVerified) {
                 $this->title=$this->lang['verify_mobile'];
                 $this->set_require('css', array('select2'));                
@@ -73,7 +73,7 @@ class PostAd extends Page {
 
             $stmt = $this->user()->getStatement(0, 0, true);
             if (isset($stmt['balance'])) {
-                $this->userBalance = $stmt['balance'];
+                $this->userBalance=$stmt['balance'];
             }
         }
 
@@ -89,19 +89,20 @@ class PostAd extends Page {
     function mainMobile() {
         if (!$this->user()->isLoggedIn()) { return; }
             
-        if ($this->isUserMobileVerified) {                    
+        //if ($this->isUserMobileVerified) {                    
+        if ($this->user->getProfile()->isMobileVerified()) {
             $activation_country_code='';
-            $number = $this->user()->getProfile()->getMobileNumber();
-            if ($number>0){
-                $numberValidator = \libphonenumber\PhoneNumberUtil::getInstance();
-                $num = $numberValidator->parse($number, 'LB');
-                $activation_country_code = $numberValidator->getRegionCodeForNumber($num);
+            $number=$this->user()->getProfile()->getMobileNumber();
+            if ($number>0) {
+                $numberValidator=\libphonenumber\PhoneNumberUtil::getInstance();
+                $num=$numberValidator->parse($number, 'LB');
+                $activation_country_code=$numberValidator->getRegionCodeForNumber($num);
             }
             $seqHide=false;
             $preview='';
             $altPreview='';
             $maximumChars=400;
-            $minimumChars=30;                                   
+            $minimumChars=30;                       
             $adRTL=($this->router->isArabic() ? 1 : 0);          
             $altRTL=($this->router->isArabic() ? 0 : 1);     
                         
@@ -185,7 +186,9 @@ class PostAd extends Page {
             if(!$setccv) {
                 $this->globalScript.='var ccv={c:961,n:1,en:"Lebanon",ar:"لبنان",i:"LB"};';
             }
-            if ($hasLocs && $this->rootId && in_array($this->rootId, array(1,2,99)) && (!$this->sectionId || ($this->sectionId && !in_array($this->sectionId,array(748,766,223,924)) )) && count($this->adContent['pubTo'])>1) $hasLocs=false;
+            
+            if ($hasLocs && $this->rootId && in_array($this->rootId, [1, 2, 99]) && (!$this->sectionId || ($this->sectionId && !in_array($this->sectionId,[748,766,223,924]) )) && count($this->adContent['pubTo'])>1) $hasLocs=false;
+            
             if ($hasLocs) {
                 $this->globalScript.='pcl='.count($this->adContent['pubTo']).';';
                 foreach ($this->adContent['pubTo'] as $key=>$val){
@@ -196,7 +199,7 @@ class PostAd extends Page {
             }                      
             
             
-            $current_country_code = isset($this->router->countries[$this->router->countryId]['uri']) ? \strtoupper($this->router->countries[$this->router->countryId]['uri']) : '';
+            $current_country_code=isset($this->router->countries[$this->router->countryId]['uri']) ? \strtoupper($this->router->countries[$this->router->countryId]['uri']) : '';
             
             $ip=IPQuality::fetchJson(false)['ipquality'];
             ?><div class="row viewable"><?php
@@ -209,20 +212,17 @@ class PostAd extends Page {
             
             echo '<div class=col-12><div class=card>';                       
             
-            if ($this->user()->isLoggedIn(9)) {
-                    
+            if ($this->user->level()===9) {                    
                 echo '<div class=card-content>', '<a class="btn blue float-right" href="javascript:void(0)" onclick="toLower()">Lower case</a></div>';               
             }
-             echo '</div></div>';
+            echo '</div></div>';
                 
             //pictures
-            echo '<div class=col-12><div class=card>';
-            echo '<div class="card-content pictures">';
+            ?><div class=col-12><div class=card><div class="card-content pictures"><?php
             for ($i=0; $i<5; $i++){
-                echo '<span class=pix data-index=', $i, '><progress max=100 value=0></progress></span>';
+                ?><span class=pix data-index="<?=$i?>"><progress max=100 value=0></progress></span><?php
             }
-            echo '</div>';
-            echo '</div></div>';
+            ?></div></div></div><?php
             
             ?><div class=col-12><div class=card><div class=card-content><?php
             ?><textarea id=natural placeholder="Enter ad text"></textarea><?php
@@ -291,10 +291,10 @@ class PostAd extends Page {
                     and c.blocked=0                    
                     order by cn.NAME_'.$this->router->language.', c.name_'.$this->router->language;
                 
-            $countries = $this->router->db->queryCacheResultSimpleArray(
+            $countries=$this->router->db->queryCacheResultSimpleArray(
                     'mobile_countries_'.$this->router->language, $q, NULL, 8, $this->router->config->get('ttl_long'));
 
-            
+            /*
             if (0 && $this->user()->level()===9 && ((isset($this->ad) && $this->ad) || (isset($this->adContent['ip']) || isset($this->adContent['userLOC']) || isset($this->adContent['agent'])) )) {
                     ?><ul tabindex="0" class="ls po info"><?php   
                     ?><li class="h"><b><?= $this->lang['m_h_user'] ?></b></li><?php
@@ -382,7 +382,7 @@ class PostAd extends Page {
                 ?></ul><?php
             
             }
-            
+            */
         
             //ad location                         
             
@@ -446,56 +446,80 @@ class PostAd extends Page {
                 ?></div><?php
             }
             
+        }
+        else {
+            // unverified user
+            ?>
+<style>
+.group{position:relative;margin-bottom:36px;flex-grow: 1}
+.group input,.group select{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none;outline:none}
+.group>input:focus,.group>textarea:focus{outline:none;}
+.group label{color:var(--mdc70);font-size:16px;font-weight:300;position:absolute;pointer-events:none;margin-inline-start:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
+.group input:focus ~ label, input:valid ~ label {top:-20px;font-size:14px;color:#5264AE;}
+.group input[type="email"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
+.group input[type="password"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
+.group textarea:focus ~ label, textarea:valid ~ label{top:-20px;font-size:14px;color:#5264AE;}
+.group .bar{position:relative; display:block; width:100%;}
+.group .bar:before, .bar:after{content:'';height:2px;width:0;bottom:1px;position:absolute;background:var(--mlc);transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
+.group .bar:before{left:50%;}
+.group .bar:after{right:50%;}
+.group input:focus ~ .bar:before, input:focus ~ .bar:after{width:50%;}
+.group textarea:focus ~ .bar:before, textarea:focus ~ .bar:after {width:50%;}
+.group .highlight{position:absolute;height:60%;width:100%;top:25%;left:0;pointer-events:none;opacity:0.5;}
+.group input:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
+.group textarea:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
+</style>
+            <?php
+            ?><div class="viewable ha-center"><div class="col-10"><?php
+            $q='select code, id, name_'.$this->router->language.', locked, trim(id_2) from country where id!=109 order by locked desc, name_'.$this->router->language;
+            $cc=$this->router->db->queryCacheResultSimpleArray('country_codes_req_'.strtolower($this->router->language), $q);
+            
+            ?><div class="card" style="padding:32px 64px 64px;color:inherit"><div class="card-content ff-cols"><?php
+            /*
+            if ($this->router->isMobile) {
+                ?><div class=phwrap><?php
             }
-            else {
-                // unverified user
-                $q='select c.code,c.id,c.name_'.$this->urlRouter->siteLanguage.',c.locked,trim(id_2)    
-                        from country c 
-                        where id != 109 
-                        order by c.locked desc,c.name_'.$this->urlRouter->siteLanguage;
-                    $cc=$this->urlRouter->db->queryCacheResultSimpleArray(
-                        'country_codes_req_'.strtolower($this->urlRouter->siteLanguage),
-                        $q,
-                        null, null, $this->urlRouter->cfg['ttl_long']);
-                    //var_dump($cc);
-                if($this->router->isMobile){
-                    ?><div class="phwrap"><?php
+            */
+            ?><p class="mb-32"><?= $this->lang['notice_mobile_required'] ?></p><?php 
+            
+            ?><div id=mb_notice style="display:flex;align-self:center"><?php 
+            ?><form onsubmit="dcheck();return false" class="ff-cols"><?php
+            
+            ?><div class=group><?php
+            ?><select id=code style="direction:ltr;height:40px;font-family:inherit;"><?php 
+                foreach($cc as $country){
+                    $country[2]=preg_replace('/\x{200E}/u','',trim($country[2]));
+                    ?><option value="<?=$country[0]?>"<?=$this->user->params['country']==$country[1]?' selected':''?>><?=$country[2]?> (<?=($this->router->language==='ar'?'':'+').$country[0].($this->router->language==='ar'?'+':'')?>)</option><?php
                 }
+            ?></select><?php
+            ?></div><?php
+            
+            ?><div class=group><input type=tel required onkeydown="dirElem(this)" onchange="dirElem(this)" id=number value=""><label><?=$this->lang['your_mobile']?></label><span class=highlight></span><span class=bar></span></div><?php                                                                    
+            ?><div class=group><input class="btn" type="button" onclick="dcheck(this)" value="<?= $this->lang['continue'] ?>" /></div><?php
+            ?><div id="error_msg" class="ctr row err"><br /></div><?php
+            
+            ?></form><?php
+            
+            ?></div><?php
+            
+            ?></div><?php
+            ?></div><?php
+            ?></div><?php
+            ?></div><?php
+            ?><div id="mb_check"><?php 
+                ?><p class="ph ctr num corr" id="num_string"></p><?php 
+                ?><div class="ctr row"><?php
+                ?><a href="javascript:ncorrect()" class="lnk"><?= $this->lang['correct'] ?></a><?php
+                ?></div><br /><?php
+                ?><p class="ph ctr single"><?= $this->lang['notice_check_number'] ?><br /></p><?php 
+                ?><p class="ph ctr multi"><?= $this->lang['choose_mobile_validation'] ?><br /></p><?php                     
+                ?><div id="error_smsg" class="ctr row err"><br /></div><?php
+                ?><div class="ctr row single"><?php
+                    ?><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /><?php
                 ?><br /><?php
-                ?><div id="mb_notice"><?php 
-                    ?><p class="ph"><?= $this->lang['notice_mobile_required'] ?><br /></p><?php 
-                    ?><form onsubmit="dcheck();return false"><?php
-                    ?><div class="ctr row"><?php
-                    ?><select id="code" dir="ltr"><?php 
-                            foreach($cc as $country){
-                                $country[2]= preg_replace('/\x{200E}/u','',trim($country[2]));
-                                ?><option value="<?= $country[0] ?>"<?= $this->user->params['country']==$country[1]?' selected':'' ?>><?= $country[2] ?> (<?= ($this->urlRouter->siteLanguage=='ar'?'':'+').$country[0].($this->urlRouter->siteLanguage=='ar'?'+':'') ?>)</option><?php
-                            }
-                        ?></select><?php
-                    ?></div><br /><?php
-                    ?><div class="ctr row"><?php
-                    ?><input type="tel" placeholder="<?= $this->lang['your_mobile'] ?>" id="number" /><?php
-                    ?></div><?php
-                    ?><div id="error_msg" class="ctr row err"><br /></div><?php
-                    ?><div class="ctr row"><?php
-                    ?><input type="button" onclick="dcheck(this)" value="<?= $this->lang['continue'] ?>" class="bt" /><?php
-                    ?></div><?php
-                    ?></form><?php
                 ?></div><?php
-                ?><div id="mb_check"><?php 
-                    ?><p class="ph ctr num corr" id="num_string"></p><?php 
-                    ?><div class="ctr row"><?php
-                    ?><a href="javascript:ncorrect()" class="lnk"><?= $this->lang['correct'] ?></a><?php
-                    ?></div><br /><?php
-                    ?><p class="ph ctr single"><?= $this->lang['notice_check_number'] ?><br /></p><?php 
-                    ?><p class="ph ctr multi"><?= $this->lang['choose_mobile_validation'] ?><br /></p><?php                     
-                    ?><div id="error_smsg" class="ctr row err"><br /></div><?php
-                    ?><div class="ctr row single"><?php
-                        ?><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /><?php
-                    ?><br /><?php
-                    ?></div><?php
-                    ?><div class="ctr row multi"><?php
-                        ?><ul><?php
+                ?><div class="ctr row multi"><?php
+                    ?><ul><?php
                             ?><li>1. <?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
                         ?></ul><?php
                         ?><ul><?php
@@ -533,6 +557,7 @@ class PostAd extends Page {
                 if($this->router->isMobile){
                     ?></div><?php
                 }
+                ?></div></div><?php
                 $this->globalScript.='
                     var curNumber="'.(isset($this->user->pending['mobile'])?$this->user->pending['mobile']:'').'";
                     var cont=function(){
@@ -637,7 +662,7 @@ class PostAd extends Page {
                         $("#mb_validate").show();
                         sctop();
                     };
-                    var smsOnly=['.implode(',', $this->urlRouter->cfg['nexmoOnlyCountries']).'];
+                    var smsOnly=['.implode(',', $this->router->config->get('nexmoOnlyCountries')).'];
                     var dcheck=function(e){
                         var num=$("#number");
                         var v=num.val();

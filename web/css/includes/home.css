@@ -128,10 +128,11 @@
   line-height: 1.5em;
   border: 0
 }
+/*
 .card.format2 .premium {
-  border: 1px solid var(--premium)!important;
   box-shadow: 0 1px 4px 0 rgba(227,183,136,.5)!important
 }
+*/
 .card.format2 .ad .widget {
   height: auto;
   padding-bottom: 2px

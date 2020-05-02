@@ -40,12 +40,13 @@ class Page extends Site {
     function __construct() {
         parent::__construct(); 
         $this->name='name_'.$this->router->language;
-        if ($this->user()->id()) {
-            if ($this->user()->level()===9 && $this->user()->id()!==1 && $this->user()->id()!==2) {
+        if ($this->user->isLoggedIn()) {
+            if ($this->user->level()===9 && $this->user->id()!==1 && $this->user->id()!==2) {
                 $this->isUserMobileVerified=true;
             }
             else {
                 $this->isUserMobileVerified=(isset($this->user->info['verified']) && $this->user->info['verified']);
+                //var_dump(var_export($this->user->info, true));
             }
         }
         
@@ -450,10 +451,10 @@ class Page extends Site {
     function checkBlockedAccount(int $level=0) : void {
         if ($this->user()->isLoggedIn()) {
             if ((!$level || ($level && $level==5)) && $this->user()->level()==5) {
-                $this->user->redirectTo('/blocked/'.($this->router->isArabic()?'':$this->router->language.'/'));
+                $this->user->redirectTo($this->router->getLanguagePath('/blocked/'));
             }
             elseif((!$level || ($level && $level==6)) && $this->user->info['level']==6) {
-                $this->user->redirectTo('/suspended/'.($this->router->language=='ar'?'':$this->router->language.'/'));
+                $this->user->redirectTo($this->router->getLanguagePath('/suspended/'));
             }
         }
     }
@@ -758,9 +759,9 @@ class Page extends Site {
         else
             echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
         if ($this->router->module==='gold')
-            echo '<li class=on><b>', $this->lang['gold_title'], '</b><i></i></li>';
+            echo '<li class=on><b>', $this->lang['premium_title'], '</b><i></i></li>';
         else
-            echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['gold_title'], '</a></li>';
+            echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['premium_title'], '</a></li>';
         if ($this->router->module==='privacy')
             echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b><i></i></li>';
         else
@@ -3819,7 +3820,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         ?></script><?php
     }
     
-    
+    /*
     function prepare_js() {
         $requires = [];        
         if ($this->router->isMobile) {               
@@ -3915,7 +3916,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         $this->requires['js'] = $requires;
     }
     
-    
+    */
     function load_js_classic() {
         if ($this->globalScript) {
             $this->globalScript=preg_replace('/\s+/', ' ', $this->globalScript);
@@ -4571,8 +4572,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
     
     
-    protected function _header() : void {
-        //error_log(__CLASS__ . '.' . __FUNCTION__ . '.' .$this->router->module);
+    protected function _header() : void {        
         \header("Link: <".$this->router->config->cssURL."/1.0/mc.css>; rel=preload; as=style;", false);
         switch ($this->router->module) {
             case 'myads':
@@ -4655,6 +4655,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'terms':
             case 'privacy':
             case 'premium':
+            case 'faq':
                 $this->css('doc');
                 break;
                 
