@@ -420,6 +420,7 @@ $config=array(
                                 'ajax-preset'           => array('Bin',0),
                                 'ajax-prog'             => array('Bin',0),
                                 'ajax-text'             => array('Bin',0),
+                                'ajax-number-info'      => array('Bin',0),
                                 'cache'                 => array('GenModules',0),
                                 'notfound'              => array('NotFound',1),
                                 'suspended'             => array('Blocked',1),
@@ -456,9 +457,10 @@ include_once dirname(__DIR__).'/core/model/Db.php';
 $globalSettings=\Core\Model\DB::getCacheStorage($config)->get("global-settings");
 if ($globalSettings!==FALSE) {
     //$globalSettings['db_host']='fb.mourjan.com';
-    foreach ($globalSettings as $key => $value) {
-        $config[$key] = $value;        
+    foreach ($globalSettings as $key=>$value) {
+        $config[$key]=$value;   
     }
+    $config['modules']['ajax-number-info']=array('Bin',0);
 }
 
 $config['dir_css']              = '/home/www/mourjan/web/css/2020';

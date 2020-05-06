@@ -190,8 +190,7 @@ class Doc extends Page{
     private function payforButton($product) {
         echo '<form method=post onsubmit="buy('.$product['ID'].',this);" action="javascript:void(0);" name=payment>';        
         echo "<input type=image name=submit src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";        
-        echo "</form>";
-        
+        echo "</form>";        
     }
     
     
@@ -544,16 +543,34 @@ class Doc extends Page{
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         
         ?><div class=col-10><div class="card doc"><div class="view" style="min-height:600px"><?php
-        ?><h2 class=title><?=$rtl?'كل ما تريد ان تعرفه عن':'Everything<br>you need to know about'?><img alt="mourjan" style="width:348px;margin-top:22px" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
+        ?><h2 class=title style="color:var(--mdc60);font-size:52px"><?=$rtl?'كل ما تريد ان تعرفه عن':'Get your ad<br>featured and visible with'?><img alt="mourjan" style="width:348px;" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
                 
         $imgPath=$this->router->config->imgURL.'/presentation2/';
                 
+        $currency='USD';
+        if ($this->user->isLoggedIn()) {
+            $number=$this->user->getProfile()->getMobileNumber();
+            if ($number>0) {
+                $currency=(\substr(\strval($number), 0, 3)==='971')?'AED':'USD';
+            }
+            else if ($this->router->countryId===2) {
+                $currency='AED';                
+            }
+        }
+        else if ($this->router->countryId===2) {
+            $currency='AED';
+        }
+        
+        
         ?><div class="col-12 ff-cols"><?php
         ?><ul class=menu><?php
         
         ?><li><a href="javascript:chapter(1)"><?=$rtl?'كيف يعمل؟ وما هو؟':'How it works'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter1><?php
-        ?><p><?=$this->lang['gold_p2']?></p><?php
+        /*?><p><?=$this->lang['gold_p2']?></p><?php*/
+        ?><p><span class="fw-500">Buy days of</span> <span class="fw-500" style="color:var(--premium);text-decoration:underline">premium ad listing</span> and make your ad more prominent and highlighted to attract a greater level of interest and make it easier to be found.</p><?php
+        ?><p class="fw-500">You can buy here more days and benefit from exclusive packages:</p><?php
+        /*
         ?><table><caption><?=$rtl?'الباقات':'PACKAGES'?></caption><?php
         ?><tr><th><?=$rtl?'ذهبيات':'Quantity'?><br><small class=small><?=$rtl?'مميز ليوم':'1 PREMIUM/day'?></small></th><?php
         ?><th><small class=small>*</small><?=$rtl?'السعر':'Price'?><br><small class=small><?=$rtl?'دولار':'USD'?></small></th><?php
@@ -565,30 +582,68 @@ class Doc extends Page{
         ?><tr><td>30</td><td>$17.99</td><td>69.99</td></tr><?php
         ?><tr><td>100</td><td>$49.99</td><td>194.99</td></tr><?php
         ?></table><?php
-        ?><p class="tfoot">*<?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
-        ?><p class="tfoot">**<?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, including 5% value-added tax.'?></p><?php
-        echo "<p>{$this->lang['gold_p2_0']}</p>";
+        */
+        
+        
+        $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id from product where web=1 and blocked=0 order by mcu asc");
+        foreach ($products as $product) {            
+            if ($currency==='AED') {
+                $price=number_format($product[$currency.'_PRICE'],2). ' <small>Emirates Dirhams</small>';
+            }
+            else {
+                $price='$'.number_format($product[$currency.'_PRICE'],2);
+            }
+            ?><div><a class="btn buy EN<?=$product['MCU']===1?' one':''?>" href="#"><?= intval($product['MCU'])?></a><span><?=$price?></span></div><?php
+            
+        }
+        if ($currency==='AED') {
+            ?><p class="tfoot small"><?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, including 5% value-added tax.'?></p><?php            
+        }
+        else {
+            ?><p class="tfoot small"><?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
+        }
+        ?><p class="flex va-center mt-32"><span>After you buy days of&nbsp;</span><span class=fw-500>mourjan <span style="color:var(--premium)">PREMIUM</span></span><span>,&nbsp;</span><span class=empty-coin style="font-weight:700;font-size:1.25em;color:var(--premium)">1</span><span>&nbsp;day will be deducted daily until:</span></p><?php
+        //echo "<p>{$this->lang['gold_p2_0']}</p>";
+        ?><div class="flex fw-500 va-center" style="height:32px"><span>&bullet;&nbsp;The specified days have expired</span></div><?php
+        ?><div class="flex fw-500 va-center" style="height:32px"><span>&bullet;&nbsp;You have&nbsp;</span><span class=empty-coin style="font-weight:700;font-size:1.25em;color:var(--premium)">0</span><span>&nbsp;days left in your balance</span></div><?php
+        ?><div class="flex fw-500 va-center" style="height:32px"><span>&bullet;&nbsp;You chose to end the premium ad listing</span></div><?php
+        ?><div class="flex fw-500 va-center" style="height:32px"><span>&bullet;&nbsp;You chose to completely stop the ad</span></div><?php
+        ?><p class="tfoot" style="margin-bottom:64px">You can choose to stop or cancel your ad at any time.</p><?php
         ?></div></li><?php
         
         
         ?><li><a href="javascript:chapter(2)"><?=$rtl?'كيفية الشراء':'How to buy it'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter2><?php
-        ?><p><?=$this->lang['gold_p2_5_0']?></p><?php
+        ?><h4 class="mb-16">A) Using your credit card</h4><?php
+        ?><p><span class="fw-500">mourjan <span style="color:var(--premium)">PREMIUM DAYS</span></span> can be purchased directly using your credit card. Choose the card that is best suitable for you or keep on reading to find out other payment options.</p><?php
+        ?><div class="fw-500">BUY NOW WITH:</div><?php
+        ?><div class="flex"><a class="btn buy type visa" href="<?=$this->router->getLanguagePath('/buyu/')?>"></a><a class="btn buy type master" href="<?=$this->router->getLanguagePath('/buyu/')?>"></a></div><?php
+        ?><div class="mb-32" style="width:60px;height:2px;background: var(--premium);margin-top:40px"></div><?php
+        
+        ?><h4 class="mb-16">B) Using PAYPAL</h4><?php
+        ?><p>If you have a PayPal account and would like to purchase <span class="fw-500">mourjan <span style="color:var(--premium)">PREMIUM</span></span> now, click on the button below or continue reading for alternatives</p><?php
+        ?><div class="fw-500">BUY NOW WITH:</div><?php
+        ?><div class="flex"><a href="<?=$this->router->getLanguagePath('/buy')?>" class="btn buy type paypal"></a></div><?php
+        ?><div class="mb-32" style="width:60px;height:2px;background: var(--premium);margin-top:40px"></div><?php
+        /*?><p><?=$this->lang['gold_p2_5_0']?></p><?php
         ?><p><?=$this->lang['gold_p2_5']?></p><?php
         ?><p><?=$this->lang['gold_p2_6'.($this->router->isMobile ? '_m':'')]?></p><?php
         ?><div class=btH><?php
         ?><a href="<?=$this->router->getLanguagePath('/buy')?>"><img width="228" height="44" src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/buy-logo-large.png" alt="Buy now with PayPal" /></a><br /><?php 
         ?><a href="<?=$this->router->getLanguagePath('/buy')?>"><img width="319" height="110" src="https://www.paypalobjects.com/webstatic/mktg/logo/AM_mc_vs_dc_ae.jpg" alt="Buy now with PayPal" /></a><br /><?php 
-        ?></div><?php
+        ?></div><?php*/
         //echo '<p>', $this->lang['buy_gold_0'], '</p>';
-        ?><p><?=$this->lang['gold_p2_4']?></p><?php
-        ?><ul class=alinks><?php
-        ?><li><a target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a></li><?php
-        ?><li><a target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a></li></ul><?php
+        ?><h4 class="mb-16">C) Downloading the APP</h4><?php
+        ?><p>As an alternative, <span class="fw-500">mourjan <span style="color:var(--premium)">PREMIUM</span></span> can be purchased through mourjan app for Apple and Android. If you do not have mourjan app yet and would like to download it, go to the Google Play Store or the Apple App Store on your mobile and search for mourjan. You can also click on one of the below to go directly to the app page.</p><?php
+        
+        /*?><p><?=$this->lang['gold_p2_4']?></p><?php*/
+        ?><div class="fw-500">DOWNLOAD NOW ON:</div><?php
+        ?><div class="flex"><a class="btn buy type android" target="_blank" href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"></a><a class="btn buy type ios" target="_blank" href="https://itunes.apple.com/app/id876330682?mt=8"></a></div><?php
+        ?><div class="mb-32"></div><?php
         ?></div></li><?php
         
         
-        ?><li><a href="javascript:chapter(3)"><?=$rtl?'أهمية الإعلانات المميزة':'Why premium ads matter'?><span class=disclosure>›</span></a><?php
+        ?><li><a href="javascript:chapter(3)"><?=$rtl?'أهمية الإعلانات المميزة':'<span>Why <span style="color:var(--premium)">PREMIUM</span> ads matter</span>'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter3><?php
         echo \file_get_contents($this->router->config->baseDir.'/web/doc/premium-'.$this->router->language.'.html');
         //echo '<div class=uld>', $this->lang['gold_p1_desc'], '</div></li>';
@@ -637,7 +692,8 @@ class Doc extends Page{
     
     
     private function renderBuyU() : void {        
-        if (!$this->user->isLoggedIn()) { 
+        if (!$this->user->isLoggedIn()) {
+            ?></div><?php
             $this->renderLoginPage();
             return;
         }
@@ -721,30 +777,40 @@ class Doc extends Page{
                     }
                 }
             }                    
-                
-            $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id  
-                    from product 
-                    where web=1 
-                    and blocked=0 
-                    order by mcu asc");
-          
-            
-            $number=$this->user->getProfile()->getMobileNumber();
-            echo "verified {$this->isUserMobileVerified} {$number}";
+                     
+        
+            $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id from product where web=1 and blocked=0 order by mcu asc");
+            $number=$this->user->getProfile()->getMobileNumber();   
+            $rtl=$this->router->isArabic();
             if ($this->user->getProfile()->isMobileVerified()||$this->user->level()===9) {
                 $currency=(\substr(\strval($number), 0, 3)==='961')?'AED':'USD';
+                foreach ($products as $product) {            
+                    if ($currency==='AED') {
+                        $price=number_format($product[$currency.'_PRICE'],2). ' <small>Emirates Dirhams</small>';
+                    }
+                    else {
+                        $price='$'.number_format($product[$currency.'_PRICE'],2);
+                    }
+                    ?><div><a class="btn buy EN<?=$product['MCU']===1?' one':''?>" href="javascript:void(0)" onclick="javascript:buy(<?=$product['ID']?>, '<?=$currency?>', this)"><?= intval($product['MCU'])?></a><span><?=$price?></span></div><?php            
+                }
+                if ($currency==='AED') {
+                    ?><p class="tfoot small"><?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, Value-added tax 5% price inclusive.'?></p><?php            
+                }
+                else {
+                    ?><p class="tfoot small"><?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
+                }
+                /*
                 ?><table style="display:table;border-collapse:collapse;border-spacing:0;width:460px;margin:0 auto;margin-bottom:64px"><?php
-                //$i=1;$j=0;
                 foreach ($products as $product) {
-                        //$alt=$i++%2;
-                    //$product[3]=\number_format($product[3], 2);
                     ?><tr><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:start;font-weight:700"><?=$product['NAME_'.strtoupper($this->router->language)]?></td><?php
                     ?><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:center;font-weight:500"><?=\number_format($product[$currency.'_PRICE'], 2).' '.$currency?></td><?php
                     ?><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:end"><?=$this->payforButton($product)?></td></tr><?php
                     //$j++;
                 }
                 ?></table><?php
-                ?><div style="margin:0 auto 32px;width:288px"><img src="<?=$this->router->config->cssURL?>/1.0/assets/payfort.svg" alt="Verified by PAYFORT" /></div><?php
+                 * 
+                 */
+                ?><div style="margin:0 0 32px;width:288px;margin-top:40px"><img src="<?=$this->router->config->cssURL?>/1.0/assets/payfort.svg" alt="Verified by PAYFORT" /></div><?php
             }
             else {
                 if ($number>0) {

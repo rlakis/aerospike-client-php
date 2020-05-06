@@ -184,7 +184,7 @@ class MobileValidation {
             return MobileValidation::RESULT_ERR_NO_USER_ID;
         }
         
-        $record = NoSQL::getInstance()->mobileFetch($this->getUID(), $to);
+        $record = NoSQL::instance()->mobileFetch($this->getUID(), $to);
         if ($record) {
             $activation_time = $record[ASD\USER_MOBILE_DATE_ACTIVATED] ?? 0;
             if ($activation_time+31536000 > time()) { // more than one year          
@@ -196,7 +196,7 @@ class MobileValidation {
                 if (isset($record[ASD\USER_MOBILE_DATE_REQUESTED])) {
                     $age = time()-$record[ASD\USER_MOBILE_DATE_REQUESTED];
                     if ($age<=180) {
-                        if (($vt!= MobileValidation::SMS_TYPE) && (($call=NoSQL::getInstance()->getCall($record[ASD\USER_MOBILE_REQUEST_ID]))!==FALSE)) {                           
+                        if (($vt!= MobileValidation::SMS_TYPE) && (($call=NoSQL::instance()->getCall($record[ASD\USER_MOBILE_REQUEST_ID]))!==FALSE)) {                           
                             if (isset($call['completed']) && $call['completed']==1) {
                                 $record['from'] = $call['from'] ?? '00000000000000';
                                 return MobileValidation::RESULT_ERR_CALL_DONE;
@@ -262,15 +262,15 @@ class MobileValidation {
             case static::EDIGEAR:
                 if ($this->sendEdigearCallerId($to, $bins)) {
                     $res = ($record) ? 
-                            NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : 
-                            NoSQL::getInstance()->mobileInsert($bins);
+                            NoSQL::instance()->mobileUpdate($this->getUID(), $num, $bins) : 
+                            NoSQL::instance()->mobileInsert($bins);
                     return ($res) ? static::RESULT_OK : static::RESULT_ERR_DB_FAILURE;
                 }
                 break;
             
             case static::CHECK_MOBI:
                 if ($this->sendCheckMobiCallerId($to, $bins)) {
-                    $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                    $res = ($record) ? NoSQL::instance()->mobileUpdate($this->getUID(), $num, $bins) : NoSQL::instance()->mobileInsert($bins);
                     if ($res) {
                         return MobileValidation::RESULT_OK;
                     }
@@ -331,10 +331,10 @@ class MobileValidation {
     }
     
     
-    public function sendSMS($to, $text, $reference=null, $unicode=null) {
-        $num = $this->getE164($to, TRUE);
+    public function sendSMS($to, $text, $reference=null, $unicode=null) : int {
+        $num=$this->getE164($to, TRUE);
         $record=[];
-        $status = $this->checkUserMobileStatus($num, MobileValidation::SMS_TYPE, $record);
+        $status=$this->checkUserMobileStatus($num, MobileValidation::SMS_TYPE, $record);
         if ($status!=MobileValidation::RESULT_OK && $status!=MobileValidation::RESULT_ERR_ALREADY_ACTIVE) {
             return $status;
         }
@@ -348,9 +348,9 @@ class MobileValidation {
                 
             case static::CHECK_MOBI:
                 if ($this->sendCheckMobiMessage($to, $text, $bins)) {            
-                    $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->uid, $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                    $res = ($record) ? NoSQL::instance()->mobileUpdate($this->uid, $num, $bins) : NoSQL::instance()->mobileInsert($bins);
                     if ($res) {
-                        NoSQL::getInstance()->mobileIncrSMS($this->uid, $num);
+                        NoSQL::instance()->mobileIncrSMS($this->uid, $num);
                         return MobileValidation::RESULT_OK;
                     }
                     return MobileValidation::RESULT_ERR_DB_FAILURE;
@@ -360,9 +360,9 @@ class MobileValidation {
             case static::EDIGEAR:
                 
                 if ($this->sendEdigearVerficationSMS($to, $bins)) {
-                    $res = ($record) ? NoSQL::getInstance()->mobileUpdate($this->uid, $num, $bins) : NoSQL::getInstance()->mobileInsert($bins);
+                    $res = ($record) ? NoSQL::instance()->mobileUpdate($this->uid, $num, $bins) : NoSQL::instance()->mobileInsert($bins);
                     if ($res) {
-                        NoSQL::getInstance()->mobileIncrSMS($this->uid, $num);
+                        NoSQL::instance()->mobileIncrSMS($this->uid, $num);
                         return MobileValidation::RESULT_OK;
                     }
                     return MobileValidation::RESULT_ERR_DB_FAILURE;                    
@@ -414,7 +414,7 @@ trait EdigearTrait {
     
     public function sendEdigearReverseCLI($to, &$response) : int {
         $bins = [];
-        if (($record = NoSQL::getInstance()->mobileFetch($this->getUID(), $to))!==FALSE) {
+        if (($record = NoSQL::instance()->mobileFetch($this->getUID(), $to))!==FALSE) {
             if (empty($record)) {
                 $bins[ASD\USER_UID] = $this->getUID();
                 $bins[ASD\USER_MOBILE_NUMBER] = $to;
@@ -449,10 +449,10 @@ trait EdigearTrait {
             $bins[ASD\USER_MOBILE_REQUEST_ID] = $data['id'];
             
             if (isset($bins[ASD\USER_UID])) {
-                $ok = NoSQL::getInstance()->mobileInsert($bins);
+                $ok = NoSQL::instance()->mobileInsert($bins);
             }
             else {
-                $ok = NoSQL::getInstance()->mobileUpdate($this->getUID(), $to, $bins);
+                $ok = NoSQL::instance()->mobileUpdate($this->getUID(), $to, $bins);
             }            
             
             return MobileValidation::RESULT_OK;
@@ -521,16 +521,16 @@ trait EdigearTrait {
     
     public function verifyEdigearPin(string $id, int $pin) : array {
         //$status = 400;
-        $response = ["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
-        $req = Berysoft\Edigear::createVerifyRequest($id, $pin);
-        $res = $this->getEdigearClient()->getInstance()->send($req);
+        $response=["number"=>NULL, "validated"=>false, "validation_date"=>NULL, "charged_amount"=>0];
+        $req=Berysoft\Edigear::createVerifyRequest($id, $pin);
+        $res=$this->getEdigearClient()->getInstance()->send($req);
         
-        $status = $res['status'];
+        $status=$res['status'];
         if ($status==200 && isset($res['data'])) {
-            $response['number'] = $this->getE164( $res['data']['number'] );
-            $response['charged_amount'] = $res['data']['price'];
-            $response['validated'] = $res['data']['verified'];
-            $response['validation_date'] = $res['data']['timestamp'];                                    
+            $response['number']=$this->getE164( $res['data']['number'] );
+            $response['charged_amount']=$res['data']['price'];
+            $response['validated']=$res['data']['verified'];
+            $response['validation_date']=$res['data']['timestamp'];                                    
         }
                           
         return ['status'=>$status, 'response'=>$response];

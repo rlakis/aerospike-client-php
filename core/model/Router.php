@@ -114,7 +114,9 @@ class Router extends \Core\Model\Singleton {
         
         $this->cookie=\json_decode(\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]));
         
-        error_log('start with '.var_export($this->cookie, true));
+        //if (!empty($this->cookie)) {
+        //    error_log('start with '.var_export($this->cookie, true));
+        //}
         
         $this->session_key=\session_id();
         $_session_params=$_SESSION['_u']['params'] ?? [];
@@ -526,12 +528,7 @@ class Router extends \Core\Model\Singleton {
         
     
     public function setUser(\User $kUser) : void {
-        $this->user=$kUser;
-        if (isset($this->cookie->cn) && $this->countryId>0 && $this->countryId!==$this->cookie->cn) {            
-            $this->user->params['country']=$this->countryId;
-            $this->user->update();
-            $this->user->setCookieData();
-        }
+        $this->user=$kUser;        
     }
     
     
@@ -1044,6 +1041,9 @@ class Router extends \Core\Model\Singleton {
                     }
                     elseif (\strstr($this->uri, '/faq')) {
                         $this->module='faq';
+                    }
+                    elseif (\strstr($this->uri, '/ajax-number-info')) {
+                        $this->module='ajax-number-info';
                     }
                     else {
                         if ($this->module==='search' && $this->purposeId===0 && $this->rootId===0 && $this->sectionId===0 && empty($this->params['q']) && $this->params['start']>0) {

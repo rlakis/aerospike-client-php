@@ -452,82 +452,90 @@ class PostAd extends Page {
             ?>
 <style>
 .group{position:relative;margin-bottom:36px;flex-grow: 1}
-.group input,.group select{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none;outline:none}
-.group>input:focus,.group>textarea:focus{outline:none;}
+.group input,.group select{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none;outline:none;color:var(--mdc70)}
+.group .btn{color: white}
+.group>input:focus{outline:none;}
 .group label{color:var(--mdc70);font-size:16px;font-weight:300;position:absolute;pointer-events:none;margin-inline-start:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
-.group input:focus ~ label, input:valid ~ label {top:-20px;font-size:14px;color:#5264AE;}
-.group input[type="email"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
-.group input[type="password"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
-.group textarea:focus ~ label, textarea:valid ~ label{top:-20px;font-size:14px;color:#5264AE;}
+.group input:focus ~ label, input:valid ~ label, input:disabled ~ label {top:-20px;font-size:15px;color:#5264AE;}
 .group .bar{position:relative; display:block; width:100%;}
 .group .bar:before, .bar:after{content:'';height:2px;width:0;bottom:1px;position:absolute;background:var(--mlc);transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
 .group .bar:before{left:50%;}
 .group .bar:after{right:50%;}
 .group input:focus ~ .bar:before, input:focus ~ .bar:after{width:50%;}
-.group textarea:focus ~ .bar:before, textarea:focus ~ .bar:after {width:50%;}
 .group .highlight{position:absolute;height:60%;width:100%;top:25%;left:0;pointer-events:none;opacity:0.5;}
 .group input:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
-.group textarea:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {-webkit-appearance: none;margin:0;}
+input[type=number]{-moz-appearance: textfield;}
+.digit{width:18px;border:0; border-bottom:1px solid var(--mdc50);height:32px;outline:none;font-size:16px;font-weight:500; color:var(--mdc70);text-align:center;margin:0;padding:0}
+.digit + .digit{margin-inline-start: 8px;}
 </style>
             <?php
+            $this->inlineJS('phone-number');
             ?><div class="viewable ha-center"><div class="col-10"><?php
             $q='select code, id, name_'.$this->router->language.', locked, trim(id_2) from country where id!=109 order by locked desc, name_'.$this->router->language;
             $cc=$this->router->db->queryCacheResultSimpleArray('country_codes_req_'.strtolower($this->router->language), $q);
             
-            ?><div class="card" style="padding:32px 64px 64px;color:inherit"><div class="card-content ff-cols"><?php
-            /*
-            if ($this->router->isMobile) {
-                ?><div class=phwrap><?php
-            }
-            */
+            ?><div class="card" style="padding:16px 64px 64px;color:inherit"><div class="alert"></div><div class="card-content ff-cols"><?php
+           
             ?><p class="mb-32"><?= $this->lang['notice_mobile_required'] ?></p><?php 
             
-            ?><div id=mb_notice style="display:flex;align-self:center"><?php 
-            ?><form onsubmit="dcheck();return false" class="ff-cols"><?php
+            ?><div id=mb_notice class="ff-cols" style="display:flex;align-self:center"><?php 
             
             ?><div class=group><?php
             ?><select id=code style="direction:ltr;height:40px;font-family:inherit;"><?php 
                 foreach($cc as $country){
                     $country[2]=preg_replace('/\x{200E}/u','',trim($country[2]));
-                    ?><option value="<?=$country[0]?>"<?=$this->user->params['country']==$country[1]?' selected':''?>><?=$country[2]?> (<?=($this->router->language==='ar'?'':'+').$country[0].($this->router->language==='ar'?'+':'')?>)</option><?php
+                    ?><option value="<?=$country[4]?>"<?=$this->user->params['country']==$country[1]?' selected':''?>><?=$country[2]?> (<?=($this->router->language==='ar'?'':'+').$country[0].($this->router->language==='ar'?'+':'')?>)</option><?php
                 }
             ?></select><?php
             ?></div><?php
             
-            ?><div class=group><input type=tel required onkeydown="dirElem(this)" onchange="dirElem(this)" id=number value=""><label><?=$this->lang['your_mobile']?></label><span class=highlight></span><span class=bar></span></div><?php                                                                    
-            ?><div class=group><input class="btn" type="button" onclick="dcheck(this)" value="<?= $this->lang['continue'] ?>" /></div><?php
-            ?><div id="error_msg" class="ctr row err"><br /></div><?php
+            ?><div class=group><input type=tel id=number oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');" onkeyup="keyChanged(this);" required value="<?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?>"><label><?=$this->lang['your_mobile']?></label><span class=highlight></span><span class=bar></span></div><?php                                                                    
+            ?><div class=group><input class=btn type=button onclick="numberCheck(this)" value="<?=$this->lang['continue']?>" /></div><?php
             
-            ?></form><?php
             
             ?></div><?php
             
+            ?><div id=via class="row ff-cols none"><?php
+                ?><p class="alert alert-info"><?=$this->lang['choose_mobile_validation']?></p><?php 
+                ?><div><?php
+                    ?><p>1. <?=$this->lang['validate_mobile_by_call']?></p><?php
+                    ?><p class=group><input type=button onclick="verify(this)" value="<?=$this->lang['call_me']?>" class=btn data-method="1" /></p><?php
+                ?></div><?php
+                ?><div><?php
+                    ?><p>2. <?=$this->lang['validate_mobile_by_sms']?></p><?php
+                    ?><p class=group><input type=button onclick="verify(this)" value="<?=$this->lang['send_code']?>" class=btn data-method="0" /></p><?php
+                ?></div><?php
             ?></div><?php
+            
+            ?><div id=pin class="row ff-cols va-center none"><?php
+            ?><div id=hint style="font-weight:300" data-sms="Enter the code has been sent by SMS" data-rvc="Enter the last four digits of the phone number which called you"></div><?php
+                ?><div><?php
+                    ?><input id=d1 class="digit" type="number" maxlength="1" min="0" max="9" data-index="1" /><?php
+                    ?><input id=d2 class="digit" type="number" maxlength="1" min="0" max="9" data-index="2" /><?php
+                    ?><input id=d3 class="digit" type="number" maxlength="1" min="0" max="9" data-index="3" /><?php
+                    ?><input id=d4 class="digit" type="number" maxlength="1" min="0" max="9" data-index="4" /><?php
+                ?></div><?php
             ?></div><?php
-            ?></div><?php
-            ?></div><?php
+            
+            
+            ?></div></div><?php
+            
+            ?></div></div><?php
             ?><div id="mb_check"><?php 
                 ?><p class="ph ctr num corr" id="num_string"></p><?php 
                 ?><div class="ctr row"><?php
                 ?><a href="javascript:ncorrect()" class="lnk"><?= $this->lang['correct'] ?></a><?php
                 ?></div><br /><?php
                 ?><p class="ph ctr single"><?= $this->lang['notice_check_number'] ?><br /></p><?php 
-                ?><p class="ph ctr multi"><?= $this->lang['choose_mobile_validation'] ?><br /></p><?php                     
+                                  
                 ?><div id="error_smsg" class="ctr row err"><br /></div><?php
                 ?><div class="ctr row single"><?php
                     ?><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /><?php
                 ?><br /><?php
                 ?></div><?php
-                ?><div class="ctr row multi"><?php
-                    ?><ul><?php
-                            ?><li>1. <?= $this->lang['validate_mobile_by_call'] ?></li><li><input type="button" onclick="verify(1)" value="<?= $this->lang['call_me'] ?>" class="bt ok" /></li><?php
-                        ?></ul><?php
-                        ?><ul><?php
-                            ?><li>2. <?= $this->lang['validate_mobile_by_sms'] ?></li><li><input type="button" onclick="verify(0)" value="<?= $this->lang['send_code'] ?>" class="bt ok" /></li><?php
-                        ?></ul><?php
-                    ?><br /><?php
-                    ?></div><?php
-                ?></div><?php
+               
+            ?></div><?php
                 ?><form onsubmit="validate();return false"><?php
                 ?><div id="mb_validate"><?php 
                     ?><p class="ph ctr num" id="val_string"><?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?></p><?php 
@@ -552,7 +560,7 @@ class PostAd extends Page {
                 ?></div><?php
                 ?><div class="ctr" id="mb_load"><?php 
                     ?><br /><p class="ph ctr"><?= $this->lang['mobile_wait'] ?></p><br /><?php 
-                    ?><img src="<?= $this->urlRouter->cfg['url_css'] ?>/i/mobile-loading.gif" height="200" width="158" /><?php
+                    /*?><img src="<?=$this->router->config->cssURL?>/i/mobile-loading.gif" height="200" width="158" /><?php*/
                 ?></div><?php
                 if($this->router->isMobile){
                     ?></div><?php

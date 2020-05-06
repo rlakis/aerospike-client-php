@@ -205,6 +205,9 @@ footer .addr {
 .va-start {
   align-items: flex-start
 }
+.va-end {
+  align-items: flex-end
+}
 .ha-center {
   justify-content: center
 }
@@ -227,14 +230,20 @@ footer .addr {
     filter: var(--mlcF)
 }
 
+.mb-16{
+    margin-bottom: 16px;
+}
+.mb-24{
+    margin-bottom: 24px;
+}
 .mb-32{
     margin-bottom: 32px;
 }
-.mt-32{
-    margin-top: 32px;
-}
 .mb-64{
     margin-bottom: 64px;
+}
+.mt-32{
+    margin-top: 32px;
 }
 .mt-64{
     margin-top: 64px;

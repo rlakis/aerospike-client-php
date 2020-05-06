@@ -2828,13 +2828,20 @@ class User {
     }
     
 
-    function setCookieData() : void {       
+    function setCookieData() : void {        
         if ($this->config->modules[$this->site->router->module][0]==='Bin') { return; }
         $info=['lv'=>time(), 'ap'=>($this->site->router->isApp?1:0)];       
         
         if (isset($this->params['lang']) && $this->params['lang']) {
             $info['lg']=$this->params['lang'];
         }
+        
+        if (isset($this->site->router->cookie->cn) && $this->site->router->countryId>0 && $this->site->router->countryId!==$this->site->router->cookie->cn) {            
+            $this->params['country']=$this->site->router->countryId;
+            //$this->user->update();
+            //$this->user->setCookieData();
+        }
+        
         if (isset($this->params['country']) && $this->params['country']) {
             $info['cn']=$this->params['country'];
         }
@@ -2874,11 +2881,13 @@ class User {
             $info['cv']=$this->params['cv'];
         }
         
-        \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);           
+        \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
+        
         $newlook=\filter_input(\INPUT_GET, 'newlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
         if ($newlook===1) {
+            \error_log(__FUNCTION__.' newlook 1');
             \setcookie('mourjan_site', '1', time()+31536000,'/', '.mourjan.com', false);
-        }      
+        }     
     }
     
     

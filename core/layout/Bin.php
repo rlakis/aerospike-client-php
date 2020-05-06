@@ -74,6 +74,7 @@ class Bin extends AjaxHandler {
     const ERR_DATA_INVALID_META     = 201;
     const ERR_DATA_INVALID_EMAIL    = 202;
     const ERR_DATA_USED_EMAIL       = 203;
+    const ERR_DATA_INVALID_PHONE    = 204;
     const ERR_LIMIT_EXCEEDED        = 299;
     const ERR_SYS_MAINTENANCE       = 400;
     const ERR_SYS_FAILURE           = 401;
@@ -86,10 +87,11 @@ class Bin extends AjaxHandler {
         self::ERR_USER_BLOCKED      => ['en'=>'Blocked user! this account is not active anymore.', 'ar'=>'هذا الحساب مقفل ولا يمكن استعماله في مرجان!'],
         self::ERR_USER_SUSPENDED    => ['en'=>'Suspended user! this account is suspended.', 'ar'=>'هذا الحساب معلق!'],
         self::ERR_USER_UNAUTHORIZED => ['en'=>'Unauthorized action', 'ar'=>'حساب غير مصرح لتنفيذ الطلب!'],
-        self::ERR_DATA_INVALID_PARAM=> ['en'=>'', 'ar'=>''],
+        self::ERR_DATA_INVALID_PARAM=> ['en'=>'Invalid request parameter', 'ar'=>'المعطيات غير صحيحة'],
         self::ERR_DATA_INVALID_META => ['en'=>'', 'ar'=>''],
         self::ERR_DATA_INVALID_EMAIL=> ['en'=>'Not a valid email address.', 'ar'=>'البريد الالكتروني غير صحيح'],
         self::ERR_DATA_USED_EMAIL   => ['en'=>'Email address already in use!', 'ar'=>'البريد الالكترروني تم استعماله مسبقا!'],
+        self::ERR_DATA_INVALID_PHONE=> ['en'=>'Not a valid phone number.', 'ar'=>'رقم الهاتف غير صحيح'],
         self::ERR_LIMIT_EXCEEDED    => ['en'=>'Request limit exceeded', 'ar'=>'تم تجاوز حد الطلب'],
         self::ERR_SYS_MAINTENANCE   => ['en'=>'Sorry! System is in maintenance, try again later...', 'ar'=>'نأسف لعدم تلبيتكم الآن! النظام قيد الصيانة.'],
         self::ERR_SYS_FAILURE       => ['en'=>'Sorry! System is failed to execute your request', 'ar'=>'عملية غير ناجحة!'],
@@ -451,6 +453,55 @@ class Bin extends AjaxHandler {
                 }
                 break;
             
+                
+            case 'number-info':
+                $this->authorize(false);
+                $country_code=\strtoupper(\trim(\filter_input(\INPUT_GET, 'key', FILTER_SANITIZE_STRING)));
+                $phone_number=\filter_input(\INPUT_GET, 'num', FILTER_SANITIZE_NUMBER_INT);
+                if (\is_numeric($phone_number)) { $phone_number= \intval($phone_number); }
+                
+                if (\strlen($country_code)!==2||$phone_number<=0) {
+                    $this->error(self::ERR_DATA_INVALID_PHONE);
+                }
+                
+                $validator=libphonenumber\PhoneNumberUtil::getInstance();
+                try {
+                    $number=$validator->parse($phone_number, $country_code);
+                    $valid=$validator->isValidNumber($number);
+                    if (!$valid && strlen(strval($phone_number))>8) {
+                        $number=$validator->parse("+{$phone_number}", $country_code);
+                        $valid=$validator->isValidNumber($number);
+                    }
+                    $type=$validator->getNumberType($number);
+                    $this->response('valid', $valid);
+                    $this->response('type', $type);
+                    $this->response('mobile',  ($type===libphonenumber\PhoneNumberType::MOBILE||$type===libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE));
+                    $this->response('e164', $validator->format($number, \libphonenumber\PhoneNumberFormat::E164));
+                    $this->response('intl', $validator->format($number, \libphonenumber\PhoneNumberFormat::INTERNATIONAL));
+                    $this->response('national', $validator->format($number, \libphonenumber\PhoneNumberFormat::NATIONAL));
+                    $this->response('region', $validator->getRegionCodeForNumber($number));
+                    
+                    $contents=file_get_contents('/var/www/mourjan/bin/number-list.json');
+                    $pattern='/\"'.\substr($validator->format($number, \libphonenumber\PhoneNumberFormat::E164), 1).'\"\:/';
+                    error_log($pattern);
+                    $disposal=\preg_match($pattern, $contents);
+                    
+                    //$disposal=system('cat /var/www/mourjan/bin/number-list.json | grep \"'. \substr($validator->format($number, \libphonenumber\PhoneNumberFormat::E164), 1) .'\"');
+                    
+                    $this->response('disposable', $disposal);//!==false && \strlen($disposal)>20);     
+                    $carrierMapper=\libphonenumber\PhoneNumberToCarrierMapper::getInstance();
+                    if ($valid) {
+                        $this->response('carrier', $carrierMapper->getNameForValidNumber($number, 'en'));
+                    }
+                } 
+                catch (Exception $ex) {
+                    $this->error(self::ERR_SYS_UNKNOWN, ['en'=>$ex->getMessage(), 'ar'=>$ex->getMessage()]);
+                }
+                
+                $this->success();
+                break;
+            
+            
             case 'ajax-number':   
                 if ($this->user->info['id'] && $this->user->info['level']==9) {
                     $numero = $this->post('num','uint');
@@ -555,280 +606,266 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
-            case 'ajax-mobile':
-                if ($this->user->info['id'] && $this->user->info['level']!=5) {
-                    $keyCode=0;
-                    $lang=filter_input(INPUT_POST, 'hl');
-                    if(!in_array($lang, ['en','ar'])) {
-                        $lang='en';
-                    }
-                    
-                    $number = filter_input(INPUT_POST, 'tel');
-                    $validateByCall = filter_input(INPUT_POST, 'vc');
-                    $keyCode = filter_input(INPUT_POST, 'code');
-                    if (!is_numeric($keyCode)) {
-                        $keyCode=0;
-                    }
+            case 'mobile':
+                $this->authorize();
+                
+                if (!isset($this->_JPOST['method'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!isset($this->_JPOST['tel'])) { $this->error(self::ERR_DATA_INVALID_PHONE); }
+                
+                $method=\filter_var($this->_JPOST['method'], \FILTER_SANITIZE_NUMBER_INT)+0;
+                if ($method<-1||$method>1) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                
+                $number=\filter_var($this->_JPOST['tel'], \FILTER_SANITIZE_NUMBER_INT)+0;
+                if ($number<=0) { 
+                    unset($this->user->pending['mobile']);
+                    $this->user->update();
+                    $this->error(self::ERR_DATA_INVALID_PHONE);                     
+                }
+                $pin=isset($this->_JPOST['pin'])?\filter_var($this->_JPOST['pin'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]):0;
+                
+                $lang=$this->router->language;        
+                //$keyCode=0;                                    
+                //$number = filter_input(INPUT_POST, 'tel');
+                //$validateByCall = filter_input(INPUT_POST, 'vc');
+                //$keyCode = filter_input(INPUT_POST, 'code');
+                
+                if (!empty($pin) && !is_numeric($pin)) { 
+                    $pin=0; 
+                    $this->error(self::ERR_DATA_INVALID_PARAM);
+                }
                                         
-                    if($number) { 
-                        $validator = libphonenumber\PhoneNumberUtil::getInstance();
-                        $num = $validator->parse($number, 'LB');
-                        $numberType = $validator->getNumberType($num);
-                        $numberValid = $num && $validator->isValidNumber($num) && 
-                                ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE);
-                        
-                        if($keyCode) {                                                                                   
-                            $this->setData(0,'verified');
-                            if($numberValid) {
-                                if(substr($number,0,1)=='+') {
-                                    $number = substr($number,1);
-                                }
-                                        
-                                $mrs = NoSQL::instance()->mobileFetch($this->user->info['id'], $number);
-                                if ($mrs!==FALSE) {
-                                    $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
+                $validator=libphonenumber\PhoneNumberUtil::getInstance();
+                $num=$validator->parse("+{$number}", 'LB');
+                $numberType=$validator->getNumberType($num);
+                $numberValid=$num && $validator->isValidNumber($num) && ($numberType==libphonenumber\PhoneNumberType::MOBILE||$numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE);
+                if ($numberValid===false) {
+                    $this->error(self::ERR_DATA_INVALID_PHONE);
+                }        
+                
+                if (NoSQL::instance()->isBlacklistedContacts([\strval($number)])) {
+                    $this->errors(self::ERR_DATA_INVALID_PHONE, ['en'=>'This phone number is banned', 'ar'=>'رقم الهاتف هذا محظور على مرجان']);
+                }
+                
+                if ($pin>0) {
+                    $this->response('verified', 0);
+                    $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);                            
+                    if ($mrs!==false) {
+                        $response=MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin);
                             
-                                    if (isset($response['status']) && $response['status']==200 && isset($response['response'])) {
-                                        if ($response['response']['validated']) {
-                                            $activated = NoSQL::instance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
-                                            if($activated) {
-                                                $this->setData(1,'verified');
-                                                $this->user()->info['verified']=true;
-                                                unset($this->user->pending['mobile']);
-                                                unset($this->user->pending['mobile_call']);
-                                                unset($this->user->pending['mobile_call_stamp']);
-                                                $this->user()->update();
-                                            }                                                
-                                        }
-                                    }
-                                }                                
-                            }                                      
-                        } // end of KeyCode is positive
-                        else {                                                                                    
-                            if($numberValid) {                                    
-                                if(substr($number,0,1)=='+') {
-                                    $number = substr($number,1);
-                                }
-                                    
-                                if(NoSQL::instance()->isBlacklistedContacts([strval($number)])) {
-                                    $this->fail('403');
-                                }
-                                else {
-                                    /*check if number is suspended*/
-                                    $time = MCSessionHandler::checkSuspendedMobile($number);
-                                    if($time) {
-                                        $hours = $time / 3600;
-                                        if(ceil($hours)>1){
-                                            $hours = ceil($hours);
-                                            if($lang=='ar'){
-                                                if($hours==2){
-                                                    $hours='ساعتين';
-                                                }
-                                                elseif($hours>2 && $hours<11){
-                                                    $hours=$hours.' ساعات';
-                                                }
-                                                else{
-                                                    $hours = $hours.' ساعة';
-                                                }
-                                            }
-                                            else{
-                                                $hours = $hours.' hours';
-                                            }
-                                        }else{
-                                            $hours = ceil($time / 60);
-                                            if($lang=='ar'){
-                                                if($hours==1){
-                                                    $hours='دقيقة';
-                                                }
-                                                elseif($hours==2){
-                                                    $hours='دقيقتين';
-                                                }
-                                                elseif($hours>2 && $hours<11){
-                                                    $hours=$hours.' دقائق';
-                                                }
-                                                else{
-                                                    $hours = $hours.' دقيقة';
-                                                }
-                                            }else{
-                                                if($hours>1){                                
-                                                    $hours = $hours.' minutes';
-                                                }
-                                                else{                                
-                                                    $hours = $hours.' minute';
-                                                }
-                                            }
-                                        }
-                                        $this->setData($hours,'time');
-                                        $this->fail('402');
-                                    }
-                                }    
-                                    
-                                $sendSms= false;
-                                $keyCode = 0;
-
-                                $mrs = NoSQL::instance()->mobileFetch($this->user->info['id'], $number);
-                                if ($mrs!==FALSE) {                                                                               
-                                    if (!$validateByCall && $mrs) {
-                                        $mcMobile = new MCMobile($mrs);
-                                                                                
-                                        $expiredDelivery = $mcMobile->getActicationUnixtime()==0 && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
-                                        $expiredValidity = $mcMobile->getActicationUnixtime() && ($mcMobile->getActicationUnixtime()+31536000)>time();
-                                        $stillValid = $mcMobile->isVerified();
-                                        
-                                        if ($expiredDelivery) {
-                                            if (NoSQL::instance()->mobileUpdate($this->user->info['id'], $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
-                                                $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                                $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
-                                            } 
-                                            else {
-                                                $keyCode=0;
-                                                $number=0;
-                                            }
-                                        }
-                                        else if ($expiredValidity) {
-                                            $keyCode=mt_rand(1000, 9999);
-                                            if (NoSQL::instance()->mobileUpdate($this->user->info['id'], $number, 
-                                                    [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
-                                            {
-                                                $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                            } 
-                                            else {
-                                                $keyCode=0;
-                                                $number=0;
-                                            }
-                                        }
-                                        else if ($stillValid) {
-                                            $this->setData(1,'verified');
-                                            $number = 0;
-                                            $keyCode = 0;
-                                        }
-                                        else {
-                                            if ($mcMobile->isSMS()) {
-                                                $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
-                                                $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                            }
-                                            else {
-                                                $keyCode=mt_rand(1000, 9999);
-                                                if (NoSQL::instance()->mobileUpdate($this->user->info['id'], $number, 
-                                                        [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
-                                                {
-                                                    $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                                } 
-                                                else {
-                                                    $keyCode=0;
-                                                    $number=0;
-                                                }                                                
-                                            }
-                                        }                                                                                
-                                    } // end of SMS block
-                                    else {
-                                        // Record not found
-                                        $keyCode=mt_rand(1000, 9999);
-                                        if($validateByCall) {   
-                                            if(isset($this->user->pending['mobile_call']) && isset($this->user->pending['mobile_call_stamp']) && (time()-$this->user->pending['mobile_call_stamp']<=120))
-                                            {
-                                                $keyCode = $this->user->pending['mobile_call'];
-                                            }
-                                            else {
-                                                $ret = MobileValidation::getInstance()->
-                                                        setUID($this->user->info['id'])->
-                                                        setPlatform(MobileValidation::WEB)->
-                                                        requestReverseCLI($number, $response);
-                                                    
-                                                if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE) {
-                                                    $this->setData(1,'verified');
-                                                    $number = 0;
-                                                    $keyCode = 0;
-                                                }
-                                                elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
-                                                {           
-                                                    $keyCode=0;
-                                                    $number=0;
-                                                }
-                                                else {
-                                                    $keyCode=$response['response']['cli_prefix'];
-                                                    $this->user->pending['mobile_call_stamp']=time();
-                                                }
-                                            }
-                                        }
-                                        else {
-                                            if (NoSQL::instance()->mobileInsert([
-                                                        \Core\Model\ASD\USER_UID=> $this->user->info['id'],
-                                                        \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
-                                                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
-                                                        \Core\Model\ASD\USER_MOBILE_FLAG=>1,
-                                                        \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0
-                                                        ])) {
-                                                $mrs = NoSQL::instance()->mobileFetch($this->user->info['id'], $number);
-                                                if ($mrs) {
-                                                    $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                                } 
-                                                else {
-                                                    $keyCode=0;
-                                                    $number=0;
-                                                }
-                                            } 
-                                            else {
-                                                $keyCode=0;
-                                                $number=0;
-                                            }
-                                        }
-                                    }
-                                }
-                                else {
-                                    $keyCode=0;
-                                    $number=0;
-                                }
-                                    
-                                
-                                if ($sendSms && $number && $keyCode) {
-                                    if ( ($returnie = MobileValidation::getInstance()->
-                                                setPlatform(MobileValidation::WEB)->
-                                                setUID($this->user->info['id'])->
-                                                setPin($keyCode)->
-                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code")) != MobileValidation::RESULT_OK)
-                                    {
-                                        $keyCode=0;
-                                        $number=0;
-                                        //error_log($returnie);
-                                    }                                      
-                                }
-                                    
-                                $this->setData($number,'number');
-                                if ($number) {
-                                    $this->user->pending['mobile']=$number;
-                                    if($validateByCall) {
-                                        if($keyCode && !preg_match('/XXXX/',$keyCode)){
-                                            $keyCode=$keyCode.' xxx <u>XXXX</u>';  
-                                        }               
-                                        $this->user->pending['mobile_call']=$keyCode;
-                                        $this->setData($keyCode,'pre');
-                                    }
-                                    else {
-                                        unset($this->user->pending['mobile_call']);
-                                        unset($this->user->pending['mobile_call_stamp']);
-                                    }
-                                }
-                                else {
+                        if (isset($response['status']) && $response['status']==200 && isset($response['response'])) {
+                            if ($response['response']['validated']) {
+                                $activated=NoSQL::instance()->mobileActivationByRequestId($this->user->id(), $number, $pin, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                if ($activated) {
+                                    $this->response('verified', 1);
+                                    $this->user->info['verified']=true;
                                     unset($this->user->pending['mobile']);
                                     unset($this->user->pending['mobile_call']);
                                     unset($this->user->pending['mobile_call_stamp']);
-                                }
-                                $this->user->update();
-                                
+                                    $this->user->update();
+                                }        
                             }
-                            else {
-                                $this->setData(0,'check');
-                            } 
                         }
-                        
                     }
                     else {
-                        unset($this->user->pending['mobile']);
-                        $this->user->update();
+                        $this->error(self::ERR_DATA_INVALID_PHONE, ['en'=>'This phone number is undefined', 'ar'=>'رقم الهاتف هذا غير معرف على مرجان']);
+                    }
+                    $this->success();
+                } // end of pin is positive
+                                                                            
+
+                /*check if number is suspended*/
+                $time=MCSessionHandler::checkSuspendedMobile($number);
+                if ($time) {
+                    $hours=$time/3600;
+                    if (ceil($hours)>1) {
+                        $hours=\ceil($hours);
+                        if ($lang==='ar') {
+                            if($hours==2){
+                                $hours='ساعتين';
+                            }
+                            elseif ($hours>2 && $hours<11) {
+                                $hours=$hours.' ساعات';
+                            }
+                            else{
+                                $hours=$hours.' ساعة';
+                            }
+                        }
+                        else{
+                            $hours=$hours.' hours';
+                        }
                     } 
-                    $this->process();
+                    else {
+                        $hours=ceil($time/60);
+                        if ($lang==='ar') {
+                            if ($hours==1) {
+                                $hours='دقيقة';
+                            }
+                            elseif ($hours==2) {
+                                $hours='دقيقتين';
+                            }
+                            elseif ($hours>2 && $hours<11) {
+                                $hours=$hours.' دقائق';
+                            }
+                            else {
+                                $hours=$hours.' دقيقة';
+                            }
+                        }
+                        else{
+                            if ($hours>1) { 
+                                $hours=$hours.' minutes';
+                            }
+                            else {                                
+                                $hours=$hours.' minute';
+                            }
+                        }
+                    }
+                    $this->response('time', $hours);
+                    $this->success();
                 }
+                                                        
+                $sendSms=false;
+                $pin=0;
+
+                $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);
+                if ($mrs!==false) {
+                    if ($method===0 && $mrs) {                        
+                        $mcMobile=new Core\Lib\MCMobile($mrs);
+                                                                                
+                        $expiredDelivery=$mcMobile->getActicationUnixtime()==0 && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
+                        $expiredValidity=$mcMobile->getActicationUnixtime() && ($mcMobile->getActicationUnixtime()+31536000)>time();
+                        $stillValid=$mcMobile->isVerified();
+                                        
+                        if ($expiredDelivery) {
+                            if (NoSQL::instance()->mobileUpdate($this->user->id(), $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
+                                $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                $pin=$mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                $this->response('expired-delivery', 1);
+                            } 
+                            else {
+                                $pin=0;
+                                $number=0;
+                            }
+                        }
+                        else if ($expiredValidity) {
+                            $this->response('expired-validity', 1);
+                            $pin=\mt_rand(1000, 9999);
+                            if (NoSQL::instance()->mobileUpdate($this->user->id(), $number, [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0, \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$pin, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED=>time()])) {
+                                $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                $this->response('new-sms', 1);
+                            } 
+                            else {
+                                $pin=0;
+                                $number=0;
+                            }
+                        }
+                        else if ($stillValid) {                            
+                            $this->response('verified', 1);
+                            $pin=0;
+                            $number=0;
+                        }
+                        else {
+                            if ($mcMobile->isSMS()) {
+                                $pin=$mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                $this->response('old-sms', 1);
+                            }
+                            else {
+                                $pin=\mt_rand(1000, 9999);
+                                if (NoSQL::instance()->mobileUpdate($this->user->id(), $number, [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0, \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$pin,\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED=>time()])) {
+                                    $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                    $this->response('new-sms', 1);
+                                    $this->response('channel-changed', 1);
+                                } 
+                                else {
+                                    $pin=0;
+                                    $number=0;
+                                }                                                
+                            }
+                        }
+                    } // end of SMS block
+                    else {
+                        // Record not found
+                        $pin=\mt_rand(1000, 9999);
+                        if ($method===1) {   
+                            if (isset($this->user->pending['mobile_call']) && isset($this->user->pending['mobile_call_stamp']) && (time()-$this->user->pending['mobile_call_stamp']<=120)) {
+                                $pin=$this->user->pending['mobile_call'];
+                            }
+                            else {
+                                $ret=MobileValidation::getInstance()->setUID($this->user->id())->setPlatform(MobileValidation::WEB)->requestReverseCLI($number, $response);                                                    
+                                if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE) {
+                                    $this->response('verified', 1);
+                                    $pin=0;
+                                    $number=0;
+                                }
+                                elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201))) {           
+                                    $pin=0;
+                                    $number=0;
+                                }
+                                else {
+                                    $pin=$response['response']['cli_prefix'];
+                                    $this->user->pending['mobile_call_stamp']=time();
+                                }
+                            }
+                        }
+                        else {
+                            if (NoSQL::instance()->mobileInsert([
+                                                        \Core\Model\ASD\USER_UID=> $this->user->id(),
+                                                        \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
+                                                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
+                                                        \Core\Model\ASD\USER_MOBILE_FLAG=>1,
+                                                        \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0])) {
+                                $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);
+                                if ($mrs) {
+                                    $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                } 
+                                else {
+                                    $pin=0;
+                                    $number=0;
+                                }
+                            } 
+                            else {
+                                $pin=0;
+                                $number=0;
+                            }
+                        }
+                    }
+                }
+                else {
+                    $pin=0;
+                    $number=0;
+                }
+                                    
+                                
+                if ($sendSms && $number>0 && $pin>0) {
+                    if (MobileValidation::getInstance()->setPlatform(MobileValidation::WEB)->setUID($this->user->id())->setPin($pin)->sendSMS($number, "{$pin} is your mourjan confirmation code")!==MobileValidation::RESULT_OK) {
+                        $pin=0;
+                        $number=0;
+                    }                               
+                }
+                                    
+                $this->response('number', $number);
+                if ($number) {
+                    $this->user->pending['mobile']=$number;
+                    if ($method===1) {
+                        if ($pin>0 && !\preg_match('/XXXX/', $pin)) {
+                            $pin=$pin.' xxx <u>XXXX</u>';
+                        }               
+                        $this->user->pending['mobile_call']=$pin;
+                        $this->response('pre', $pin);
+                    }
+                    else {
+                        unset($this->user->pending['mobile_call']);
+                        unset($this->user->pending['mobile_call_stamp']);
+                    }
+                }
+                else {
+                    unset($this->user->pending['mobile']);
+                    unset($this->user->pending['mobile_call']);
+                    unset($this->user->pending['mobile_call_stamp']);
+                }
+                $this->user->update();                                                                                                                      
+                $this->success();
+                
                 break;
                 
                                 
@@ -2463,7 +2500,7 @@ class Bin extends AjaxHandler {
                 $this->authorize(true);                
                 if (!isset($this->_JPOST['o'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                
                 
-                $_ad = \is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
+                $_ad=\is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
                 if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                              
                 //$this->router->logger()->info('_JPOST[o]', $_ad);                              
@@ -3936,35 +3973,39 @@ class Bin extends AjaxHandler {
                 
             case 'pay':
                 $this->authorize(true);
-                if (!isset($_POST['i'])) {
-                    $this->error(self::ERR_DATA_INVALID_META);
-                }
+                if (!isset($this->_JPOST['product'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!isset($this->_JPOST['currency'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 
-                $id=\filter_var($this->_JPOST['i'], FILTER_SANITIZE_NUMBER_INT)+0;
+                $product_id=\filter_var($this->_JPOST['product'], \FILTER_SANITIZE_NUMBER_INT)+0;
+                $currency_id=\filter_var($this->_JPOST['currency'], \FILTER_SANITIZE_STRING);
                 
                 $lang=$this->router->language;                    
-                $product=$this->router->db->queryResultArray("select ID, PRODUCT_ID, MCU, USD_PRICE, AED_PRICE from product where id=? and web=1 and blocked=0", [$id], true);
-                \error_log(print_r($product));
-                if (isset($product[0]['ID']) && $product[0]['ID']==$id) {
+                $product=$this->router->db->queryResultArray("select ID, PRODUCT_ID, MCU, USD_PRICE, AED_PRICE from product where id=? and web=1 and blocked=0", [$product_id], true);
+                
+                if (isset($product[0]['ID']) && $product[0]['ID']===$product_id) {
                     $product=$product[0];
+                    \error_log(var_export($product, true));
                     
                     //$product['MCU']=$product['MCU'];
                     
                     $product['USD_PRICE']=\number_format($product['USD_PRICE'], 2);
+                    $price=\number_format($product[$currency_id.'_PRICE'], 2);
+                    \error_log($currency_id.$price.PHP_EOL);
+
                     $orderId='';
-                    
                     $order=$this->urlRouter->db->queryResultArray(
                                 "insert into t_order (uid, currency_id, amount, debit, credit, usd_value, server_id, flag) values (?, ?, ?, ?, ?, ?, ?, ?) returning id",
-                                [$this->user->id(), 'USD', $product['USD_PRICE'], 0, $product['MCU'], $product['USD_PRICE'], $this->router->config->serverId, $this->router->isMobile?1:0], true);
-                            
+                                [$this->user->id(), $currency_id, $price, 0, $product['MCU'], $product['USD_PRICE'], $this->router->config->serverId, $this->router->isMobile?1:0], true);
+                    
                     if (isset($order[0]['ID']) && $order[0]['ID']) {
                         $orderId=$this->user->id().'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile']?1:0);   
                                 
                         $this->router->config->incLibFile('PayfortIntegration');                        
-                        $objFort=new PayfortIntegration();
-                        $objFort->setAmount($product['USD_PRICE']);
+                        $objFort=new PayfortIntegration;
+                        $objFort->currency=$currency_id;
+                        $objFort->setAmount($price);
                         $objFort->setCustomerEmail($this->user->info['email']);
-                        $objFort->setItemName($product['MCU'].($lang!=='ar'?' mourjan gold':' ذهبية مرجان'));
+                        $objFort->setItemName($product['MCU'].($lang!=='ar'?' mourjan premium days':' ايام مرجان بريميوم'));
                         $objFort->setMerchantReference($orderId);
                         $objFort->setLanguage($lang);
                         $objFort->setCommand('PURCHASE');
@@ -3978,15 +4019,20 @@ class Bin extends AjaxHandler {
                         foreach ($form['params'] as $k=>$v) {
                             $formData.='<input type="hidden" name="'.$k.'" value="'.$v .'">';
                         }                                
-                               
-                        $this->setData($formData, "D");
-                        $this->setData($form['url'], "U");                        
-                        $this->process();
+                        
+                        $this->response('data', $formData);
+                        $this->response('url', $form['url']);
+                        //$this->setData($formData, "D");
+                        //$this->setData($form['url'], "U");                        
+                        //$this->process();
+                        $this->success();
                                 
                     }
                     else {
                         $this->error(self::ERR_SYS_FAILURE);
                     }
+                    
+                    $this->error(self::ERR_SYS_FAILURE);
                 }
                 else {
                     $this->error(self::ERR_DATA_INVALID_PARAM);

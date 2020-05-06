@@ -444,3 +444,79 @@ body[dir=rtl] .side li.on b:after {
     border-color: transparent;
     background-color: currentColor;
 }
+
+.empty-coin {
+    display:inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: none;    
+    width:25px;
+    height: 24px;
+    background:url(/web/css/1.0/assets/empty-coin.svg) no-repeat center;
+    background-size: cover;
+}
+
+.btn.buy {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: none;
+    background-color:white;
+    color:white;
+    width:196px;
+    height:65px;
+    background:url(/web/css/1.0/assets/buy-premium-bg.svg) no-repeat center;
+    background-size: cover;
+}
+.btn.buy.type {
+    width: 200px;
+    height: 84px;
+    margin-inline-start:0;
+    margin-inline-end:16px;
+}
+
+.btn.buy.type.visa {
+    background:url(/web/css/1.0/assets/visa-buy.svg) no-repeat center;
+}
+.btn.buy.type.master {
+    background:url(/web/css/1.0/assets/master-buy.svg) no-repeat center;
+}
+.btn.buy.type.paypal {
+    background:url(/web/css/1.0/assets/paypal-buy.svg) no-repeat center;
+}
+.btn.buy.type.android {
+    background:url(/web/css/1.0/assets/mcgplay.svg) no-repeat center;
+    background-position: top;
+}
+.btn.buy.type.ios {
+    background:url(/web/css/1.0/assets/mcastore.svg) no-repeat center;
+    background-position: top;
+}
+.btn.buy.EN{
+    position: relative;
+    font-weight: 700;
+    margin: 8px 0;
+}
+.btn.buy.EN:before, .btn.buy.EN:after{
+    position: absolute;
+    font-size:18px;
+    top:20px;
+}
+.btn.buy.EN:before{
+    content: "BUY";
+    left:30px;
+}
+.btn.buy.EN:after{
+    content: "DAYS";
+    left:67%;
+}
+.btn.buy.EN.one:after{
+    content: "DAY";
+}
+
+a.btn.buy + span {
+    margin-inline-start: 32px;
+    font-size: 20px;
+}

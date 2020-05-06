@@ -4552,6 +4552,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     
     public function inlineJS(string $filename) : Page {
+        if (\substr($filename, -3)!=='.js') {
+            $filename.='.js';
+        }
         if (!isset($this->included[$filename])) {
             $jsfile=$this->router->config->jsDir.'/includes/'.$filename;
             if (\file_exists($jsfile)) {
@@ -4588,8 +4591,13 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'post':    
                 \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
                 \header("Link: <".$this->router->config->jsURL."/1.0/load-image-scale.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
                 break;
 
+            case 'buyu':
+                \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
+                break;
+            
             case 'contact':            
             case 'account':
                 \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
@@ -4622,8 +4630,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             case 'post':
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/libphonenumber-min-1.7.10.js></script><?php
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/load-image-scale.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
                 break;
             
+            case 'buyu':
             case 'contact':
             case 'account':
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
