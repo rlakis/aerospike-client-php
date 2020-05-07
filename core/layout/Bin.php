@@ -3984,16 +3984,12 @@ class Bin extends AjaxHandler {
                 
                 if (isset($product[0]['ID']) && $product[0]['ID']===$product_id) {
                     $product=$product[0];
-                    \error_log(var_export($product, true));
-                    
-                    //$product['MCU']=$product['MCU'];
-                    
+                                        
                     $product['USD_PRICE']=\number_format($product['USD_PRICE'], 2);
                     $price=\number_format($product[$currency_id.'_PRICE'], 2);
-                    \error_log($currency_id.$price.PHP_EOL);
 
                     $orderId='';
-                    $order=$this->urlRouter->db->queryResultArray(
+                    $order=$this->router->db->queryResultArray(
                                 "insert into t_order (uid, currency_id, amount, debit, credit, usd_value, server_id, flag) values (?, ?, ?, ?, ?, ?, ?, ?) returning id",
                                 [$this->user->id(), $currency_id, $price, 0, $product['MCU'], $product['USD_PRICE'], $this->router->config->serverId, $this->router->isMobile?1:0], true);
                     
@@ -4002,29 +3998,40 @@ class Bin extends AjaxHandler {
                                 
                         $this->router->config->incLibFile('PayfortIntegration');                        
                         $objFort=new PayfortIntegration;
-                        $objFort->currency=$currency_id;
-                        $objFort->setAmount($price);
-                        $objFort->setCustomerEmail($this->user->info['email']);
-                        $objFort->setItemName($product['MCU'].($lang!=='ar'?' mourjan premium days':' ايام مرجان بريميوم'));
-                        $objFort->setMerchantReference($orderId);
-                        $objFort->setLanguage($lang);
-                        $objFort->setCommand('PURCHASE');
+                        $objFort->setCurrency($currency_id)
+                                ->setAmount($price)
+                                ->setLanguage($lang)
+                                ->setCustomerEmail($this->user->info['email'])
+                                ->setItemName(\intval($product['MCU']).($lang!=='ar'?' mourjan premium days':' ايام مرجان بريميوم'))
+                                ->setMerchantReference($orderId)
+                                ->setAsPurchaseRequest();
+                        
+                        
+                        //$objFort->currency=$currency_id;
+                        //$objFort->setAmount($price);
+                        //$objFort->setCustomerEmail($this->user->info['email']);
+                        //$objFort->setItemName($product['MCU'].($lang!=='ar'?' mourjan premium days':' ايام مرجان بريميوم'));
+                        //$objFort->setMerchantReference($orderId);
+                        //$objFort->setLanguage($lang);
+                        //$objFort->setCommand('PURCHASE');
                                 
                         if (($token=NoSQL::instance()->getUserPayfortToken($this->user->id()))!=false) {
+                            \error_log('Payfort tocken '.$token.PHP_EOL);
                             $objFort->token_name=$token;
                         }
                                 
                         $form=$objFort->getRedirectionData('');
                         $formData='';
+                        $formFields=[];
                         foreach ($form['params'] as $k=>$v) {
                             $formData.='<input type="hidden" name="'.$k.'" value="'.$v .'">';
-                        }                                
+                            $formFields[]=['name'=>$k, 'value'=>$v];
+                        }                     
                         
-                        $this->response('data', $formData);
+                        
+                        $this->response('fields', $formData);
+                        $this->response('params', $formFields);
                         $this->response('url', $form['url']);
-                        //$this->setData($formData, "D");
-                        //$this->setData($form['url'], "U");                        
-                        //$this->process();
                         $this->success();
                                 
                     }
@@ -4039,6 +4046,7 @@ class Bin extends AjaxHandler {
                 }
                                     
                 break;
+                
                 
             case 'ajax-adel':
                 if ($this->user->info['id'] && isset ($_POST['i'])) 

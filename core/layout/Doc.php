@@ -187,10 +187,22 @@ class Doc extends Page{
     }
 
     
-    private function payforButton($product) {
+    //private function payforButton($product) {
+    private function payfortButton(int $product_id, int $mcu, string $currency_id, float $price) : void {
+        /*
         echo '<form method=post onsubmit="buy('.$product['ID'].',this);" action="javascript:void(0);" name=payment>';        
         echo "<input type=image name=submit src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";        
-        echo "</form>";        
+        echo "</form>";*/
+        if ($currency_id==='AED') {
+            $price_label=number_format($price, 2).' <small>Emirates Dirhams</small>';
+        }
+        else {
+            $price_label='$'.number_format($price, 2);
+        }
+
+        ?><form method=post name=payment action="javascript:void(0);" onsubmit="buy(<?=$product_id?>, '<?=$currency_id?>', this)" enctype="multipart/form-data"><?php
+        ?><button type=submit class="btn buy EN<?=$mcu===1?' one':''?>"><?=$mcu?></button><span><?=$price_label?></span><?php 
+        ?></form><?php
     }
     
     
@@ -701,7 +713,7 @@ class Doc extends Page{
         ?><div class=row><?php
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         ?><div class=col-10><div class="card doc"><div class="view"><?php
-        ?><h2 class="title">Pay with credit card</h2><?php
+        ?><h2 class=title>Pay with credit card</h2><?php
                                         
         if (!$this->user->info['email']) {
             $message=$this->lang['requireEmailPay'];
@@ -710,73 +722,68 @@ class Doc extends Page{
             }
             ?><div class="htf"><?=$message?></div><?php
         }
-        else {                    
-            if (isset($_GET['response_code']) && isset($_GET['command']) && isset($_GET['order_description'])) {
-                require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
+        else {
+            
+            if (\filter_has_var(\INPUT_GET, 'response_code') && \filter_has_var(\INPUT_GET, 'command') && \filter_has_var(\INPUT_GET, 'order_description')) {
+                $this->router->config->incLibFile('PayfortIntegration');
     
-                $payFort = new PayfortIntegration();
-                $payFort->setLanguage($this->urlRouter->siteLanguage);
-                $payment = $payFort->processResponse();
+                $payFort=new PayfortIntegration;
+                $payFort->setLanguage($this->router->language);
+                $payment=$payFort->processResponse();
 
-                $success = true;
-                $internalError = false;
+                $success=true;
+                $internalError=false;
                 if (isset($payment['error_msg'])) {
-                    $success = false;
+                    $success=false;
                 }
-                        
-                $orderId = 0;
-                $flag_id=0;
+
+                $order_id=$flag_id=0;
                 if (isset($payment['merchant_reference'])) {
-                    $orderId = preg_split('/-/', $payment['merchant_reference']);
-                    if ($orderId && (count($orderId)==2 || count($orderId)==3) && is_numeric($orderId[0]) && is_numeric($orderId[1])) {
-                        if ($orderId[0] == $this->user->info['id']) {
-                            $orderId = (int)$orderId[1];
-                            if (isset($orderId[2]) && $orderId[2]) {
-                                $flag_id = $orderId[2];
+                    //$orderId=\preg_split('/-/', $payment['merchant_reference']);
+                    $orderRef=\preg_split('/-/', $payment['merchant_reference']);
+                    if (\is_array($orderRef) && (\count($orderRef)===2 || \count($orderRef)===3) && \is_numeric($orderRef[0]) && \is_numeric($orderRef[1])) {
+                        if ($orderRef[0]==$this->user->id()) {
+                            $order_id=(int)$orderRef[1];
+                            if (isset($orderRef[2]) && $orderRef[2]) {
+                                $flag_id=$orderRef[2];
                             }
                         }
-                        else {
-                            $orderId=0;
-                        }
-                    }
-                    else {
-                        $orderId=0;
                     }
                 }
 
-                if ($orderId) {
+                if ($order_id>0) {
                     if ($success) {
-                        $res = $this->router->db->queryResultArray(
+                        $res=$this->router->db->queryResultArray(
                                     "update t_order set state=?, msg=?,flag=? where id=? and uid=? and state=0 returning id",
-                                    [2, $payment['fort_id'],$flag_id, $orderId, $this->user->info['id']], TRUE);
+                                    [2, $payment['fort_id'],$flag_id, $order_id, $this->user->id()], TRUE);
 
                         if ($res!==false) {
-                            $goldCount = preg_replace('/[^0-9]/', '', $payment['order_description']);
-                            $msg = preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
+                            $goldCount=\preg_replace('/[^0-9]/', '', $payment['order_description']);
+                            $msg=\preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
                             echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
                         }
                         else {
-                            $msg = preg_replace('/{payfort}/', $payment['fort_id'], $this->lang['payfort_fail']);
+                            $msg=\preg_replace('/{payfort}/', $payment['fort_id'], $this->lang['payfort_fail']);
                             echo "<div class='mnb rc'><p><span class='fail'></span> {$msg}</p></div>";
                         }
 
                         $this->user->update();
                     }
                     else {
-                        $state = 3;
-                        if (($error_code=substr($payment['response_code'],-3))=="072") {
-                            $state = 1;
+                        $state=3;
+                        if (($error_code=\substr($payment['response_code'],-3))=="072") {
+                            $state=1;
                         }
                         echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
 
                         $res = $this->router->db->queryResultArray(
                                     "update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
-                                    [$state, $payment['error_msg'], $flag_id, $orderId, $this->user->info['id']], TRUE);
+                                    [$state, $payment['error_msg'], $flag_id, $order_id, $this->user->id()], TRUE);
 
                         $this->user->update();
                     }
                 }
-            }                    
+            }
                      
         
             $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id from product where web=1 and blocked=0 order by mcu asc");
@@ -785,13 +792,11 @@ class Doc extends Page{
             if ($this->user->getProfile()->isMobileVerified()||$this->user->level()===9) {
                 $currency=(\substr(\strval($number), 0, 3)==='961')?'AED':'USD';
                 foreach ($products as $product) {            
-                    if ($currency==='AED') {
-                        $price=number_format($product[$currency.'_PRICE'],2). ' <small>Emirates Dirhams</small>';
-                    }
-                    else {
-                        $price='$'.number_format($product[$currency.'_PRICE'],2);
-                    }
+                    $this->payfortButton($product['ID'], \intval($product['MCU']), $currency, $product[$currency.'_PRICE']);
+                    /*
                     ?><div><a class="btn buy EN<?=$product['MCU']===1?' one':''?>" href="javascript:void(0)" onclick="javascript:buy(<?=$product['ID']?>, '<?=$currency?>', this)"><?= intval($product['MCU'])?></a><span><?=$price?></span></div><?php            
+                     * 
+                     */
                 }
                 if ($currency==='AED') {
                     ?><p class="tfoot small"><?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, Value-added tax 5% price inclusive.'?></p><?php            
@@ -799,17 +804,6 @@ class Doc extends Page{
                 else {
                     ?><p class="tfoot small"><?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
                 }
-                /*
-                ?><table style="display:table;border-collapse:collapse;border-spacing:0;width:460px;margin:0 auto;margin-bottom:64px"><?php
-                foreach ($products as $product) {
-                    ?><tr><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:start;font-weight:700"><?=$product['NAME_'.strtoupper($this->router->language)]?></td><?php
-                    ?><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:center;font-weight:500"><?=\number_format($product[$currency.'_PRICE'], 2).' '.$currency?></td><?php
-                    ?><td style="padding:8px;height:44px;border-bottom:1px solid var(--mdc12);text-align:end"><?=$this->payforButton($product)?></td></tr><?php
-                    //$j++;
-                }
-                ?></table><?php
-                 * 
-                 */
                 ?><div style="margin:0 0 32px;width:288px;margin-top:40px"><img src="<?=$this->router->config->cssURL?>/1.0/assets/payfort.svg" alt="Verified by PAYFORT" /></div><?php
             }
             else {

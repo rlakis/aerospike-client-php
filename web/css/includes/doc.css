@@ -1,3 +1,5 @@
+button{outline:none}
+
 .card.doc {
     border-radius: 2px;
     box-shadow: none;
@@ -516,7 +518,7 @@ body[dir=rtl] .side li.on b:after {
     content: "DAY";
 }
 
-a.btn.buy + span {
+.btn.buy + span {
     margin-inline-start: 32px;
     font-size: 20px;
 }
