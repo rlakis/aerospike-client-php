@@ -174,7 +174,7 @@ class PayfortIntegration {
 
         if ($paymentMethod==='sadad') {  $this->currency='SAR';  }
         
-        $postData = [
+        $postData=[
             'amount'                => $this->convertFortAmount($this->amount, $this->currency),
             'currency'              => \strtoupper($this->currency),
             'merchant_identifier'   => $this->merchantIdentifier,
@@ -184,8 +184,9 @@ class PayfortIntegration {
             //'customer_name'         => trim($order_info['b_firstname'].' '.$order_info['b_lastname']),
             'command'               => $this->command,
             'language'              => $this->language,
-            'return_url'            => $this->getUrl('?newlook=1'), 
+            'return_url'            => $this->getUrl(''), 
             'order_description'     => $this->itemName,
+            'remember_me'           => 'NO'
         ];
 
         if (!$this->sandboxMode && isset($this->token_name) && !empty($this->token_name)) {

@@ -741,39 +741,56 @@ class Page extends Site {
 
     // wanted by robert
     function renderSideSite() : void {
-        $countryId=$this->user->params['country']??0;
-        $cityId=$this->user->params['city']??0;
-
-        $lang=$this->router->language==='ar'?'':$this->router->language.'/';
+        //$countryId=$this->user->params['country']??0;
+        //$cityId=$this->user->params['city']??0;
+        
         //echo '<div class=title><h5>', $this->lang['mourjan'], '</h5></div>';
         
         ?><ul><?php
         //echo '<li><a href=\'', $this->router->getURL($countryId, $cityId), '\'>', $this->lang['homepage'], '</a></li>';
 
-        if ($this->router->module==='about')
+        if ($this->router->module==='about') {
             echo '<li class=on><b>', $this->lang['aboutUs'], '</b><i></i></li>';
-        else
-            echo '<li><a href=\'/about/', $lang, '\'>', $this->lang['aboutUs'], '</a></li>';
-        if ($this->router->module==='contact')
+        } 
+        else {
+            echo '<li><a href="', $this->router->getLanguagePath('/about/'), '">', $this->lang['aboutUs'], '</a></li>';
+        }
+        
+        if ($this->router->module==='contact') {
             echo '<li class=on><b>', $this->lang['contactUs'], '</b><i></i></li>';
-        else
-            echo '<li><a href=\'/contact/', $lang, '\'>', $this->lang['contactUs'], '</a></li>';
-        if ($this->router->module==='gold')
+        }
+        else {
+            echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '">', $this->lang['contactUs'], '</a></li>';
+        }
+        
+        if ($this->router->module==='gold') {
             echo '<li class=on><b>', $this->lang['premium_title'], '</b><i></i></li>';
-        else
-            echo '<li><a href=\'/gold/', $lang, '\'>', $this->lang['premium_title'], '</a></li>';
-        if ($this->router->module==='privacy')
+        } 
+        else {
+            echo '<li><a href="', $this->router->getLanguagePath('/gold/'), '">', $this->lang['premium_title'], '</a></li>';
+        }
+        
+        if ($this->router->module==='privacy') {
             echo '<li class=on><b>', $this->lang['privacyPolicy'], '</b><i></i></li>';
-        else
-            echo '<li><a href=\'/privacy/', $lang, '\'>', $this->lang['privacyPolicy'], '</a></li>';
-        if ($this->router->module==='terms')
+        }
+        else {
+            echo '<li><a href="', $this->router->getLanguagePath('/privacy/'), '">', $this->lang['privacyPolicy'], '</a></li>';
+        }
+        
+        if ($this->router->module==='terms') {
             echo '<li class=on><b>', $this->lang['termsConditions'], '</b><i></i></li>';
-        else
-            echo '<li><a href=\'/terms/', $lang, '\'>', $this->lang['termsConditions'], '</a></li>';
-        if ($this->router->module==='faq')
+        }
+        else {
+            echo '<li><a href="', $this->router->getLanguagePath('/terms/'), '">', $this->lang['termsConditions'], '</a></li>';
+        }
+        
+        if ($this->router->module==='faq') {
             echo '<li class=on><b>', $this->lang['faqhc'], '</b><i></i></li>';
-        else
-            echo '<li><a href=\'/faq/', $lang, '\'>', $this->lang['faqhc'], '</a></li>';
+        }
+        else {
+            echo '<li><a href="', $this->router->getLanguagePath('/faq/'), '">', $this->lang['faqhc'], '</a></li>';
+        }
+        
         ?></ul><?php
     }
 
@@ -4594,6 +4611,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
                 break;
 
+            case 'gold':
             case 'buyu':
                 \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
                 break;
@@ -4633,6 +4651,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
                 break;
             
+            case 'gold':
             case 'buyu':
             case 'contact':
             case 'account':

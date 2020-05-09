@@ -30,9 +30,20 @@ buy=function(productId, currencyId, form) {
                         input.value=param.value;
                         form.insertBefore(input, form.querySelector('button'));
                     });
-                    
-                    console.log('form', form);
-                    //form.submit();
+                    Swal.fire({
+                        position: 'center',
+                        icon: 'info',
+                        title: 'Redirecting...',
+                        text: 'Please while while redirecting to credit card page',
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        timer: 20000,
+                        onBeforeOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
+                    //console.log('form', form);
+                    form.submit();
                 }
                 else {                    
                     Swal.fire({
@@ -44,7 +55,20 @@ buy=function(productId, currencyId, form) {
             })
             .catch(error => { 
                 Swal.fire('Failed Request!', error.toString(), 'error');
-            });
-    
+            });    
 }
 
+
+redirect=function(url) {
+    location.href=url;
+}
+
+showMessage=function(message) {
+    Swal.fire({
+        position: 'center',
+        icon: 'info',
+        text: message,
+        showConfirmButton: true,
+        allowOutsideClick: false
+    });
+}

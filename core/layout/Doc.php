@@ -4,6 +4,8 @@
 class Doc extends Page{
 
     private string $countryCode='XX';
+    private string $currency_id='USD';
+    private int $activation_phone_number=0;
     
     function __construct() {
         header('Vary: User-Agent');
@@ -187,25 +189,29 @@ class Doc extends Page{
     }
 
     
-    //private function payforButton($product) {
-    private function payfortButton(int $product_id, int $mcu, string $currency_id, float $price) : void {
-        /*
-        echo '<form method=post onsubmit="buy('.$product['ID'].',this);" action="javascript:void(0);" name=payment>';        
-        echo "<input type=image name=submit src='https://www.paypalobjects.com/en_US/i/btn/btn_buynow_LG.gif' alt='Visa/Mastercard'>";        
-        echo "</form>";*/
-        if ($currency_id==='AED') {
-            $price_label=number_format($price, 2).' <small>Emirates Dirhams</small>';
+    private function payfortButton(int $product_id, int $mcu, float $price) : void {
+        $price_label=($this->currency_id==='AED')?(\number_format($price, 2).' <small>'. $this->lang['uae_dirhams'].'</small>'):('$'.\number_format($price, 2));
+
+        if ($this->user->isLoggedIn()) {
+            if ($this->activation_phone_number>0) {
+                $buy="buy({$product_id}, '{$this->currency_id}', this)";
+            }
+            else {
+                $buy="javascript:showMessage('Purchase is not allowed for unknown user\'s mobile number!');";
+            }
         }
         else {
-            $price_label='$'.number_format($price, 2);
+            $buy="redirect('{$this->router->getLanguagePath('/signin/')}')";
+            //$buy="redirect('{$this->router->getLanguagePath('/post/')}')";
         }
-
-        ?><form method=post name=payment action="javascript:void(0);" onsubmit="buy(<?=$product_id?>, '<?=$currency_id?>', this)" enctype="multipart/form-data"><?php
+        
+        /*?><form method=post name=payment action="javascript:void(0);" onsubmit="buy(<?=$product_id?>, '<?=$this->currency_id?>', this)"><?php*/
+        ?><form method=post name=payment action="javascript:void(0);" onsubmit="<?=$buy?>"><?php
         ?><button type=submit class="btn buy EN<?=$mcu===1?' one':''?>"><?=$mcu?></button><span><?=$price_label?></span><?php 
         ?></form><?php
     }
     
-    
+    /*
     public function calculateSignature($arrData, $signType = 'request') {
         $shaString = '';
         ksort($arrData);
@@ -221,7 +227,7 @@ class Doc extends Page{
         $signature = hash('sha256', $shaString);
         return $signature;
     }
-    
+    */
     
     private function paypalButton($name, $price) {
         $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
@@ -274,9 +280,9 @@ class Doc extends Page{
                     if (!$this->isMobile) { $this->renderLoginPage(); }
                 }
                 else {
-                    if ($this->isMobile) {                        
-                        $uid = $this->user->info['id'];
-                        $data = $this->user->getStatement($uid, 0, false, null, $this->urlRouter->siteLanguage);
+                    if ($this->router->isMobile) {                        
+                        $uid=$this->user->id();
+                        $data = $this->user->getStatement($uid, 0, false, null, $this->router->language);
                         $hasError = 0;
                         if($data && $data['balance']!==null){
                             $subHeader = '<span class="mc24"></span>'.$data['balance'].' '.$this->lang['gold'];
@@ -551,26 +557,25 @@ class Doc extends Page{
             li.classList.toggle('open');li.scrollIntoView(true);}</script><?php
             
         $rtl=$this->router->isArabic();
-                
+        
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         
         ?><div class=col-10><div class="card doc"><div class="view" style="min-height:600px"><?php
         ?><h2 class=title style="color:var(--mdc60);font-size:52px"><?=$rtl?'كل ما تريد ان تعرفه عن':'Get your ad<br>featured and visible with'?><img alt="mourjan" style="width:348px;" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
                 
         $imgPath=$this->router->config->imgURL.'/presentation2/';
-                
-        $currency='USD';
+        
         if ($this->user->isLoggedIn()) {
-            $number=$this->user->getProfile()->getMobileNumber();
-            if ($number>0) {
-                $currency=(\substr(\strval($number), 0, 3)==='971')?'AED':'USD';
+            $this->activation_phone_number=$this->user->getProfile()->getMobileNumber();
+            if ($this->activation_phone_number>0) {
+                $this->currency_id=(\substr(\strval($this->activation_phone_number), 0, 3)==='971')?'AED':'USD';
             }
             else if ($this->router->countryId===2) {
-                $currency='AED';                
+                $this->currency_id='AED';  
             }
         }
         else if ($this->router->countryId===2) {
-            $currency='AED';
+            $this->currency_id='AED';
         }
         
         
@@ -580,40 +585,20 @@ class Doc extends Page{
         ?><li><a href="javascript:chapter(1)"><?=$rtl?'كيف يعمل؟ وما هو؟':'How it works'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter1><?php
         /*?><p><?=$this->lang['gold_p2']?></p><?php*/
-        ?><p><span class="fw-500">Buy days of</span> <span class="fw-500" style="color:var(--premium);text-decoration:underline">premium ad listing</span> and make your ad more prominent and highlighted to attract a greater level of interest and make it easier to be found.</p><?php
-        ?><p class="fw-500">You can buy here more days and benefit from exclusive packages:</p><?php
-        /*
-        ?><table><caption><?=$rtl?'الباقات':'PACKAGES'?></caption><?php
-        ?><tr><th><?=$rtl?'ذهبيات':'Quantity'?><br><small class=small><?=$rtl?'مميز ليوم':'1 PREMIUM/day'?></small></th><?php
-        ?><th><small class=small>*</small><?=$rtl?'السعر':'Price'?><br><small class=small><?=$rtl?'دولار':'USD'?></small></th><?php
-        ?><th><small class=small>**</small><?=$rtl?'السعر':'Price'?><br><small class=small><?=$rtl?'درهم اماراتي':'AED'?></small></th></tr><?php
-        ?><tr><td>1</td><td>$0.99</td><td>3.99</td></tr><?php
-        ?><tr><td>7</td><td>$4.99</td><td>19.99</td></tr><?php
-        ?><tr><td>14</td><td>$8.99</td><td>34.99</td></tr><?php
-        ?><tr><td>21</td><td>$12.99</td><td>49.99</td></tr><?php
-        ?><tr><td>30</td><td>$17.99</td><td>69.99</td></tr><?php
-        ?><tr><td>100</td><td>$49.99</td><td>194.99</td></tr><?php
-        ?></table><?php
-        */
-        
+        ?><p><span class=fw-500>Buy days of</span> <span class=fw-500 style="color:var(--premium);text-decoration:underline">premium ad listing</span> and make your ad more prominent and highlighted to attract a greater level of interest and make it easier to be found.</p><?php
+        ?><p class=fw-500>You can buy here more days and benefit from exclusive packages:</p><?php        
         
         $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id from product where web=1 and blocked=0 order by mcu asc");
-        foreach ($products as $product) {            
-            if ($currency==='AED') {
-                $price=number_format($product[$currency.'_PRICE'],2). ' <small>Emirates Dirhams</small>';
-            }
-            else {
-                $price='$'.number_format($product[$currency.'_PRICE'],2);
-            }
-            ?><div><a class="btn buy EN<?=$product['MCU']===1?' one':''?>" href="#"><?= intval($product['MCU'])?></a><span><?=$price?></span></div><?php
-            
+        foreach ($products as $product) {        
+                $this->payfortButton($product['ID'], \intval($product['MCU']), $product[$this->currency_id.'_PRICE']);
         }
-        if ($currency==='AED') {
-            ?><p class="tfoot small"><?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, including 5% value-added tax.'?></p><?php            
+        if ($this->currency_id==='AED') {
+            ?><p class="tfoot small"><?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, Value-added tax 5% price inclusive.'?></p><?php            
         }
         else {
             ?><p class="tfoot small"><?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
         }
+    
         ?><p class="flex va-center mt-32"><span>After you buy days of&nbsp;</span><span class=fw-500>mourjan <span style="color:var(--premium)">PREMIUM</span></span><span>,&nbsp;</span><span class=empty-coin style="font-weight:700;font-size:1.25em;color:var(--premium)">1</span><span>&nbsp;day will be deducted daily until:</span></p><?php
         //echo "<p>{$this->lang['gold_p2_0']}</p>";
         ?><div class="flex fw-500 va-center" style="height:32px"><span>&bullet;&nbsp;The specified days have expired</span></div><?php
@@ -626,17 +611,17 @@ class Doc extends Page{
         
         ?><li><a href="javascript:chapter(2)"><?=$rtl?'كيفية الشراء':'How to buy it'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter2><?php
-        ?><h4 class="mb-16">A) Using your credit card</h4><?php
-        ?><p><span class="fw-500">mourjan <span style="color:var(--premium)">PREMIUM DAYS</span></span> can be purchased directly using your credit card. Choose the card that is best suitable for you or keep on reading to find out other payment options.</p><?php
-        ?><div class="fw-500">BUY NOW WITH:</div><?php
-        ?><div class="flex"><a class="btn buy type visa" href="<?=$this->router->getLanguagePath('/buyu/')?>"></a><a class="btn buy type master" href="<?=$this->router->getLanguagePath('/buyu/')?>"></a></div><?php
-        ?><div class="mb-32" style="width:60px;height:2px;background: var(--premium);margin-top:40px"></div><?php
+        ?><h4 class=mb-16>A) Using your credit card</h4><?php
+        ?><p><span class=fw-500>mourjan <span style="color:var(--premium)">PREMIUM DAYS</span></span> can be purchased directly using your credit card. Choose the card that is best suitable for you or keep on reading to find out other payment options.</p><?php
+        ?><div class=fw-500>BUY NOW WITH:</div><?php
+        ?><div class=flex><a class="btn buy type visa" href="<?=$this->router->getLanguagePath('/buyu/')?>"></a><a class="btn buy type master" href="<?=$this->router->getLanguagePath('/buyu/')?>"></a></div><?php
+        ?><div class=mb-32 style="width:60px;height:2px;background: var(--premium);margin-top:40px"></div><?php
         
-        ?><h4 class="mb-16">B) Using PAYPAL</h4><?php
-        ?><p>If you have a PayPal account and would like to purchase <span class="fw-500">mourjan <span style="color:var(--premium)">PREMIUM</span></span> now, click on the button below or continue reading for alternatives</p><?php
-        ?><div class="fw-500">BUY NOW WITH:</div><?php
-        ?><div class="flex"><a href="<?=$this->router->getLanguagePath('/buy')?>" class="btn buy type paypal"></a></div><?php
-        ?><div class="mb-32" style="width:60px;height:2px;background: var(--premium);margin-top:40px"></div><?php
+        ?><h4 class=mb-16>B) Using PAYPAL</h4><?php
+        ?><p>If you have a PayPal account and would like to purchase <span class=fw-500>mourjan <span style="color:var(--premium)">PREMIUM</span></span> now, click on the button below or continue reading for alternatives</p><?php
+        ?><div class=fw-500>BUY NOW WITH:</div><?php
+        ?><div class=flex><a href="<?=$this->router->getLanguagePath('/buy')?>" class="btn buy type paypal"></a></div><?php
+        ?><div class=mb-32 style="width:60px;height:2px;background: var(--premium);margin-top:40px"></div><?php
         /*?><p><?=$this->lang['gold_p2_5_0']?></p><?php
         ?><p><?=$this->lang['gold_p2_5']?></p><?php
         ?><p><?=$this->lang['gold_p2_6'.($this->router->isMobile ? '_m':'')]?></p><?php
@@ -714,166 +699,65 @@ class Doc extends Page{
         ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
         ?><div class=col-10><div class="card doc"><div class="view"><?php
         ?><h2 class=title>Pay with credit card</h2><?php
-                                        
+        $alert='';
+        $alert_class='alert';
+        $rtl=$this->router->isArabic();
+        $this->activation_phone_number=$this->user->getProfile()->getMobileNumber();   
         if (!$this->user->info['email']) {
             $message=$this->lang['requireEmailPay'];
             if ((isset($this->user->info['options']['email']) && isset($this->user->info['options']['emailKey']))) {
-                $message = preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmailPay']);                    
+                $message=preg_replace('/{email}/', $this->user->info['options']['email'], $this->lang['validateEmailPay']);                    
             }
-            ?><div class="htf"><?=$message?></div><?php
+            ?><div class="alert alert-warning"><span><?=$message?></span></div><?php
         }
-        else {
-            
-            if (\filter_has_var(\INPUT_GET, 'response_code') && \filter_has_var(\INPUT_GET, 'command') && \filter_has_var(\INPUT_GET, 'order_description')) {
-                $this->router->config->incLibFile('PayfortIntegration');
-    
-                $payFort=new PayfortIntegration;
-                $payFort->setLanguage($this->router->language);
-                $payment=$payFort->processResponse();
+        else if ($this->user->getProfile()->isMobileVerified()===false) {
+            $alert_class.=' alert-danger';
+            if ($number>0) {
+                $alert="Your mobile number +".$number." is expired!<br>Please verify your ownership of this number or change it to new one.";
+            }
+            else {
+                $alert="Your account is not verified";                    
+            }
+        }
+        else {                        
+            if (!empty( \filter_input_array(\INPUT_POST) ) ) {                
+                $response_code=\filter_input(\INPUT_POST, 'response_code', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $response_amount=\filter_input(\INPUT_POST, 'amount', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $response_currency=\filter_input(\INPUT_POST, 'currency', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $response_message=\filter_input(\INPUT_POST, 'response_message', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $response_description=\filter_input(\INPUT_POST, 'order_description', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $response_status=\filter_input(\INPUT_POST, 'status', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                
+                if ($response_status==='14') {
+                    $alert_class.=' alert-success ff-cols';
+                    $alert=$response_message.'<br>'.number_format(floatval($response_amount)/100,2).$response_currency.'<br>'.$response_description.'<br>';
+                    $alert.='<a href="'.$this->router->getLanguagePath('/myads/').'">'.$this->lang['MyAccount'].'</a>';
 
-                $success=true;
-                $internalError=false;
-                if (isset($payment['error_msg'])) {
-                    $success=false;
                 }
-
-                $order_id=$flag_id=0;
-                if (isset($payment['merchant_reference'])) {
-                    //$orderId=\preg_split('/-/', $payment['merchant_reference']);
-                    $orderRef=\preg_split('/-/', $payment['merchant_reference']);
-                    if (\is_array($orderRef) && (\count($orderRef)===2 || \count($orderRef)===3) && \is_numeric($orderRef[0]) && \is_numeric($orderRef[1])) {
-                        if ($orderRef[0]==$this->user->id()) {
-                            $order_id=(int)$orderRef[1];
-                            if (isset($orderRef[2]) && $orderRef[2]) {
-                                $flag_id=$orderRef[2];
-                            }
-                        }
-                    }
-                }
-
-                if ($order_id>0) {
-                    if ($success) {
-                        $res=$this->router->db->queryResultArray(
-                                    "update t_order set state=?, msg=?,flag=? where id=? and uid=? and state=0 returning id",
-                                    [2, $payment['fort_id'],$flag_id, $order_id, $this->user->id()], TRUE);
-
-                        if ($res!==false) {
-                            $goldCount=\preg_replace('/[^0-9]/', '', $payment['order_description']);
-                            $msg=\preg_replace('/{gold}/', $goldCount, $this->lang['paypal_ok']);
-                            echo "<div class='mnb rc'><p><span class='done'></span> {$msg}</p></div>";
-                        }
-                        else {
-                            $msg=\preg_replace('/{payfort}/', $payment['fort_id'], $this->lang['payfort_fail']);
-                            echo "<div class='mnb rc'><p><span class='fail'></span> {$msg}</p></div>";
-                        }
-
-                        $this->user->update();
-                    }
-                    else {
-                        $state=3;
-                        if (($error_code=\substr($payment['response_code'],-3))=="072") {
-                            $state=1;
-                        }
-                        echo "<div class='mnb rc'><p><span class='fail'></span> {$this->lang['paypal_failure']} {$payment['error_msg']}</p></div>";
-
-                        $res = $this->router->db->queryResultArray(
-                                    "update t_order set state=?, msg=?, flag=? where id=? and uid=? and state=0 returning id",
-                                    [$state, $payment['error_msg'], $flag_id, $order_id, $this->user->id()], TRUE);
-
-                        $this->user->update();
-                    }
+                else {
+                    $alert_class.=' alert-warning';
+                    $alert=\filter_input(\INPUT_POST, 'response_message', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                 }
             }
-                     
-        
+            
             $products=$this->router->db->queryResultArray("select product_id, name_ar, name_en, usd_price, aed_price, mcu, id from product where web=1 and blocked=0 order by mcu asc");
-            $number=$this->user->getProfile()->getMobileNumber();   
-            $rtl=$this->router->isArabic();
             if ($this->user->getProfile()->isMobileVerified()||$this->user->level()===9) {
-                $currency=(\substr(\strval($number), 0, 3)==='961')?'AED':'USD';
+                $this->currency_id=(\substr(\strval($this->activation_phone_number), 0, 3)==='971')?'AED':'USD';
                 foreach ($products as $product) {            
-                    $this->payfortButton($product['ID'], \intval($product['MCU']), $currency, $product[$currency.'_PRICE']);
-                    /*
-                    ?><div><a class="btn buy EN<?=$product['MCU']===1?' one':''?>" href="javascript:void(0)" onclick="javascript:buy(<?=$product['ID']?>, '<?=$currency?>', this)"><?= intval($product['MCU'])?></a><span><?=$price?></span></div><?php            
-                     * 
-                     */
+                    $this->payfortButton($product['ID'], \intval($product['MCU']), $product[$this->currency_id.'_PRICE']);
                 }
-                if ($currency==='AED') {
+                if ($this->currency_id==='AED') {
                     ?><p class="tfoot small"><?=$rtl?'الاسعار بالدرهم الاماراتي شاملة الضريبة على القيمة المضافة ٥٪':'Prices are in AED, Value-added tax 5% price inclusive.'?></p><?php            
                 }
                 else {
                     ?><p class="tfoot small"><?=$rtl?'الأسعار بالدولار الأمريكي قد تخضع لضريبة القيمة المضافة':'Prices are in US dollar may be subject to VAT (value-added tax).'?></p><?php
-                }
-                ?><div style="margin:0 0 32px;width:288px;margin-top:40px"><img src="<?=$this->router->config->cssURL?>/1.0/assets/payfort.svg" alt="Verified by PAYFORT" /></div><?php
+                }                
             }
-            else {
-                if ($number>0) {
-                    $alert="Your mobile number +".$number." is expired!<br>Please verify your ownership of this number or change it to new one.";
-                }
-                else {
-                    $alert="Your account is not verified";
-                    
-                }
-                ?><div class="alert alert-danger"><?=$alert?></div><?php
-            }
-
-                    
-            $this->globalScript .= '
-            var xhr;
-                function buy(i,f){                    
-                    f=$(f);
-                    var r=f.attr("ready");
-                    if(r=="true"){
-                        return true;
-                    }else{
-                        try{
-                            Dialog.show("paypro",null,function(){
-                                if(xhr && xhr.readyState != 4){
-                                    xhr.abort();
-                                }
-                            });
-                            xhr = $.ajax({
-                                type:"POST",
-                                url:"/ajax-pay/",
-                                data:{i:i,hl:lang},
-                                dataType:"json",
-                                success:function(rp){
-                                    if (rp.RP) {
-                                        f.attr("ready","true");
-                                        f.attr("action",rp.DATA.U);
-                                        f.prepend(rp.DATA.D);
-                                        f.submit();
-                                    }else {
-                                        errDialog();
-                                    }
-                                },
-                                error:function(){
-                                    errDialog();
-                                }
-                            })
-                        }catch(e){}
-                        return false;
-                    }
-                };
-                function errDialog(){
-                    Dialog.show("alert_dialog",\''.$this->lang['payment_redirect_fail'].'\');
-                };
-                ';
-        
-            /*
-            ?><div id=paypro class=dialog><?php
-                ?><div class="dialog-box"><span class="loads load"></span><?= $this->lang['payment_redirect'] ?></div><?php 
-                ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /></div><?php 
-            ?></div><?php
-            
-            ?><div id="alert_dialog" class="dialog"><?php
-                ?><div class="dialog-box ctr"></div><?php 
-                ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
-            ?></div><?php
-            */ 
              
         }
         ?></div><?php
+        ?><div id="alert" class="<?=$alert_class?>"><?=empty($alert)?'':$alert?></div><?php
+        ?><div style="margin:0 0 32px;width:288px;margin-top:40px"><img src="<?=$this->router->config->cssURL?>/1.0/assets/payfort.svg" alt="Verified by PAYFORT" /></div><?php
         $this->docFooter();
         ?></div></div></div><?php
     }     

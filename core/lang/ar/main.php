@@ -823,5 +823,5 @@ $lang=array(
     'update_search'=>'تحديث حاصل البحث',
     'may_be_looking_for'=>'ربما ترغب بالاطلاع على',
     'section_list'=>'لائحة الاقسام',
-
+    'uae_dirhams'=>'درهم اماراتي',
 );

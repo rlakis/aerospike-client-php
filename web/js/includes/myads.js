@@ -20,7 +20,13 @@ window.chartColors = {
     purple: 'rgb(153, 102, 255)',
     grey: 'rgb(201, 203, 207)'
 };
-
+const wording={
+    cancel:{e:'Cancel', a:'تراجع'},
+    hold_text:{e:'Are you sure that you want to stop this ad?', a:'هل انت متأكد من قرار إيقاف الاعلان؟'},
+    hold_it:{e:'Yes, stop it!', a: 'نعم، إلغاء النشر!'},
+    no_revert:{e:'You won\'t be able to revert this!', a:'لن تتمكن من التراجع عن هذا الامر!'}
+}
+const lg=$$.dir==='rtl'?'a':'e';
 Element.prototype.article=function(){ let i=this; return i.closest('article'); };
 
 $.addEventListener("DOMContentLoaded", function () {
@@ -302,25 +308,40 @@ var d = {
     },
     
     unpublish: function(e) {
-        if(confirm("Hold this ad?")){
-            console.log(e.article().id);
-            fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',
-                     body:JSON.stringify({id:parseInt(e.article().id)}),
-                     headers:{'Accept':'application/json','Content-Type':'application/json'}})
-            .then(res=>res.json())
-            .then(response => {
-                console.log('Success:', response);
-                if(response.success===1){
-                    e.parentElement.parentElement.style.backgroundColor='lightgray';
-                }
-                else {
-                    window.alert(response.error);
-                }
-            })
-            .catch(error => { 
-                console.log('Error:', error); 
-            });
-        }
+        Swal.fire({
+            title: wording.hold_text[lg],
+            text: wording.no_revert[lg],
+            icon: 'warning',
+            showCancelButton: true,
+            focusCancel: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            cancelButtonText: wording.cancel[lg],
+            confirmButtonText: wording.hold_it[lg]
+        }).then((result) => {
+            if (result.value) {
+                fetch('/ajax-report/', {
+                    method:'POST', 
+                    mode:'same-origin', 
+                    credentials:'same-origin',
+                    body:JSON.stringify({id:parseInt(e.article().id)}),
+                    headers:{'Accept':'application/json','Content-Type':'application/json'}})
+                .then(res=>res.json())
+                .then(response => {
+                    console.log('Success:', response);
+                    if (response.success===1) {
+                        e.parentElement.parentElement.style.backgroundColor='lightgray';
+                        Swal.fire('Stopped!', 'Your ad has been stopped and deleted from the list.', 'success');
+                    }
+                    else {
+                        Swal.fire('Failed!', response.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Exception!', error.toString(), 'error');
+                });               
+            }
+        });
     },
     
     approve: function (e, rtpFlag) {        
@@ -1424,4 +1445,3 @@ d.nodes.forEach(function(node){
     node.onclick=d.clickedAd.bind(d.items[node.id]); 
 });
 
-console.log("finishied");

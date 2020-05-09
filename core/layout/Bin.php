@@ -4021,15 +4021,15 @@ class Bin extends AjaxHandler {
                         }
                                 
                         $form=$objFort->getRedirectionData('');
-                        $formData='';
+                        //$formData='';
                         $formFields=[];
                         foreach ($form['params'] as $k=>$v) {
-                            $formData.='<input type="hidden" name="'.$k.'" value="'.$v .'">';
+                            //$formData.='<input type="hidden" name="'.$k.'" value="'.$v .'">';
                             $formFields[]=['name'=>$k, 'value'=>$v];
                         }                     
                         
                         
-                        $this->response('fields', $formData);
+                        //$this->response('fields', $formData);
                         $this->response('params', $formFields);
                         $this->response('url', $form['url']);
                         $this->success();

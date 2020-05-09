@@ -529,7 +529,7 @@ class MyAds extends Page {
             if ($state===7) {
                 if ($this->router->config->get('enabled_charts') && !$isAdminProfiling) {
                     ?><button id="refreshChart"><a href="#" onclick="d.userStatistics(<?= $_GET['u'] ?>);"><i class="icn icn-sync"></i></a></button><?php
-                    ?><div class=row><canvas id=canvas class="col-12"></canvas></div><?php
+                    ?><div class=row><canvas id=canvas class=col-12></canvas></div><?php
                 }                
             } 
             
@@ -824,13 +824,14 @@ class MyAds extends Page {
                 if ($onlySuper) { $adClass.=' warn'; }
                 
                 // new look
-                ?><article id=<?php
+                ?><article id=<?php                
                 echo $cad->id(), ' class="', $adClass, '" data-status=', $cad->state(), ' data-fetched=0';
                 
                 if ($isAdmin) { 
                     echo ' data-ro=', $cad->rootId(), ' data-se=', $cad->sectionId(), ' data-pu='.$cad->purposeId(), ' data-uid='.$cad->uid();                     
                 }
                 echo ' data-hl="', $cad->dataset()->getUserLanguage(), '"'; 
+               
                 echo '>';
                 echo '<header>';
                 switch ($cad->state()) {
@@ -1085,10 +1086,13 @@ class MyAds extends Page {
                         ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                     ?></div><?php
                 }
+                /*
                 ?><div id="stop_ad" class="dialog"><?php
                     ?><div class="dialog-box"><?= $this->lang['stop_ad'] ?></div><?php 
                     ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['stop'] ?>" /></div><?php 
                 ?></div><?php
+                 * 
+                 */
             }
             
             ?><div id=delete_ad class=dialog style="display:none"><?php
