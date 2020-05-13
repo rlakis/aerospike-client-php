@@ -395,17 +395,17 @@ class User {
     
     
     function decodeId(string $id) : int {
-        $charToInt = ['a'=>0,'f'=>1,'h'=>2,'x'=>3,'j'=>4,'d'=>5,'b'=>6,'o'=>7,'n'=>8,'k'=>9];
-        $idx = \substr($id, 0, 1);
+        $charToInt=['a'=>0,'f'=>1,'h'=>2,'x'=>3,'j'=>4,'d'=>5,'b'=>6,'o'=>7,'n'=>8,'k'=>9];
+        $idx=\substr($id, 0, 1);
         if (isset($charToInt[$idx])) {
-            $idx = $charToInt[$idx];
-            $id = \substr($id, 1);
-            $id = \base_convert( $id , 36, 10);
-            $id = $id - User::$idBase[$idx];
-            if ($id<0) {$id =0;}
+            $idx=$charToInt[$idx];
+            $id=\substr($id, 1);
+            $id=\base_convert( $id , 36, 10);
+            $id=$id-User::$idBase[$idx];
+            if ($id<0) {$id=0;}
         }
         else {
-            $id = 0;
+            $id=0;
         }
         return $id;
     }

@@ -471,14 +471,25 @@ class Ad {
     
 
     public function isFeatured() : bool {
-        return isset($this->data[Classifieds::FEATURE_ENDING_DATE]) && ($this->data[Classifieds::FEATURE_ENDING_DATE] >= time());
+        return isset($this->data[Classifieds::FEATURE_ENDING_DATE]) && ($this->data[Classifieds::FEATURE_ENDING_DATE]>=time());
     }
 
 
     public function isBookedFeature() : bool {
-        return isset($this->data[Classifieds::BO_ENDING_DATE]) && ($this->data[Classifieds::BO_ENDING_DATE] >= time());
+        return isset($this->data[Classifieds::BO_ENDING_DATE]) && ($this->data[Classifieds::BO_ENDING_DATE]>=time());
     }
     
+    
+    public function setFeaturedEndingDate(int $epoch) : Ad {
+        $this->data[Classifieds::FEATURE_ENDING_DATE]=$epoch;
+        return $this;
+    }
+    
+    
+    public function setBookedEndingDate(int $epoch) : Ad {
+        $this->data[Classifieds::BO_ENDING_DATE]=$epoch;
+        return $this;
+    }
     
     
     public function getSuperAdmin() : int {
@@ -499,7 +510,6 @@ class Ad {
     
     
     public function getDateAdded() : int {
-        //\error_log(var_export($this->data, true));
         return $this->data[Classifieds::DATE_ADDED] ?? 0;
     }
     
@@ -748,11 +758,13 @@ class Ad {
             ->setPurposeId($row['PURPOSE_ID'])
             ->setUID($row['WEB_USER_ID'])
             ->setDateAdded($row['DATE_ADDED'])
+            ->setBookedEndingDate($row['BO_DATE_ENDED']??0)
+            ->setFeaturedEndingDate($row['FEATURED_DATE_ENDED']??0)
             ;
         
-        $this->data[Classifieds::COUNTRY_ID] = $row['COUNTRY_ID'];
+        $this->data[Classifieds::COUNTRY_ID]=$row['COUNTRY_ID'];
 
-        $this->dataset = new Content($this);        
+        $this->dataset=new Content($this);        
         $this->dataset->setID($row['ID'])
                 ->setState($row['STATE'])
                 ->setSectionID($row['SECTION_ID'])
@@ -761,12 +773,7 @@ class Ad {
                 ->setCityId($row['CITY_ID'])
                 ->setUID($row['WEB_USER_ID'])
                 ->setCoordinate($row['LATITUDE'], $row['LONGITUDE']);
-            
-
-        //if ($row['CONTENT'] && $row['CONTENT'][0]==='"') {
-        //    $row['CONTENT']=trim(stripcslashes($row['CONTENT']), '"');
-        //}
-        
+                    
         $ext=\json_decode($row['CONTENT'], true);
         if (\json_last_error()) {
             \error_log(\var_export($ext, true));
@@ -786,12 +793,6 @@ class Ad {
             $this->dataset->setPictures($pics);
         }
         
-        //if ($row['ID']==12920484) {
-        //    if (is_string($ext)) {
-        //        \error_log(\var_export($ext, true));
-        //    }
-        //}
-       
         $this->dataset->setOld(\is_array($ext)?$ext:[])
                 ->setBudget($ext[Content::BUDGET]??0)
                 ->setUserAgent($ext[Content::USER_AGENT]??'')
@@ -808,10 +809,10 @@ class Ad {
                 ->setUserLocation($ext[Content::USER_LOCATION]??'')
                 ->setMessage($ext[Content::MESSAGE]??'') 
                 ->setRERA($ext[Content::RERA]??[])
-                ; 
+                ;
         
-        $this->data[Classifieds::CONTENT] = $this->dataset()->getNativeText();
-        $this->data[Classifieds::ALT_CONTENT] = $this->dataset()->getForeignText();
+        $this->data[Classifieds::CONTENT]=$this->dataset()->getNativeText();
+        $this->data[Classifieds::ALT_CONTENT]=$this->dataset()->getForeignText();
         if ($this->dataset()->getNativeRTL()===1) {
             $this->setRTL();
         }

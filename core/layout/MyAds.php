@@ -9,7 +9,9 @@ class MyAds extends Page {
     
     private AdList $adList;
     private array $admins_online=[];
-    var $subSection='', $userBalance=0, $redis=null;
+    //private $subSection='', $redis=null;
+    private ?\Redis $redis=null;
+    private int $userBalance=0;
         
     private array $editors = [
         1 => 'Bassel', 43905 => 'Bassel',
@@ -30,15 +32,15 @@ class MyAds extends Page {
     function __construct() {
         parent::__construct();    
         
-        if (!$this->user()->isLoggedIn()) {
-            $this->user()->redirectTo($this->router->getLanguagePath('/signin/'));
+        if (!$this->user->isLoggedIn()) {
+            $this->user->redirectTo($this->router->getLanguagePath('/signin/'));
         }
                
         if ($this->router->config->isMaintenanceMode()) {
             $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
-         
         $this->checkBlockedAccount();
+        $this->userBalance=$this->user->getBalance(); 
         
         $this->adList=new AdList();
         $this->adList->cacheProfile($this->user()->data);
@@ -521,31 +523,29 @@ class MyAds extends Page {
             $hasPrevious=($this->adList->page()>0);
             $hasNext=(($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
             
-            $renderAssignedAdsOnly = ($state>0 && $state<4);
+            $renderAssignedAdsOnly=($state>0 && $state<4);
                                
-            $isAdminProfiling = (boolean)($this->get('a') && $this->user()->level()===9);
-            if ($isAdminProfiling) { $renderAssignedAdsOnly = false; }           
+            $isAdminProfiling=(boolean)($this->get('a') && $this->user()->level()===9);
+            if ($isAdminProfiling) { $renderAssignedAdsOnly=false; }           
             
             if ($state===7) {
                 if ($this->router->config->get('enabled_charts') && !$isAdminProfiling) {
                     ?><button id="refreshChart"><a href="#" onclick="d.userStatistics(<?= $_GET['u'] ?>);"><i class="icn icn-sync"></i></a></button><?php
                     ?><div class=row><canvas id=canvas class=col-12></canvas></div><?php
                 }                
-            } 
+            }
             
             echo '<div class=row><div class="col-12 myadls">';            
-            $linkLang = $this->router->language==='ar' ? '' : $this->router->language.'/';
+            $linkLang=$this->router->language==='ar' ? '' : $this->router->language.'/';
             
             $this->adList->rewind();
             while ($this->adList->valid()) {
-                $cad = $this->adList->current();
+                $cad=$this->adList->current();
                 $phoneValidErr=false;
-                $link='';
-                $altlink='';                
-                $liClass='';
+                $link=$altlink=$liClass='';
                 $textClass=$cad->rtl()?'ar':'en';
                     
-                if ($isAdmin) { $isAdminOwner=($cad->uid()===$this->user()->id()?true:false); }
+                if ($isAdmin) { $isAdminOwner=($cad->uid()===$this->user->id()?true:false); }
                 
                 $assignedAdmin='';
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
@@ -555,26 +555,26 @@ class MyAds extends Page {
                     }
                     if ($isSuperAdmin && $assignedAdmin) {
                         $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
-                        $assignedAdmin = '<span style="padding:0 5px;">'.$__e.'</span>';
+                        $assignedAdmin='<span style="padding:0 5px;">'.$__e.'</span>';
                     }
                     else {
-                        $assignedAdmin = '';
+                        $assignedAdmin='';
                     }
                 }
                 
-                $isFeatured = $cad->isFeatured(); // isset($ad['FEATURED_DATE_ENDED']) && $ad['FEATURED_DATE_ENDED'] ? ($current_time < $ad['FEATURED_DATE_ENDED']) : false;
-                $isFeatureBooked = $cad->isBookedFeature(); //isset($ad['BO_DATE_ENDED']) && $ad['BO_DATE_ENDED'] ? ($current_time < $ad['BO_DATE_ENDED']) : false;
+                $isFeatured=$cad->isFeatured(); 
+                $isFeatureBooked=$cad->isBookedFeature();
                     
-                if (!$isFeatureBooked && ($cad->state()===4 || ($cad->dataset()->getBudget()>0) )) {
+                if (!$isFeatureBooked && ($cad->state()===4 || ($cad->dataset()->getBudget()>0))) {
                     $isFeatureBooked=true;
                 }
-                                                 
-                $altText = $cad->dataset()->getForeignText();
-                $text = $cad->dataset()->getNativeText();
+                
+                $text=$cad->dataset()->getNativeText();
+                $altText=$cad->dataset()->getForeignText();
                     
                 $pic=false;                
                 $thumbs='';
-                $hasAdminImgs = $onlySuper = 0;
+                $hasAdminImgs=$onlySuper=0;
                 
                 if ($isAdmin) {
                     $images='';
@@ -588,7 +588,7 @@ class MyAds extends Page {
                     if ($images) { $images.='||'; }
                     
                     $images.='<img src="'.$this->router->config->imgURL.'/se/' . $cad->sectionId() . '.svg" />';
-                    $pic = '<img src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                    
+                    $pic='<img src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                    
                 }
                 else {                    
                     //if (!empty($cad->dataset()->getPictures()) /*isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0*/) {
@@ -644,7 +644,7 @@ class MyAds extends Page {
                     $needNumberDisplayFix=(!\preg_match('/span class=?pn/u', $text));
 
                     //error_log(var_export($cad->dataset()->getContactInfo(), true).PHP_EOL);
-                    $cui = $cad->dataset()->getContactInfo();
+                    $cui=$cad->dataset()->getContactInfo();
                     if (isset($cui['p']) && \is_array($cui['p'])) {
                         foreach ($cui['p'] as $p) { 
                             $isUserMobile = false;
@@ -833,7 +833,7 @@ class MyAds extends Page {
                 echo ' data-hl="', $cad->dataset()->getUserLanguage(), '"'; 
                
                 echo '>';
-                echo '<header>';
+                ?><header><?php
                 switch ($cad->state()) {
                     case 1:
                     case 4:
@@ -862,11 +862,11 @@ class MyAds extends Page {
                         break;
                 }
                 
-                echo '</header>';
+                ?></header><?php
                 
                 if ($isAdmin) { echo $title; }
                 
-                $userLang = $cad->dataset()->getUserLanguage();             
+                $userLang=$cad->dataset()->getUserLanguage();             
                 
                 if ($hasAdminImgs) { echo '<p class=pimgs>', $thumbs, '</p>'; }
                 
@@ -950,15 +950,19 @@ class MyAds extends Page {
                     }
                     
                     if (!$ad_hold) {
-                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && (!$isFeatured || !$isFeatureBooked)) {
-                            ?><span class="lnk" onclick="<?= $isMultiCountry ? 'mCPrem()' : ($this->userBalance ? 'askPremium(this)':'noPremium()') ?>"><span class=mc24></span><?= $this->lang['make_premium'] ?></span><?php                                    
+                        if (/*(!$isAdmin || ($isAdmin && $isAdminOwner)) &&*/ ($cad->isFeatured()===false && $cad->isBookedFeature()===false)) {
+                            ?><button onclick="<?=$isMultiCountry?'mCPrem()':($this->userBalance?'d.doPremium(this)':'noPremium()')?>"><?=$this->lang['make_premium']?></button><?php                                    
                         }
-                        if ((!$isAdmin || ($isAdmin && $isAdminOwner)) && $isFeatureBooked) {
-                            ?><span class="lnk" onclick="cancelPremium(this)"><span class="mc24"></span><?= $this->lang['stop_premium_bt'] ?></span><?php                                    
-                        }                        
-                        if (!$isSystemAd && (!$isAdmin || ($isAdmin && !$isFeatured && !$isFeatureBooked) || ($isAdmin && $isAdminOwner))) {
-                            ?><button onclick="d.unpublish(this)"><?= $this->lang['hold'] ?></button><?php                                    
+
+                        if (/*($isAdmin===false || ($isAdmin && $isAdminOwner)) &&*/ $cad->isFeatured()) {
+                            ?><button onclick="d.unpublish(this, true)"><?=$this->lang['stop_premium_bt']?></button><?php                                    
+                            /*?><button onclick="cancelPremium(this)"><?=$this->lang['stop_premium_bt']?></button><?php*/
                         }
+                        
+                        if (!$isSystemAd && (!$isAdmin || ($isAdmin && $cad->isBookedFeature()===false && $cad->isFeatured()===false) || ($isAdmin && $isAdminOwner))) {
+                            ?><button onclick="d.unpublish(this, false)"><?=$this->lang['hold']?></button><?php             
+                        }
+                        
                         if (!$isSystemAd) {
                             ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
                             ?><input type="hidden" name="adr" value="<?= $cad->id() ?>" /><?php
@@ -1046,7 +1050,8 @@ class MyAds extends Page {
             echo "\n";
             
             if ($state===7) {
-                if($this->userBalance){
+                if ($this->userBalance>0) {
+                    /*
                     ?><div id="make_premium" class="dialog premium"><?php
                             ?><div class="dialog-title"><?= $this->lang['balance'].': '.$this->userBalance ?> <span class='mc24'></span></div><?php
                             ?><div class="dialog-hint"><?= $this->lang['premium_hint'] ?></div><?php 
@@ -1063,29 +1068,39 @@ class MyAds extends Page {
                             ?><div class="dialog-box"></div><?php 
                             ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['deal'] ?>" /></div><?php 
                     ?></div><?php
+                    
                     ?><div id="stop_premium" class="dialog premium"><?php
                         ?><div class="dialog-box"><?= $this->lang['stop_premium'] ?></div><?php 
                         ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['stop'] ?>" /></div><?php 
                     ?></div><?php
+                      
+                     
                     ?><div id="alert_dialog" class="dialog"><?php
                         ?><div class="dialog-box"></div><?php 
                         ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                     ?></div><?php
-                }else{                
+                     * 
+                     */
+                }
+                else{                
                     ?><div id="what_premium" class="dialog premium"><?php
                             ?><div class="dialog-title"><?= $this->lang['make_premium'] ?> <span class='mc24'></span></div><?php
                             ?><div class="dialog-box"><?= $this->lang['no_balance_dialog'] ?></div><?php 
                             ?><div class="dialog-action"><input type="button" value="<?= $this->lang['back'] ?>" /></div><?php 
                     ?></div><?php
+                    /*
                     ?><div id="stop_premium" class="dialog premium"><?php
                         ?><div class="dialog-box"><?= $this->lang['stop_premium'] ?></div><?php 
                         ?><div class="dialog-action"><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['stop'] ?>" /></div><?php 
                     ?></div><?php
+                     * 
+                     */
                     ?><div id="alert_dialog" class="dialog"><?php
                         ?><div class="dialog-box"></div><?php 
                         ?><div class="dialog-action"><input type="button" value="<?= $this->lang['continue'] ?>" /></div><?php 
                     ?></div><?php
                 }
+                
                 /*
                 ?><div id="stop_ad" class="dialog"><?php
                     ?><div class="dialog-box"><?= $this->lang['stop_ad'] ?></div><?php 

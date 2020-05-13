@@ -92,7 +92,6 @@ class AdList extends \SplDoublyLinkedList {
 
             $w.="AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
             $o ='ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
-
         }
         elseif ($this->state>0) {
             $user=Router::instance()->user;
@@ -113,7 +112,7 @@ class AdList extends \SplDoublyLinkedList {
             }
             
                                             
-            if (preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS')) {
+            if (\preg_match("/https.*\.mourjan\.com\/admin\/?\?p=\d+/", $_SERVER['HTTP_REFERER'] ?? 'DIRECT_ACCESS')) {
                 $w.=" (AD_USER.state between 1 and 4) and AD_USER.web_user_id={$this->uid} ";
             }
             else {
@@ -139,7 +138,7 @@ class AdList extends \SplDoublyLinkedList {
             if ($this->rootId>0) {
                 $w.= "and section.root_id={$this->rootId} ";
             }                            
-            $o = 'order by primo desc, AD_USER.state asc, bo_date_ended desc, AD_OBJECT.super_admin desc, ppn, AD_USER.LAST_UPDATE desc';
+            $o='order by primo desc, AD_USER.state asc, bo_date_ended desc, AD_OBJECT.super_admin desc, ppn, AD_USER.LAST_UPDATE desc';
             
             //error_log($q.$f.$w);
         }
@@ -149,13 +148,14 @@ class AdList extends \SplDoublyLinkedList {
             $o = 'ORDER BY AD_USER.LAST_UPDATE desc';
         }
 
-        $l = ' rows ' . (($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
-        
+        $l=' rows '.(($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
+        //Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
+
         $fixes=[];
         $st=$db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
         if ($st->execute()) {
             while (($rs=$st->fetch(\PDO::FETCH_ASSOC))!==false) {
-                $ad=new Ad();
+                $ad=new Ad;
                 if ($rs['CONTENT'] && $rs['CONTENT'][0]==='"') {
                     $rs['CONTENT']=\trim(\stripcslashes($rs['CONTENT']), '"');
                     $fixes[$rs['ID']]=$rs['CONTENT'];                   

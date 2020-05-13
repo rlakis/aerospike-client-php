@@ -1088,26 +1088,28 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
-            case 'ajax-balance':
-                if ($this->user()->isLoggedIn()) {
-                    $userId = $this->get('u','uint');
-                    if($userId){         
-                        if($this->user()->level()===9 || $this->user()->id()==$userId){
-                            $res=$this->user->getStatement($userId, 0, true);
-                            if($res && $res['balance']){
-                                $this->setData($res['balance'],'balance');
-                            }else {
-                                $this->setData(0,'balance');
-                            }                            
-                            $this->process();
-                        }else{                            
-                            $this->fail(103);
-                        }
-                    }else{
-                        $this->fail(102);
+            case 'balance':
+                $this->authorize();
+                $userId=$this->getGetInt('u');
+                if ($userId>0 && ($this->user->level()===9 || $this->user->id()===$userId)) {
+                    if ($this->user->id()===$userId) {
+                        $this->response('balance', $this->user->getBalance());
                     }
-                }else{
-                    $this->fail(101);
+                    else {
+                        $user=new \Core\Lib\MCUser($userId);
+                        $this->response('balance', $user->getBalance());
+                    }
+                    //$res=$this->user->getStatement($userId, 0, true);
+                    //if ($res && $res['balance']){
+                    //        $this->setData($res['balance'],'balance');
+                    //    }else {
+                    //        $this->setData(0,'balance');
+                    //    }                            
+                    //    $this->process();
+                    $this->success();
+                }
+                else {
+                    $this->error(self::ERR_DATA_INVALID_PARAM);
                 }
                 break;
                 
@@ -3797,89 +3799,100 @@ class Bin extends AjaxHandler {
                     $this->fail('401');
                 }
                 break;
-            case 'ajax-spre':
-                $ad_id = filter_input(INPUT_POST, 'i', FILTER_VALIDATE_INT) + 0;
-                $user = filter_input(INPUT_POST, 'u', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                $lang = filter_input(INPUT_POST, 'hl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'ar']]);
-                IF($ad_id && $this->user->info['id'] == $this->user->decodeId($user)){
-                    if(!in_array($lang,array('en','ar'))){
-                        $lang = 'ar';
-                    }
-                    $this->urlRouter->db->setWriteMode();   
-                    $result = $this->urlRouter->db->queryResultArray("
+                
+            // stop premium listing
+            case 'spre':
+                $this->authorize(true);
+                if (!isset($this->_JPOST['id'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!isset($this->_JPOST['uk'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                $ad_id=\filter_var($this->_JPOST['id'], \FILTER_VALIDATE_INT)+0;
+                $u_key=\filter_var($this->_JPOST['uk'], \FILTER_SANITIZE_STRING);
+                //$ad_id=\filter_var('id')  filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) + 0;
+                //$user = filter_input(INPUT_POST, 'uk', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                //$lang = filter_input(INPUT_POST, 'hl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'ar']]);
+                $lang=$this->router->language;
+                if ($ad_id>0 && $this->user->id()===$this->user->decodeId($u_key)) {
+                    $this->router->db->setWriteMode();   
+                    $result=$this->router->db->queryResultArray("
                             select a.id, 
                             IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', featured.ended_date)) feature_end 
                             from ad_user a 
                             left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
-                            where a.id = ? and a.web_user_id = ?  
-                            ",[$ad_id, $this->user->info['id']]);
-                    if($result && count($result)){
-                        $rs = $this->urlRouter->db->queryResultArray("
-                                update t_ad_bo set blocked = 1 where ad_id = ?
-                                ",[$ad_id],true);
-
-                        if($rs && count($rs)){
-                            $expire = $result[0]['FEATURE_END'] - time();
-                            $dated ='';
-                            if($expire > 0){
-                                $d = floor( $expire / 3600);
-                                if($d){
-                                    if($lang == 'ar'){
-                                        if($d == 1){
-                                            $dated = 'ساعة';
-                                        }else if($d==2){
-                                            $dated = 'ساعتين';
-                                        }else if($d < 11){
-                                            $dated = $d.' ساعات';
-                                        }else{
-                                            $dated = $d.' ساعة';
+                            where a.id=? and a.web_user_id=?",
+                            [$ad_id, $this->user->id()]);
+                    if (\is_array($result) && \count($result)>0) {
+                        $rs=$this->router->db->queryResultArray("update t_ad_bo set blocked=1 where ad_id=? and blocked!=1", [$ad_id], true);
+                        if ($rs) {
+                            $expire=$result[0]['FEATURE_END']-time();
+                            $dated='';
+                            if ($expire>0) {
+                                $d=\floor($expire/3600);
+                                if ($d) {
+                                    if ($lang==='ar') {
+                                        if ($d==1) {
+                                            $dated='ساعة';
                                         }
-                                    }else{
-                                        if($d == 1){
-                                            $dated = '1 hour';
-                                        }else{
-                                            $dated = $d.' hours';
+                                        else if ($d==2) {
+                                            $dated='ساعتين';
+                                        }
+                                        else if ($d<11) {
+                                            $dated=$d.' ساعات';
+                                        }
+                                        else{
+                                            $dated=$d.' ساعة';
+                                        }
+                                    }
+                                    else {
+                                        if ($d==1) {
+                                            $dated='1 hour';
+                                        }
+                                        else {
+                                            $dated=$d.' hours';
                                         }
                                     }
                                 }
-                                $d = floor( ($expire%3600) /60);
-                                if($d){
-                                    if($dated!=''){
-                                        if($lang == 'ar'){
-                                            $dated .= ' و';
-                                        }else{
-                                            $dated .= ' and ';
+                                $d=\floor(($expire%3600)/60);
+                                if ($d>0) {
+                                    if (!empty($dated)) {
+                                        $dated.=($lang==='ar')?' و':' and ';
+                                    }
+                                    if ($lang==='ar') {
+                                        if ($d==1) {
+                                            $dated.='دقيقة';
+                                        }
+                                        else if ($d==2) {
+                                            $dated.='دقيقتين';
+                                        }
+                                        else if($d<11) {
+                                            $dated.=$d.' دقائق';
+                                        }
+                                        else {
+                                            $dated.=$d.' دقيقة';
                                         }
                                     }
-                                    if($lang == 'ar'){
-                                        if($d == 1){
-                                            $dated .= 'دقيقة';
-                                        }else if($d==2){
-                                            $dated .= 'دقيقتين';
-                                        }else if($d < 11){
-                                            $dated .= $d.' دقائق';
-                                        }else{
-                                            $dated .= $d.' دقيقة';
+                                    else {
+                                        if ($d==1) {
+                                            $dated.='1 minute';
                                         }
-                                    }else{
-                                        if($d == 1){
-                                            $dated .= '1 minute';
-                                        }else{
-                                            $dated .= $d.' minutes';
+                                        else {
+                                            $dated.=$d.' minutes';
                                         }
                                     }
                                 }
                             }
-                            $this->setData($dated, 'end');
-                            $this->process();
-                        }else{
-                            $this->fail('500');
+                            $this->response('end', $dated);
+                            $this->success();
                         }
-                    }else{
-                        $this->fail('404');
+                        else {
+                            $this->error(self::ERR_SYS_FAILURE);
+                        }
                     }
-                }else{
-                    $this->fail('401');
+                    else {
+                        $this->error(self::ERR_SYS_FAILURE);
+                    }
+                }
+                else {
+                    $this->error(self::ERR_DATA_INVALID_PARAM);
                 }
                 break;
                 

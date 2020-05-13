@@ -24,8 +24,13 @@ const wording={
     cancel:{e:'Cancel', a:'تراجع'},
     hold_text:{e:'Are you sure that you want to stop this ad?', a:'هل انت متأكد من قرار إيقاف الاعلان؟'},
     hold_it:{e:'Yes, stop it!', a: 'نعم، إلغاء النشر!'},
+    make_it:{e:'Yes, make it!', a: 'نعم، متأكد!'},
+    stop_premium:{e:'Are you sure that you want to stop premium listing for this ad?', a:'هل أنت متأكد(ة) من إيقاف العرض المميز لهذا الإعلان؟'},
+    premium_rs1:{e:'Premium listing of this ad has been cancelled successfully', a:'تم الغاء تمييز الاعلان بنجاح'},
+    premium_rs2:{e:'but the ad will remain premium for the earned period of', a:'ولكن الاعلان سيبقى مميز للفترة المكتسبة وهي'},
     no_revert:{e:'You won\'t be able to revert this!', a:'لن تتمكن من التراجع عن هذا الامر!'}
 }
+
 const lg=$$.dir==='rtl'?'a':'e';
 Element.prototype.article=function(){ let i=this; return i.closest('article'); };
 
@@ -307,10 +312,16 @@ var d = {
         form.submit();
     },
     
-    unpublish: function(e) {
+    unpublish: function(e, premium) {
+        let params={id:parseInt(e.article().id)};
+        if (premium) {
+            params.uk=d.KUID;
+        }
+        
+        e.closest('article').classList.remove('feature');
         Swal.fire({
-            title: wording.hold_text[lg],
-            text: wording.no_revert[lg],
+            title: premium?wording.stop_premium[lg]:wording.hold_text[lg],
+            text: premium?'':wording.no_revert[lg],
             icon: 'warning',
             showCancelButton: true,
             focusCancel: true,
@@ -320,18 +331,28 @@ var d = {
             confirmButtonText: wording.hold_it[lg]
         }).then((result) => {
             if (result.value) {
-                fetch('/ajax-report/', {
+                fetch((premium?'/ajax-spre':'/ajax-report/'), {
                     method:'POST', 
                     mode:'same-origin', 
                     credentials:'same-origin',
-                    body:JSON.stringify({id:parseInt(e.article().id)}),
+                    body:JSON.stringify(params),
                     headers:{'Accept':'application/json','Content-Type':'application/json'}})
                 .then(res=>res.json())
                 .then(response => {
                     console.log('Success:', response);
                     if (response.success===1) {
-                        e.parentElement.parentElement.style.backgroundColor='lightgray';
-                        Swal.fire('Stopped!', 'Your ad has been stopped and deleted from the list.', 'success');
+                        if (premium) {
+                            let msg=wording.premium_rs1[lg];
+                            if (typeof(response.result.end)==='string') {
+                                msg+='<br>'+wording.premium_rs2[lg];                                
+                            }
+                            Swal.fire('Stopped!', msg, 'success');
+                            e.remove();
+                        }
+                        else {
+                            e.parentElement.parentElement.style.backgroundColor='lightgray';
+                            Swal.fire('Stopped!', 'Your ad has been stopped and deleted from the list.', 'success');
+                        }
                     }
                     else {
                         Swal.fire('Failed!', response.error, 'error');
@@ -343,6 +364,68 @@ var d = {
             }
         });
     },
+    
+    doPremium: function(e) {
+       let combo=document.createElement('div'), aa=e.article().cloneNode(true);
+       aa.style.setProperty('margin', 0);
+       aa.style.setProperty('box-shadow', 'none');
+       aa.style.setProperty('border', '1px solid var(--mdc30)');
+       aa.query('div.user').remove();
+       aa.query('div.note').query('b').remove();
+       aa.query('div.note').style.setProperty('font-size', '12px');
+       aa.queryAll('section').forEach( section => { section.query('img').remove() } );
+       aa.query('header').remove();
+       aa.query('footer').remove();
+       aa.queryAll('img').forEach(img=>{img.style.setProperty('max-height', '150px')});
+       let pimgs=aa.query('p.pimgs');
+       if (pimgs) {
+           pimgs.style.setProperty('min-height', 'auto');
+           pimgs.style.setProperty('max-height', '152px');
+           pimgs.style.setProperty('overflow', 'hidden');
+       }
+       combo.appendChild(aa);
+       let h4=document.createElement('h4');
+       h4.innerHTML='How many <span style="color:var(--premium)">PREMIUM</span> days?';
+       h4.style.setProperty('text-align', 'start');
+       h4.style.setProperty('margin-bottom', '0');
+       combo.appendChild(h4);
+       fetch('/ajax-balance/?u='+aa.dataset.uid, {method: 'GET', mode: 'same-origin', credentials: 'same-origin'})
+               .then(res => res.json())
+               .then(response => {
+                   console.log('Success:', response);
+                   if (response.success===1) {
+                       console.log(response.result.balance);            
+                       Swal.fire({
+                           title: '<span>'+e.innerHTML, /*<br><span>1 Gold = 1 Premium/Day</span></span>*/
+                           text: wording.no_revert[lg],
+                           icon: 'question',
+                           input: 'range',
+                           inputAttributes: {
+                               min: 0,
+                               max: Math.min(60,response.result.balance),
+                               step: 1
+                           },
+                           inputValue: Math.min(7, response.result.balance),
+                           html: combo,
+                           footer: 'Current coins balance is '+response.result.balance,
+                           showCancelButton: true,
+                           focusCancel: true,
+                           confirmButtonColor: '#3085d6',
+                           cancelButtonColor: '#d33',
+                           cancelButtonText: wording.cancel[lg],
+                           confirmButtonText: wording.make_it[lg]
+                       }).then((result) => {
+                           if (result.value) {
+                               console.log('result', result.value);
+                           }
+                       });
+                   }
+               })
+               .catch(error => {
+                   Swal.fire('Exception!', error.toString(), 'error');
+               });
+    },
+    
     
     approve: function (e, rtpFlag) {        
         if(!this.isSafe(e.article().id))return;

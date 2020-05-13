@@ -3056,8 +3056,9 @@ class Page extends Site {
         ?><script><?php 
             ?>window.dataLayer = window.dataLayer || [];<?php
             ?>window.dataLayer.push({'event' : 'dimension_event',<?php
-                ?>'cid': "<?php echo $CID ?>",<?php
-                ?>'module': "<?php echo $module ?>",<?php
+                ?>'cid': "<?=$CID?>",<?php
+                ?>'module': "<?=$module?>",<?php
+                //\error_log(var_export($this->router->roots[$this->router->rootId], true));
                 ?>'root': "<?php echo $this->router->rootId?$this->router->roots[$this->router->rootId][2]:'AnyRoot';?>",<?php
                 ?>'section': "<?php echo ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))?$this->router->sections[$this->router->sectionId][2]:'AnySection'; ?>",<?php
                 ?>'purpose': "<?= $this->router->purposeId  ?>",<?php

@@ -310,13 +310,13 @@ class DB {
     }
 
     
-    function queryResultArray(string $query, $params=null, bool $commit=false, $fetch_mode=\PDO::FETCH_ASSOC, int $runtime=0) {
+    function queryResultArray(string $query, $params=null, bool $commit=false, int $fetch_mode=\PDO::FETCH_ASSOC, int $runtime=0) {
         $this->checkCorrectWriteMode($query);
         $this->getInstance();
-        $result=array();
-        $stmt = null;
+        $result=[];
+        $stmt=null;
         try {
-            $stmt = $this->getInstance()->prepare($query);
+            $stmt=$this->getInstance()->prepare($query);
             
             if ($params) {
                 $stmt->execute($params);
@@ -326,12 +326,12 @@ class DB {
             }
             
             if ($stmt) {
-                $query = trim($query);               
-                if (!stristr($query, " returning ") && preg_match('/^(insert|update|delete|execute)/i', $query)) {
-                    $result = TRUE;
+                $query=\trim($query);               
+                if (!\stristr($query, " returning ") && \preg_match('/^(insert|update|delete|execute)\s/i', $query)) {
+                    $result=true;
                 }
                 else {
-                    $result = $stmt->fetchAll($fetch_mode);
+                    $result=$stmt->fetchAll($fetch_mode);
                 }
             }
             unset($stmt);
