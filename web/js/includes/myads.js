@@ -28,6 +28,7 @@ const wording={
     stop_premium:{e:'Are you sure that you want to stop premium listing for this ad?', a:'هل أنت متأكد(ة) من إيقاف العرض المميز لهذا الإعلان؟'},
     premium_rs1:{e:'Premium listing of this ad has been cancelled successfully', a:'تم الغاء تمييز الاعلان بنجاح'},
     premium_rs2:{e:'but the ad will remain premium for the earned period of', a:'ولكن الاعلان سيبقى مميز للفترة المكتسبة وهي'},
+    premium_ok:{e:'This ad will be premium in few moments', a:'سيتم تمييز هذا الإعلان خلال لحظات'},
     no_revert:{e:'You won\'t be able to revert this!', a:'لن تتمكن من التراجع عن هذا الامر!'}
 }
 
@@ -389,6 +390,7 @@ var d = {
        h4.style.setProperty('text-align', 'start');
        h4.style.setProperty('margin-bottom', '0');
        combo.appendChild(h4);
+       console.log(aa.id);
        fetch('/ajax-balance/?u='+aa.dataset.uid, {method: 'GET', mode: 'same-origin', credentials: 'same-origin'})
                .then(res => res.json())
                .then(response => {
@@ -396,7 +398,7 @@ var d = {
                    if (response.success===1) {
                        console.log(response.result.balance);            
                        Swal.fire({
-                           title: '<span>'+e.innerHTML, /*<br><span>1 Gold = 1 Premium/Day</span></span>*/
+                           title: '<span>'+e.innerHTML,
                            text: wording.no_revert[lg],
                            icon: 'question',
                            input: 'range',
@@ -408,6 +410,7 @@ var d = {
                            inputValue: Math.min(7, response.result.balance),
                            html: combo,
                            footer: 'Current coins balance is '+response.result.balance,
+                           showConfirmButton: response.result.balance>0,
                            showCancelButton: true,
                            focusCancel: true,
                            confirmButtonColor: '#3085d6',
@@ -415,8 +418,36 @@ var d = {
                            cancelButtonText: wording.cancel[lg],
                            confirmButtonText: wording.make_it[lg]
                        }).then((result) => {
-                           if (result.value) {
-                               console.log('result', result.value);
+                           console.log(result);
+                           if (typeof(result.dismiss)!=='string') { 
+                              
+                                if (result.value>0) {
+                                   console.log('result', result.value);
+                                   
+                                   fetch('/ajax-mpre', {
+                                       method:'POST', 
+                                       mode:'same-origin', 
+                                       credentials:'same-origin',
+                                       body:JSON.stringify({id:aa.id, uk:d.KUID, mc:parseInt(result.value)}),
+                                       headers:{'Accept':'application/json','Content-Type':'application/json'}}
+                                   ).then(res=>res.json()).then(response => {
+                                       console.log('Success:', response);
+                                       if (response.success===1) {
+                                           Swal.fire('Done!', wording.premium_ok[lg], 'success');
+                                           e.remove();
+                                       }
+                                       else {
+                                           Swal.fire('Failed!', response.error, 'error');
+                                       }
+                                   })
+                                   .catch(error => {
+                                       Swal.fire('Exception!', error.toString(), 'error');
+                                   });
+                                   
+                               }
+                               else {
+                                   Swal.fire('Failed!', 'You could not make ad premium for ZERO day!<br>Please choose positive number of days.', 'error');
+                               }
                            }
                        });
                    }

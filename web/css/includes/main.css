@@ -90,7 +90,7 @@ small {
 
 
 i.iborder {
-  border: 1px solid #f9f9f9
+  border: 1px solid var(--mdc12)
 }
 
 

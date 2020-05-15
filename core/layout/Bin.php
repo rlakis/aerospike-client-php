@@ -3750,55 +3750,61 @@ class Bin extends AjaxHandler {
                 else $this->fail('101');
                 break;
                 
-            case 'ajax-mpre':
-                $ad_id = filter_input(INPUT_POST, 'i', FILTER_VALIDATE_INT) + 0;
-                $coins = filter_input(INPUT_POST, 'c', FILTER_VALIDATE_INT) + 0;
-                $user = filter_input(INPUT_POST, 'u', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-
-                $this->urlRouter->db->setWriteMode();  
-                IF($ad_id && $coins && $this->user->info['id'] == $this->user->decodeId($user)){
-
-                    $result = $this->urlRouter->db->queryResultArray("
-                            select a.id, bo.id as bo_id, a.state   
-                            from ad_user a 
-                            left join t_ad_bo bo on bo.ad_id = a.id and bo.blocked = 0 
-                            where a.id = ? and a.web_user_id = ?  
-                            ",[$ad_id, $this->user->info['id']]);
+            
+            // Make Premium
+            case 'mpre':
+                $this->authorize(true);
+                if (!isset($this->_JPOST['id'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!isset($this->_JPOST['uk'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if (!isset($this->_JPOST['mc'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                $ad_id=\filter_var($this->_JPOST['id'], \FILTER_VALIDATE_INT)+0;
+                $coins=\filter_var($this->_JPOST['mc'], \FILTER_VALIDATE_INT)+0;
+                $u_key=\filter_var($this->_JPOST['uk'], \FILTER_SANITIZE_STRING);
+                
+                if ($ad_id>0 && $coins>0 && $this->user->id()===$this->user->decodeId($u_key)) {
+                    $this->router->db->setWriteMode();
+                    $result=$this->router->db->queryResultArray("
+                            select a.id, b.id as bo_id, a.state from ad_user a 
+                            left join t_ad_bo b on b.ad_id=a.id and b.blocked=0 
+                            where a.id=? and a.web_user_id=?",
+                            [$ad_id, $this->user->id()]);
                     
-                    if($result && count($result)){
-                        if($result[0]['STATE'] == 7){
-                            $pass = true;
-                            if($result[0]['BO_ID']){
-                                $rs = $this->urlRouter->db->queryResultArray("
-                                update t_ad_bo set blocked = 1 where id = ? returning blocked 
-                                ",[$result[0]['BO_ID']],true);
-                                if($rs && isset($rs[0]['BLOCKED'])){
-                                    $pass = true;
-                                }else{
-                                    $pass = false;
-                                }
+                    if (\is_array($result) && \count($result)>0) {
+                        if ($result[0]['STATE']==7) {
+                            $pass=true;
+                            if ($result[0]['BO_ID']) {
+                                $rs=$this->router->db->queryResultArray(
+                                        "update t_ad_bo set blocked=1 where id=? returning blocked",
+                                        [$result[0]['BO_ID']], true);
+                                $pass=(\is_array($rs) && isset($rs[0]['BLOCKED']));
                             }
-                            if($pass){
-                                $result = $this->urlRouter->db->queryResultArray(
-                                "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, BLOCKED) VALUES ".
-                                "(?, ?, ?, 0) RETURNING ID", [$ad_id, 1, $coins], TRUE);
+                            
+                            if ($pass===true) {
+                                $irs=$this->router->db->queryResultArray(
+                                        "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, BLOCKED) VALUES (?, ?, ?, 0) RETURNING ID", 
+                                        [$ad_id, 1, $coins], true);
 
-                                if($result && isset($result[0]['ID'])){ 
-                                    $this->process();
-                                }else{
-                                    $this->fail('500');
+                                if (\is_array($irs) && isset($irs[0]['ID'])) { 
+                                    $this->success();
                                 }
-                            }else{
-                                $this->fail('500');
+                                else {
+                                    $this->error(self::ERR_SYS_FAILURE, ['en'=>'Failed to place PREMIUM order!', 'ar'=>'فشلت عملية طلب التمييز!']);
+                                }
                             }
-                        }else{
-                            $this->fail('404');
+                            else {
+                                $this->error(self::ERR_SYS_FAILURE);
+                            }
+                        }
+                        else {
+                            $this->error(self::ERR_SYS_FAILURE, ['en'=>'This ad is not published!', 'ar'=>'هذا الاعلان غير منشور!']);
                         }
                     }
-                }else{
-                    $this->fail('401');
+                }
+                else {
+                    $this->error(self::ERR_DATA_INVALID_PARAM);
                 }
                 break;
+                
                 
             // stop premium listing
             case 'spre':
