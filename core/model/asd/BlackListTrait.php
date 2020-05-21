@@ -22,15 +22,15 @@ trait BlackListTrait {
     public function blacklistInsert(string $contact, string $reason, int $uid=0) : int {
         $bins = [];
         if (is_numeric($contact)) {
-            $bins[USER_MOBILE_NUMBER] = intval($contact);
+            $bins[USER_MOBILE_NUMBER]=intval($contact);
         } 
         else {
-            $bins[USER_PROVIDER_EMAIL] = $contact;
+            $bins[USER_PROVIDER_EMAIL]=$contact;
         }
         
         if ($uid) { $bins[USER_UID] = $uid; }
         $bins[BLACK_LIST_REASON] = $reason;
-        $success = $this->setBins($this->asKey($contact), $bins);
+        $success=$this->setBins($this->asKey($contact), $bins);
         
         return $success ? 1 : 0;
     }

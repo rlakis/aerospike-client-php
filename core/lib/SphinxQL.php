@@ -109,7 +109,7 @@ class SphinxQL {
     
     function connect() : void {
         if ($this->_sphinx==NULL) {
-            $this->_sphinx = new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
+            $this->_sphinx=new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
             if ($this->_sphinx->connect_error) {
                 $this->Log(['host'=>$this->server['host'], 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
                 die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
@@ -897,7 +897,7 @@ class SphinxQL {
 
 
     private function Log(string $message) : void {
-        $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
+        $dbt=debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 2);
         if (!empty($dbt)) {
             unset($dbt[0]['function']);
             unset($dbt[0]['class']);

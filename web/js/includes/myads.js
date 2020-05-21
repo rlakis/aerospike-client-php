@@ -125,8 +125,9 @@ $.addEventListener("DOMContentLoaded", function () {
         d.queryParams[item[0]]=decodeURIComponent(item[1]);
     });
     
-    if (d.queryParams.u) {
-        d.userStatistics(+d.queryParams.u);
+    let canvas=document.querySelector('canvas#canvas');
+    if (canvas && window.location.pathname.startsWith('/myads/', 0)) {        
+        d.userStatistics(d.queryParams.u?d.queryParams.u:0);
     }
 });
 

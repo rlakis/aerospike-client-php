@@ -102,12 +102,16 @@ class Bin extends AjaxHandler {
     
     function __construct(){
         parent::__construct();
-        $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
         if ($contentType==='application/json') {
-            $content = \trim(\file_get_contents("php://input"));
+            $content=\trim(\file_get_contents("php://input"));
             if ($content) {
-                $this->_JPOST = \json_decode($content, true);
+                $this->_JPOST=\json_decode($content, true);
             }
+        }
+        
+        if (empty($this->_JPOST) && !empty($_POST)) {
+            $this->_JPOST=$_POST;
         }
         
         /*
@@ -128,8 +132,7 @@ class Bin extends AjaxHandler {
         */
         
         $this->name='name_'.$this->router->language;
-        $this->actionSwitch();   
-        
+        $this->actionSwitch();        
     }
 
     
@@ -1286,26 +1289,33 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
-            case 'ajax-stat':
-                if ($this->router->cfg['server_id']<=0 || $this->router->cfg['server_id']>=99) {
-                    return;
+            case 'stat':
+                \ignore_user_abort(true);
+                if ($this->router->config->serverId<=0 || $this->router->config->serverId>=99) {
+                    //return;
                 }
                 
-                if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
+                $ip=IPQuality::fetch(false);
+                $is_bot=$ip['bot_status']??0;
+                $is_crawler=$ip['is_crawler']??0;
+                if ($is_bot||$is_crawler) {
                     return;
                 }
+                //if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
+                //    return;
+                //}
                 
                 $req=NULL;  
-                $stat_servers = $this->router->db->getCache()->get("sphinx_servers");
               
-                if (isset($_POST['a']) && $_POST['a']) {
-                    $final_req = $req = (is_array($_POST['a']) ? $_POST['a'] : json_decode($_POST['a'],true) );
+                $stat_servers=$this->router->db->getCache()->get("sphinx_servers");
+                if (isset($this->_JPOST['a']) && !empty($this->_JPOST['a'])) {
+                    $final_req=$req=\is_array($this->_JPOST['a']) ? $this->_JPOST['a'] : \json_decode($this->_JPOST['a'], true);
                 }
             
                 if ($req) {
-                    $stat_server = $this->router->db->getCache()->get("stat_server");
-                    $redis = new Redis();
-                    $ok = 1;
+                    $stat_server=$this->router->db->getCache()->get("stat_server");
+                    $redis=new Redis;
+                    $ok=1;
                     try {
                         $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
                         $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);                        
@@ -1316,8 +1326,7 @@ class Bin extends AjaxHandler {
                         error_log(__CLASS__.'.'.__FUNCTION__.' -> '.$e->getMessage());
                         $ok=0;
                     }
-                    $countryCode = '';
-                    $referer = ''; 
+                    $countryCode=$referer=''; 
                     
                     if (!empty($req)) {
                         if (isset($_POST['app'])){
@@ -1343,7 +1352,7 @@ class Bin extends AjaxHandler {
                             switch ($action) {
                                 case 'ad-imp':
                                     foreach ($final_req as $final_action => $final_refs) {
-                                        if ($final_action=='ad-imp') {
+                                        if ($final_action==='ad-imp') {
                                             $uniques=[];
                                             foreach ($final_refs as $id) {
                                                 $uniques[$id]=TRUE;
@@ -1351,15 +1360,15 @@ class Bin extends AjaxHandler {
                                                     break;
                                                 }
                                             }
-                                            
+
                                             foreach (array_keys($uniques) as $id) {
+                                                $id=\intval($id);
+                                                $batch.="select id, impressions from {$this->router->config->get('search_index')} where id={$id};\n";
                                                 
-                                                $id = (int)$id;
-                                                $batch.= "select id, impressions from {$this->urlRouter->cfg['search_index']} where id={$id};\n";                                                
                                                 $adData=$this->classifieds->getById($id);
                                                 
                                                 if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) {
-                                                    if ($ok==1 && $redis->isConnected()) {                    
+                                                    if ($ok===1 && $redis->isConnected()) {                    
                                                         $redis->sAdd('U'.$adData[Classifieds::USER_ID], $id);
                                                         
                                                         if (!$redis->hIncrBy('AI'.$id, date("Y-m-d"), 1)) {
@@ -1396,15 +1405,15 @@ class Bin extends AjaxHandler {
                         
                         if (!empty($batch)) {
                             foreach ($stat_servers as $stat_server) {
-                                $ss = new SphinxQL($stat_server, $this->urlRouter->cfg['search_index']);
-                                $result=$this->urlRouter->db->ql->search($batch);
+                                $ss=new SphinxQL($stat_server, $this->router->config->get('search_index'));
+                                $result=$this->router->db->ql->search($batch);
                                 foreach($result['matches'] as $row) {
                                     if (isset($row[0])) { $row=$row[0]; }
                                     if (!isset($row['id'])) { continue; }
                                     
                                     $id=$row['id']+0;    
                                     $im=$row['impressions']+1;                                                                                        
-                                    $ss->getConnection()->real_query("update {$this->urlRouter->cfg['search_index']} set impressions={$im} where id={$id}");
+                                    $ss->getConnection()->real_query("update {$this->router->config->get('search_index')} set impressions={$im} where id={$id}");
                                 }
                                 $ss->close();
                             }
@@ -1415,7 +1424,8 @@ class Bin extends AjaxHandler {
                     
                 }
                 
-                $this->process();
+                $this->success();
+                /*
                 if (isset($_POST['l']) && $_POST['l']) {
                     $req = (is_array($_POST['l']) ? $_POST['l'] : json_decode($_POST['l'],true));
                     if($req && is_array($req)){
@@ -1443,7 +1453,7 @@ class Bin extends AjaxHandler {
                                         $last['pu']
                                     ));
                                      * 
-                                     */
+                                     *
                                     $this->user->params['last']=$req;
                                     $this->user->update();
                                 }
@@ -1454,15 +1464,19 @@ class Bin extends AjaxHandler {
                             }
                         }
                     }
-                }
+                }*/
                 break;
                 
             case 'ga':
                 $this->authorize(true);
-                $uid=\intval($this->_JPOST['u']??0);                
+                $uid=\intval($this->_JPOST['u']??0);
+                if ($uid===0) {
+                    $uid= $this->user->id();
+                }
                 $archive=$this->post('x', 'boolean');
                 $adStats=$this->post('ads', 'boolean');
-                if ($adStats && $this->user->isLoggedIn(9)) {                    
+                if ($adStats && $this->user->isLoggedIn(9)) {
+                    
                     $pubId=$this->post('pub', 'int');
                     $secId=$this->post('sec', 'int');
                     $countryId=$this->post('cn', 'int');

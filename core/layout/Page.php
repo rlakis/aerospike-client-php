@@ -3059,8 +3059,8 @@ class Page extends Site {
                 ?>'cid': "<?=$CID?>",<?php
                 ?>'module': "<?=$module?>",<?php
                 //\error_log(var_export($this->router->roots[$this->router->rootId], true));
-                ?>'root': "<?php echo $this->router->rootId?$this->router->roots[$this->router->rootId][2]:'AnyRoot';?>",<?php
-                ?>'section': "<?php echo ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))?$this->router->sections[$this->router->sectionId][2]:'AnySection'; ?>",<?php
+                ?>'root': "<?php echo $this->router->rootId?$this->router->roots[$this->router->rootId]['name_en']:'AnyRoot';?>",<?php
+                ?>'section': "<?= ($this->router->sectionId && isset($this->router->sections[$this->router->sectionId]))?$this->router->sections[$this->router->sectionId]['name_en']:'AnySection'; ?>",<?php
                 ?>'purpose': "<?= $this->router->purposeId  ?>",<?php
                 ?>'country': "<?php echo ($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri']:'Global';?>",<?php
                 ?>'city': "<?php echo ($this->router->cityId && isset($this->router->cities[$this->router->cityId]))?$this->router->cities[$this->router->cityId][3]:(($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri'].'all cities':'Global');?>"<?php

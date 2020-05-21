@@ -1,4 +1,4 @@
-var wrapperTop=0,CTRL=false;
+let wrapperTop=0,CTRL=false,seen=[];
 
 const preventEventProp = (e) => {
     e.preventDefault(); 
@@ -25,6 +25,19 @@ if(CTRL && e.target.classList.contains('card-description')){
 */
 $.onkeydown = function (e) { CTRL=e.ctrlKey; }
 $.onkeyup = function() { CTRL=false; }
+
+window.addEventListener('beforeunload', function(event) {
+    if (seen.length>0) {
+        console.log('I am the 1st one.', seen);
+        let headers = {
+            type: 'application/json'
+        };
+        let blob = new Blob([JSON.stringify({a:{"ad-imp":seen}})], headers);
+        console.log(navigator.sendBeacon('/ajax-stat/', blob));
+    }
+});
+
+
 $.addEventListener("DOMContentLoaded", function () {
     $$=$.body;
     let c=$$.query('div#cards');
@@ -40,8 +53,63 @@ $.addEventListener("DOMContentLoaded", function () {
                     p.appendChild(r);
                 }
             }
+        }        
+    }
+    
+    
+    if ("IntersectionObserver" in window) {
+        lazyloadAds = document.querySelectorAll("div.ad");
+        var adObserver = new IntersectionObserver(function (entries, observer) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    var addiv = entry.target.query('div.widget');
+                    let i=parseInt(addiv.id);
+                    if (!seen.includes(i)) {
+                        seen.push(i);
+                    }
+                    adObserver.unobserve(addiv);
+                }
+            });
+        });
+
+        lazyloadAds.forEach(function (image) {
+            adObserver.observe(image);
+        });
+    }
+    else {
+        var lazyloadThrottleTimeout;
+        lazyloadAds = $.querySelectorAll("div.ad");
+
+        function lazyload() {
+            if (lazyloadThrottleTimeout) {
+                clearTimeout(lazyloadThrottleTimeout);
+            }
+
+            lazyloadThrottleTimeout = setTimeout(function () {                
+                let scrollTop = window.pageYOffset || $.documentElement.scrollTop;
+                lazyloadAds.forEach(function (adv) {
+                    var top=(adv.getBoundingClientRect().top+scrollTop);
+                    if (top < (window.innerHeight + scrollTop)) {
+                        var addiv = adv.query('div.widget');
+                        let i=parseInt(addiv.id);
+                        if (!seen.includes(i)) {
+                            seen.push(i);
+                        }
+                    }
+                });
+                if (lazyloadAds.length === 0) {
+                    $.removeEventListener("scroll", lazyload);
+                    window.removeEventListener("resize", lazyload);
+                    window.removeEventListener("orientationChange", lazyload);
+                }
+                lazyloadAds = $.querySelectorAll("div.ad");
+            }, 20);
         }
         
+        $.addEventListener("scroll", lazyload);
+        window.addEventListener("resize", lazyload);
+        window.addEventListener("orientationChange", lazyload);
+        lazyload();
     }
 });
 
@@ -355,12 +423,12 @@ function sleep(ms) {
 
 function addScript(filename){
     console.log('aa');
- var head = document.getElementsByTagName('head')[0];
- var script = document.createElement('script');
- script.src=filename;
- script.async=false;
- script.type='text/javascript';
- head.append(script);
+    var head = document.getElementsByTagName('head')[0];
+    var script = document.createElement('script');
+    script.src=filename;
+    script.async=false;
+    script.type='text/javascript';
+    head.append(script);
 }
 
 
