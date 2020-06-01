@@ -1471,7 +1471,7 @@ class Bin extends AjaxHandler {
                 $this->authorize(true);
                 $uid=\intval($this->_JPOST['u']??0);
                 if ($uid===0) {
-                    $uid= $this->user->id();
+                    $uid=$this->user->id();
                 }
                 $archive=$this->post('x', 'boolean');
                 $adStats=$this->post('ads', 'boolean');
@@ -1519,16 +1519,16 @@ class Bin extends AjaxHandler {
                     $this->response('d', $dt*1000);
                     $this->success();                    
                 }
-                elseif ($this->user->isLoggedIn() && ($this->user->id()===$uid || $this->user->level()===9)) {
+                elseif ($this->user->id()===$uid || $this->user->level()===9) {
                     $aid=\intval($this->_JPOST['a']??0); 
                     
                     $showInteractions=0;
                     if($this->user->level()===9 || \in_array($this->user->id(), $this->router->config->get('enabled_interactions'))) {
-                        $showInteractions = 1;
+                        $showInteractions=1;
                     }
                     
                     $stat_server=$this->router->db->getCache()->get("stat_server");
-                    $redis=new Redis();                    
+                    $redis=new Redis;                 
                     $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
                     $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);
                     $redis->select($stat_server['index']);
@@ -1603,25 +1603,18 @@ class Bin extends AjaxHandler {
                         $total=0;
                         $summary=[];
                         if (!$archive) {
-                            /*
-                            $q='select cast(r.ts as date) as d,
-                            count(*) as c
-
-                            from xref x
-                            left join reqs r on x.ad_id = r.ad_id
-
-                            where x.web_user_id = ? and r.ad_id is not null 
-                            and r.ts > dateadd(-1 month to current_date)
-
-                            group by 1';
-                            $res=$db->queryResultArray($q,array($uid));*/
+                            $date=new DateTime;
+                            $starting_date=$date->modify('-1 month');
+                            \error_log($starting_date->format('Y-m-d').PHP_EOL);
                             
-                            $sdate = \time()-2592000; // 30 days              
-                            $ads = $redis->sMembers('U'.$uid);
-                            $res = [];
+                            $sdate=\time()-2592000; // 30 days              
+                            $ads=$redis->sMembers('U'.$uid);
+                            //\error_log(\var_export($ads, true).PHP_EOL);
+                            $res=[];
                             
                             foreach ($ads as $id) {
-                                $impressions = $redis->hGetAll('AI'.$id);
+                                $impressions=$redis->hGetAll('AI'.$id);
+                                //\error_log(\var_export($impressions, true).PHP_EOL);
                                 foreach ($impressions as $date => $value) {
                                     if (isset($summary[$id])) {
                                         $summary[$id]+=$value+0;
@@ -1629,7 +1622,12 @@ class Bin extends AjaxHandler {
                                     else {
                                         $summary[$id]=$value+0;
                                     }
-                                    if (\strtotime($date)<$sdate) {  continue;  }
+                                    $dated=DateTime::createFromFormat('Y-m-d', $date);
+                                    if ($dated<$starting_date) {
+                                        continue;
+                                    }
+                                    \error_log($dated->format('Y-m-d').PHP_EOL);
+                                    //if (\strtotime($date)<$sdate) {  continue;  }
                                     
                                     if (isset($res[$date])) {
                                         $res[$date]+=$value+0;
@@ -1646,7 +1644,7 @@ class Bin extends AjaxHandler {
                             }
                           
                             
-                            $data = $cdata = [];
+                            $data=$cdata=[];
                             $dt=0;
                             if ($res && \count($res)) {
                                 $i = $curDt = $prevDt = 0;

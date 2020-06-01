@@ -33,12 +33,15 @@ class Page extends Site {
     public bool $detailAdExpired=false;
     var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
+    public libphonenumber\PhoneNumberUtil $phoneUtil;
     public string $name;
     
     private array $included=[];
     
     function __construct() {
         parent::__construct(); 
+        $this->phoneUtil=libphonenumber\PhoneNumberUtil::getInstance();
+        
         $this->name='name_'.$this->router->language;
         if ($this->user->isLoggedIn()) {
             if ($this->user->level()===9 && $this->user->id()!==1 && $this->user->id()!==2) {
@@ -482,7 +485,8 @@ class Page extends Site {
             $this->css('doc');
             echo '</style>';
         }
-        echo '<div class="row viewable"><div class="col-12 sign">';
+        
+        ?><div class="row viewable"><div class="col-12 sign"><?php
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0)?0:1;
         
         if (isset($this->user->pending['login_attempt'])) {
@@ -494,58 +498,59 @@ class Page extends Site {
             }
         }
         
-        $qrfile = \dirname( $this->router->config->get('dir')).'/tmp/qr/'.\session_id().'.png';
+        $qrfile=\dirname( $this->router->config->get('dir')).'/tmp/qr/'.\session_id().'.png';
         QRcode::png('mourjan:login:'.\session_id().\str_pad($this->router->config->serverId, 4, '0', \STR_PAD_LEFT) . \str_pad(time(),16, '0', \STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
 
         $sh=(isset($this->router->cookie->mu) && $this->router->cookie->mu==1)?'1':'0';
 
-        $redis = new Redis();
+        $redis=new Redis;
         $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
         $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
         $redis->select(1);
         $redis->setex(session_id(), 300, $this->router->config->serverId.':'.$sh);
         $redis->close();
 
-        $data = file_get_contents($qrfile);
-        $type = pathinfo($qrfile, PATHINFO_EXTENSION);
-        $base64 = 'data:image/' . $type . ';base64,' . base64_encode($data);                
+        $data=\file_get_contents($qrfile);
+        $type=\pathinfo($qrfile, PATHINFO_EXTENSION);
+        $base64='data:image/' . $type . ';base64,' . base64_encode($data);                
         
         ?><div class="card doc"><?php
-        ?><div class=title><h5><?= $this->lang['signin_mourjan'] ?></h5></div><?php
-        ?><div class="content"><?php
+        ?><div class=title><h5><?=$this->lang['signin_mourjan']?></h5></div><?php
+        ?><div class=content><?php
         ?><form style="width:100%;" method=post action="<?=$this->router->getLanguagePath('/a/')?>"><?php 
-        ?><br><div class=group><input class=en name=u type=email required><span class=highlight></span><span class=bar></span><label><?= $this->lang['email'] ?></label></div><?php
-        ?><div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?= $this->lang['password'] ?></label></div><?php
-        ?><label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?= $keepme_in ? 'checked':'' ?>><span><?= $this->lang['keepme_in'] ?></span></label><?php
+        ?><br><div class=group><input class=en name=u type=email required><span class=highlight></span><span class=bar></span><label><?=$this->lang['email']?></label></div><?php
+        ?><div class=group><input name="p" type=password required><span class=highlight></span><span class=bar></span><label><?=$this->lang['password']?></label></div><?php
+        ?><label class=chkbox style="padding-bottom:8px"><input name=o type=checkbox <?=$keepme_in?'checked':''?>><span><?=$this->lang['keepme_in']?></span></label><?php
         if (isset($this->user->pending['login_attempt'])) {
-            ?><p class=nl><span><span class=fail></span><?= $this->lang['login_error'] ?></span></p><?php                    
+            ?><p class=nl><span><span class=fail></span><?=$this->lang['login_error']?></span></p><?php 
         }
         $uri=$this->router->uri;
         if (\preg_match('/signin/', $this->router->uri)) {
             $uri=$this->router->getLanguagePath('/myads/');
-        }        
-        ?><div class=group style="margin:0"><input name=r type=hidden value="<?=$uri?>" /><i class="icn icn-sign-in"></i><input type=submit class=btn value="<?= $this->lang['signin'] ?>" /></div><?php                      
-        echo '<div class=group style="margin:0"><a class=btn href="', $this->router->getLanguagePath('/signup/'), '">', $this->lang['create_account'], '<i class="icn icn-sign-up"></i></a></div>';
-        ?><p><a class=lnk href="<?= $this->router->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></p><?php
-        ?></form></div></div><?php
+        }
+        ?><input name=r type=hidden value="<?=$uri?>" /><?php
+        ?><div class=group style="margin:0"><button class="btn flex va-center" type=submit><i class="icn icn-sign-in"></i><?=$this->lang['signin']?></button></div><?php
+        ?><div class=group style="margin:0"><a class=btn style="margin:0 auto" href="<?=$this->router->getLanguagePath('/signup/')?>"><i class="icn icn-sign-up"></i><?=$this->lang['create_account']?></a></div><?php
+        ?></form></div><?php
+        ?><div class="card-footer"><a class=lnk href="<?= $this->router->getLanguagePath('/password/') ?>"><?= $this->lang['forgot_pass'] ?></a></div><?php
+        ?></div><?php
         
         ?><div class="card doc"><div class=title><h5><?= $this->lang['signin_m'] ?></h5></div><?php
         ?><div class=content><?php            
-        ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook">Facebook<i class="icn icn-facebook"></i></a><?php
-        ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google">Google<i class="icn icn-google"></i></a><?php
-        ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter">Twitter<i class="icn icn-twitter"></i></a><?php
-        ?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo">Yahoo<i class="icn icn-yahoo"></i></a><?php
-        ?><a class=btn style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin">LinkedIn<i class="icn icn-linkedin"></i></a><?php
-        ?><a class=btn style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live">Windows Live<i class="icn icn-microsoft"></i></a><?php
+        ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook"><i class="icn icn-facebook"></i>Facebook</a><?php
+        ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google"><i class="icn icn-google"></i>Google</a><?php
+        ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter"><i class="icn icn-twitter"></i>Twitter</a><?php
+        ?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo"><i class="icn icn-yahoo"></i>Yahoo</a><?php
+        ?><a class=btn style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin"><i class="icn icn-linkedin"></i>LinkedIn</a><?php
+        ?><a class=btn style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live"><i class="icn icn-microsoft"></i>Windows Live</a><?php
         ?></div></div><?php
         
         
-        echo '<div class="card doc"><div class=title><h5>Mourjan iPhone App</h5></div>';
-        echo '<div class=content><img width=200 height=200 src="', $base64, '" />';
-        echo '<p style="padding-top:30px;color:var(--mdc70);font-weight:500"><span class="bt scan"><span class=apple></span><span class="apple up"></span> ', 
-            $this->lang['hint_login_signin'],
-            ' <span class="apple up"></span><span class=apple></span></span></p>';        
-        echo '</div></div>';        
+        ?><div class="card doc"><div class=title><h5>Mourjan Mobile App</h5></div><?php
+        ?><div class="content ha-center"><img width=200 height=200 src="<?=$base64?>" /></div><?php
+        ?><div class="card-footer" style="color:var(--mdc70);font-weight:500"><span class="bt scan"><span class=apple></span><span class="apple up"></span><?=$this->lang['hint_login_signin']?><?php
+        ?><span class="apple up"></span><span class=apple></span></span></div><?php
+        ?></div><?php
                 
         ?></div></div><?php
         // close signin div
@@ -565,10 +570,9 @@ class Page extends Site {
             $this->user->update();
         }
         
-        echo '</div></div>';
+        
     }
-
-    
+       
     
     function renderDisabledPage() {
         ?><div class="sum rc"><div class="brd"><h1><?= $this->lang['title_not_supported'] ?></h1></div><p><?= $this->lang['hint_not_supported']; ?></p></div><div class="fake"></div><?php
@@ -1652,64 +1656,62 @@ class Page extends Site {
         ?></ul><div id=rgns></div></div></div><?php
         
         ?><header><div class="viewable ff-rows full-height sp-between"><?php  
-        ?><div><a class=half-height href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div><?php
-        ?><a class=btn href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a><?php
+        ?><div><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div><?php
+        ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a><?php
         ?></div></header><?php
 
         //\error_log('page uri ' .$this->getPageUri() . '  vs  ' . $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:''));
         
-        ?><section class=search-box><div class="viewable ha-center"><div class=search><?php
-        ?><form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?=$this->getPageUri()?>"> 
-        <div class=sbw><div class=sbe>
-                <div class=strg><?php 
-                    $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$this->name]:$this->lang['all_categories'];
-                    ?>
-                    <span><?=$selected?></span>
-                    <div class=arrow></div>
-                </div>
-                <div class=options><?php
-                    ?><div class="option<?=(!$this->router->params['ro']?' selected':'');?>" data-value="0"><?=$this->lang['all_categories']?></div><?php                   
-                    foreach ($this->router->roots as $root) {
-                        ?><div class="option<?=$this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected':''?>" <?php
-                        ?>data-value="<?=$root[\Core\Data\Schema::BIN_ID]?>"><?php
-                        ?><span><?=$root[$this->name]?></span><?php
-                        ?><i class="icn ro i<?=$root[\Core\Data\Schema::BIN_ID]?>"></i><?php
-                        ?></div><?php
-                        //echo '<span class="option', $this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected"':'"', ' data-value="', $root[\Core\Data\Schema::BIN_ID], '">', $root['name_'.$this->router->language], '</span>';
-                    }
-                ?></div>
-            </div>
-        </div>
+        ?><section class="pc search-box"><div class="viewable ha-center"><div class=search><?php
+        ?><form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?=$this->getPageUri()?>"><?php
+        ?><div class=sbw><div class=sbe><?php
+        ?><div class=strg><?php 
+        $selected=$this->router->params['ro']?$this->router->roots[$this->router->params['ro']][$this->name]:$this->lang['all_categories'];
+        ?><span><?=$selected?></span><div class=arrow></div></div><?php
+        ?><div class=options><?php
+        ?><div class="option<?=(!$this->router->params['ro']?' selected':'');?>" data-value="0"><?=$this->lang['all_categories']?></div><?php                   
+        foreach ($this->router->roots as $root) {
+            ?><div class="option<?=$this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected':''?>" <?php
+            ?>data-value="<?=$root[\Core\Data\Schema::BIN_ID]?>"><?php
+            ?><span><?=$root[$this->name]?></span><?php
+            ?><i class="icn ro i<?=$root[\Core\Data\Schema::BIN_ID]?>"></i><?php
+            ?></div><?php
+            //echo '<span class="option', $this->router->params['ro']===$root[\Core\Data\Schema::BIN_ID]?' selected"':'"', ' data-value="', $root[\Core\Data\Schema::BIN_ID], '">', $root['name_'.$this->router->language], '</span>';
+        }
+        ?></div></div><?php
+        ?></div><?php        
                    
-        <?php
         if ($this->user->isLoggedIn(9)) {
             $selected=$this->router->params['cn']?$this->router->countries[$this->router->params['cn']]['name']:$this->lang['opt_all_countries'];
-            ?>
-            <div class=sbw><div class=sbe>
-                <div class=strg><span><?= $selected?></span><div class=arrow></div></div>
-                <div class=options><?php
-                echo '<span class="option', (!$this->router->params['cn']?' selected" ':'" '), 'data-value="0">', $this->lang['opt_all_countries'], '</span>';                
-                foreach ($this->router->countries as $cn=>$country) {
-                    echo '<span class="option', $this->router->params['cn']===$cn?' selected"':'"', ' data-value="',$cn, '">', $country['name'], '</span>';
-                }
-                ?></div>
-            </div></div>
-            <input id=cn name=cn type=hidden value="0">
-            <?php
+            ?><div class=sbw><div class=sbe><?php
+            ?><div class=strg><span><?= $selected?></span><div class=arrow></div></div><?php
+            ?><div class=options><?php
+            echo '<span class="option', (!$this->router->params['cn']?' selected" ':'" '), 'data-value="0">', $this->lang['opt_all_countries'], '</span>';                
+            foreach ($this->router->countries as $cn=>$country) {
+                echo '<span class="option', $this->router->params['cn']===$cn?' selected"':'"', ' data-value="',$cn, '">', $country['name'], '</span>';
+            }
+            ?></div></div></div><input id=cn name=cn type=hidden value="0"><?php
         }
-        ?>
-        <?php
-        $module=$this->router->module;
-        if (\in_array($module, ['search', 'contact', 'about', 'terms', 'privacy'])) {
+                
+        if (\in_array($this->router->module, ['search', 'contact', 'about', 'terms', 'privacy'])) {
             ?><button class="mibtn mcolor"><i id=ibars class="icn icnsmall icn-bars invert"></i></button><?php
         }
+                
+        ?><input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what'];?>"><?php
+        ?><input id=ro name=ro type=hidden value="0"><?php
+        ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button><?php
+        ?></form><?php
+        if ($this->router->module!=='index') {
+            ?><div class=roots><?php
+            foreach ($this->router->roots as $root) {
+                ?><a href="#"><object onload="this.contentDocument.querySelector('svg').setAttributeNS(null, 'stroke-width', '2px');" data="<?=$this->router->config->cssURL.'/1.0/assets/'.$root[\Core\Data\Schema::BIN_ID].'.svg'?>"></object></a><?php
+            }
+            ?></div><?php
+        }
+        ?></div><?php
+        //echo $this->router->module;
+        ?></div></section><?php
         
-        ?>        
-        <input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what']; ?>">
-        <input id=ro name=ro type=hidden value="0">
-        <button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button>
-    </form>
-    </div></div></section><?php
         if ($this->router->module!=='index') {
             echo '<main>';
         }
@@ -2648,16 +2650,16 @@ class Page extends Site {
 
     function header() : void {
         ?><link rel='preconnect' href='https//c6.mourjan.com' /><?php    
-        ?><link rel="preconnect" href="https://fonts.googleapis.com" /><?php
+        ?><link rel="preconnect" href="https://fonts.googleapis.com" crossorigin /><?php
         
         ?><link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin /><?php
 
-        ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' /><?php
-        ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' /><?php
-        ?><link rel="preconnect" href="https://adservice.google.com" /><?php
-        ?><link rel="preconnect" href="https://www.googletagservices.com" /><?php
-        ?><link rel='preconnect' href='https://tpc.googlesyndication.com' /><?php
-        ?><link rel="preconnect" href="https://www.google-analytics.com" /><?php
+        ?><link rel='preconnect' href='https://pagead2.googlesyndication.com' crossorigin /><?php
+        ?><link rel='preconnect' href='https://googleads.g.doubleclick.net' crossorigin /><?php
+        ?><link rel="preconnect" href="https://adservice.google.com" crossorigin /><?php
+        ?><link rel="preconnect" href="https://www.googletagservices.com" crossorigin /><?php
+        ?><link rel='preconnect' href='https://tpc.googlesyndication.com'crossorigin /><?php
+        ?><link rel="preconnect" href="https://www.google-analytics.com crossorigin" /><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites){
@@ -2734,7 +2736,7 @@ class Page extends Site {
                 $result[$cn['uri']]=$cc[$cn['uri']];
             }
         }
-        $this->router->logger()->info(\json_encode($result, JSON_PRETTY_PRINT));        
+        //$this->router->logger()->info(\json_encode($result, JSON_PRETTY_PRINT));        
         return $result;
     }
     
@@ -2749,7 +2751,7 @@ class Page extends Site {
             'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتــــــــــــــك', 'en'=>'YOUR SERVICES'],
             ];
         $ln=$this->router->language;
-        ?><div class="row ff-cols viewable"><div class="col-12 mhbanner"><img src="<?=$this->router->config->imgURL?>/grid.svg" /><?php
+        ?><div class="row ff-cols viewable pc"><div class="col-12 mhbanner"><img src="<?=$this->router->config->imgURL?>/grid.svg" /><?php
         ?><div><div class=p1><div><span class=um><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div><?php
         if ($ln==='ar') {
             ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php                        
@@ -2767,8 +2769,8 @@ class Page extends Site {
         }
         
         // premuim promotion
-        if ($this->user->isLoggedIn()) {
-            ?><div class=row><div class=premium-banner><?php
+        if ($this->user->isLoggedIn() && $this->router->module!=='myads') {
+            ?><div class=row><div class="premium-banner pc"><?php
                 ?><a href=<?=$this->router->getLanguagePath('/gold/')?>><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>-v1.svg" width=284 /></a><?php
                 ?><span class=vbar></span><?php
                 ?><div><span><?=$this->lang['go_premium']?>!</span><span><?=$this->lang['gold_note']?>.<a href=<?=$this->router->getLanguagePath('/gold/')?>><?=$this->lang['learn_more']?></a></span><?php
@@ -2788,18 +2790,18 @@ class Page extends Site {
         
         echo '</main>';
         
-        ?><footer class="row ha-center"><div class="viewable ff-rows"><?php
+        ?><footer class="row ha-center pc"><div class="viewable ff-rows"><?php
         ?><div class="col-4 ff-cols"><?php
         ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200 /><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
         ?><div class=addr><?php
         if ($this->router->isArabic()) {
-            ?><p>مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة</br/>صندوق بريد: 294474</p><?php
+            ?><p>مركز الأعمال راكز<br/>رأس الخيمة<br/>الامارات العربية المتحدة<br/>صندوق بريد: 294474</p><?php
             ?><p style="margin-top:0">بيريسوفت، الطابق الرابع ، سنتر 1044 الدكوانة<br/>شارع السلاف العريض، الدكوانة، لبنان</p><?php
             $look="الشكل القديم لمرجان";
         }
         else {
-            ?><p>Business Center RAKEZ<br/>Ras Al Khaimah<br/>United Arab Emirates</br/>P.O. Box: 294474</p><?php
+            ?><p>Business Center RAKEZ<br/>Ras Al Khaimah<br/>United Arab Emirates<br/>P.O. Box: 294474</p><?php
             ?><p>Berysoft, 4th floor, Dekwaneh 1044 center<br/>New Slav Street, Dekwaneh, Lebanon</p><?php
             $look="Back to old site";
         }
@@ -2962,56 +2964,57 @@ class Page extends Site {
         }
         
         if (0) {
-        ?><script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script><?php
-        ?><script type='text/javascript'><?php
-        if ($this->router->config->enabledAds() && count($this->googleAds)) {
-            ?>var googletag=googletag||{};googletag.cmd=googletag.cmd||[];(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var node=document.getElementsByTagName('script')[0];node.parentNode.insertBefore(gads, node);})();googletag.cmd.push(function(){<?php
+            ?><script async src="https://www.googletagmanager.com/gtag/js?id=UA-435731-13"></script><?php
+            ?><script type='text/javascript'><?php
+            if ($this->router->config->enabledAds() && count($this->googleAds)) {
+                ?>var googletag=googletag||{};googletag.cmd=googletag.cmd||[];(function(){var gads=document.createElement('script');gads.async=true;gads.type='text/javascript';var useSSL='https:'==document.location.protocol;gads.src=(useSSL?'https:':'http:')+'//www.googletagservices.com/tag/js/gpt.js';var node=document.getElementsByTagName('script')[0];node.parentNode.insertBefore(gads, node);})();googletag.cmd.push(function(){<?php
             
-            $slot=0;
-            foreach ($this->googleAds as $ad) {
-                $slot++;
-                echo "var slot{$slot}=googletag.defineSlot('{$ad[0]}',[{$ad[1]},{$ad[2]}],'{$ad[3]}').addService(googletag.pubads());";
-            }
-            //echo "googletag.pubads().collapseEmptyDivs();";
+                $slot=0;
+                foreach ($this->googleAds as $ad) {
+                    $slot++;
+                    echo "var slot{$slot}=googletag.defineSlot('{$ad[0]}',[{$ad[1]},{$ad[2]}],'{$ad[3]}').addService(googletag.pubads());";
+                }
+                //echo "googletag.pubads().collapseEmptyDivs();";
             
-            if ($this->router->countryId) {
-                echo "googletag.pubads().setTargeting('country_id','{$this->router->countryId}');";
-            }
+                if ($this->router->countryId) {
+                    echo "googletag.pubads().setTargeting('country_id','{$this->router->countryId}');";
+                }
             
-            if ($this->router->rootId) {
-                echo "googletag.pubads().setTargeting('root_id','{$this->router->rootId}');";
-            }
+                if ($this->router->rootId) {
+                    echo "googletag.pubads().setTargeting('root_id','{$this->router->rootId}');";
+                }
             
-            if ($this->router->sectionId) {
-                echo "googletag.pubads().setTargeting('section_id','{$this->router->sectionId}');";
-            }
+                if ($this->router->sectionId) {
+                    echo "googletag.pubads().setTargeting('section_id','{$this->router->sectionId}');";
+                }
             
-            if ($this->router->purposeId) {
-                echo "googletag.pubads().setTargeting('purpose_id','{$this->router->purposeId}');";
-            }
-            else {
-                echo "googletag.pubads().setTargeting('purpose_id','999');";                
-            }
+                if ($this->router->purposeId) {
+                    echo "googletag.pubads().setTargeting('purpose_id','{$this->router->purposeId}');";
+                }
+                else {
+                    echo "googletag.pubads().setTargeting('purpose_id','999');";                
+                }
             
-            ?>googletag.pubads().enableSingleRequest();googletag.enableServices()});<?php
-        }
+                ?>googletag.pubads().enableSingleRequest();googletag.enableServices()});<?php
+            }
         
-        $module = $this->router->module;
-        if ($module=='search') {
-            if  ($this->router->userId) {
-                $module = 'user_page_'.$this->router->userId;
+            $module=$this->router->module;
+            if ($module==='search') {
+                if  ($this->router->userId) {
+                    $module='user_page_'.$this->router->userId;
+                }
+                elseif ($this->userFavorites) {
+                    $module='favorites';
+                }
+                elseif ($this->router->watchId) {
+                    $module='watchlist';
+                }
+                elseif($this->router->isPriceList) {
+                    $module='pricelist';
+                }
             }
-            elseif ($this->userFavorites) {
-                $module = 'favorites';
-            }
-            elseif ($this->router->watchId) {
-                $module = 'watchlist';
-            }
-            elseif($this->router->isPriceList) {
-                $module = 'pricelist';
-            }
-        }
-        //echo "</script>\n\n";
+            //echo "</script>\n\n";
+            
             ?>window.dataLayer = window.dataLayer || [];<?php
             ?>function gtag(){dataLayer.push(arguments);}<?php
             ?>gtag('js', new Date());<?php
@@ -3026,7 +3029,7 @@ class Page extends Site {
                 ?>'country': "<?php echo ($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri']:'Global';?>",<?php
                 ?>'city': "<?php echo ($this->router->cityId && isset($this->router->cities[$this->router->cityId]))?$this->router->cities[$this->router->cityId][3]:(($this->router->countryId && isset($this->router->countries[$this->router->countryId]))?$this->router->countries[$this->router->countryId]['uri'].'all cities':'Global');?>"<?php
             ?>});<?php
-        ?></script><?php           
+            ?></script><?php           
         }
         
         $module = $this->router->module;
@@ -3052,7 +3055,8 @@ class Page extends Site {
                 $CID = $data->cv;
             }
         }
-        
+
+/*        
         ?><script><?php 
             ?>window.dataLayer = window.dataLayer || [];<?php
             ?>window.dataLayer.push({'event' : 'dimension_event',<?php
@@ -3071,11 +3075,12 @@ new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
 j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-TT7694Q');</script><!-- End Google Tag Manager --><?php
-        //echo "\n";
+
+*/
         if ($this->router->config->get('enabled_ads') && \in_array($this->router->module,['search','detail', 'index'])) {
             ?><script data-ad-client="ca-pub-2427907534283641" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
         }
-        //echo "\n";
+
         /*
         //if (!$this->isMobile){
         ?><script type="text/javascript"> //<![CDATA[ 
@@ -4593,8 +4598,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     }
     
     
-    protected function _header() : void {        
+    protected function _header() : void {
         \header("Link: <".$this->router->config->cssURL."/1.0/mc.css>; rel=preload; as=style;", false);
+        if ($this instanceof UserPage) {
+            \header("Link: <".$this->router->config->cssURL."/1.0/user.css>; rel=preload; as=style;", false);
+        }
         switch ($this->router->module) {
             case 'myads':
                 \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.js>; rel=preload; as=script;", false);
@@ -4633,7 +4641,11 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';        
         echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/mc.css />';
-        ?><link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet"><?php
+        if ($this instanceof UserPage) {
+            echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/user.css />';
+        }
+        ?><link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" /><?php
+        ?><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" media="print" onload="this.media='all'" /><?php
         switch ($this->router->module) {
             case 'myads':
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.js></script><?php
@@ -4953,8 +4965,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         //echo PHP_EOL;
         
-        $this->inlineJS('util.js');
-        $this->inlineJS('search-box.js');        
+        $this->inlineJS('util.js')->inlineJS('search-box.js');        
         
         echo '</head>', "\n";
         flush();
@@ -4969,9 +4980,9 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             echo ' data-key="', $this->user->info['idKey'], '" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
         }
         echo ' data-repo="', $this->router->config->adImgURL, '">';
-        
+        /*
         ?><!-- Google Tag Manager (noscript) --><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TT7694Q" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><!-- End Google Tag Manager (noscript) --><?php
-        
+        */
         echo '<meta itemprop="isFamilyFriendly" content="true" />', "\n"; 
 
         //error_log('key '.$this->user->info['idKey']. ' decoded ' . $this->user()->decodeId($this->user->info['idKey']) . ' uid '.$this->user()->id());

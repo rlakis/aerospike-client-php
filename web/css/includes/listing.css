@@ -29,7 +29,10 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
     padding:0;
     margin:20px auto;
 }
-.pgn li{display:inline;}
+.pgn li{
+    display:inline;
+    text-align: center
+}
 .pgn > .active > a, .pgn > .active > a:focus, .pgn > .active > a:hover, .pgn > .active > span, .pgn > .active > span:focus, .pgn > .active > span:hover{
     z-index:2;
     color:#fff;
@@ -51,7 +54,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
     float:left;
     color:#8699a3;
     text-decoration:none;
-    text-align:center;
+    justify-content: center;
     font-weight:bold;
     font-size: 16px
 }
@@ -213,7 +216,12 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   border-radius: 4px;
   color: var(--mdc70);
   font-family: inherit;
-  font-size: 16px
+  font-size: 16px;
+  text-indent: 4px;
+}
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: var(--mdc40);
+  opacity: 1; /* Firefox */
 }
 .side .asrch .strg {
   font-size: 16px;
@@ -363,6 +371,7 @@ body[dir=rtl] .side .asrch .sort ul li .check {
 .oops.card {
   width: auto;
   min-width: 33%;
+  min-height: 400px;
   flex-grow: 0;
   margin: 32px auto 128px
 }

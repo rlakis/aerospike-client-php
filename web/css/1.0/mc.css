@@ -17,6 +17,7 @@
   --premium: #E3B788;
   --mlc: rgba(0,122,255,1);  
   --mdc: rgba(28,65,94,1);
+  --mlc90: rgba(0,122,255,.9);    
   --mdc02: rgba(28,65,94,.02);
   --mdc04: rgba(28,65,94,.04);
   --mdc08: rgba(28,65,94,.08);
@@ -46,7 +47,8 @@
   --mpu2F: invert(99%) sepia(65%) saturate(2147%) hue-rotate(76deg) brightness(85%) contrast(85%);
   --mpu3F: invert(34%) sepia(13%) saturate(3566%) hue-rotate(210deg) brightness(94%) contrast(94%);
   --mseImgFilter: invert(70%) sepia(65%) saturate(5500%) hue-rotate(199deg) brightness(105%) contrast(101%);
-  --mroFilter: invert(18%) sepia(95%) saturate(421%) hue-rotate(163deg) brightness(90%) contrast(89%);
+  /*--mroFilter: invert(18%) sepia(95%) saturate(421%) hue-rotate(163deg) brightness(90%) contrast(89%);*/
+  --mroFilter: invert(57%) sepia(7%) saturate(1090%) hue-rotate(163deg) brightness(93%) contrast(89%);
   --mseFilter: invert(55%) sepia(11%) saturate(758%) hue-rotate(141deg) brightness(87%) contrast(83%)
 }
 *,
@@ -85,15 +87,20 @@ li {
   line-height: 48px
 }
 
+a {
+    display: inline-flex;
+    align-items: center;
+}
 header {
   display: flex;
+  align-items: center;
   background-color: var(--mlc);
   color: #f9f9f9;
   padding: 0;
   text-align: center;
-  margin-bottom: 4px;
+  /*margin-bottom: 4px;*/
   font-size: .9em;
-  font-weight: 600!important
+  height: 60px;
 }
 
 footer {
@@ -229,7 +236,9 @@ footer .addr {
 .mlc-filter {
     filter: var(--mlcF)
 }
-
+.ifilter {
+    filter: var(--mseFilter);
+}
 .mb-16{
     margin-bottom: 16px;
 }
@@ -249,6 +258,10 @@ footer .addr {
     margin-top: 64px;
 }
 
+.pc{
+    display: none;
+}
+
 .icn {
     position: relative;
     display: inline-block;
@@ -256,6 +269,19 @@ footer .addr {
     height: 32px;
     margin: 0 3px
 }
+.ilogo {
+  margin-inline-start:18px;
+  height: 26px;
+  width: 110px;
+  display: inline-block;
+  background-image: url(/css/2020/1.0/assets/LogoMe.svg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  filter: invert(1)
+}
+
+
 .icn:before, .ilogo:before {
     content: "\00a0"
 }
@@ -324,28 +350,28 @@ footer .addr {
 
 .btn {
     font-family: inherit;
-  background-color: var(--mlc);
-  color: #fff;
-  display: inline-block;
-  padding: 6px 12px;
-  margin-bottom: 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.42857143;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  -ms-touch-action: manipulation;
-  touch-action: manipulation;
-  cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  background-image: none;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  box-shadow: 0 2px 2px 0 rgba(153,153,153,.14),0 3px 1px -2px rgba(153,153,153,.2),0 1px 5px 0 rgba(153,153,153,.12)
+    background-color: var(--mlc);
+    color: #fff;
+    /*display: inline-block;*/
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    box-shadow: 0 2px 2px 0 rgba(153,153,153,.14),0 3px 1px -2px rgba(153,153,153,.2),0 1px 5px 0 rgba(153,153,153,.12)
 }
 
 .btn.uc{
@@ -392,26 +418,47 @@ footer .addr {
   width: 22px!important
 }
 
+
 .search-box {
-  display: inherit;
-  background-color: #eff2f4
+  background-color: #eff2f4;
+  padding-bottom: 30px;
 }
 
 .search {
-  display: inline-flex;
-  width: 100%;
-  border: 1px solid rgba(0,122,255,.2);
-  border-radius: 5px;
-  max-width: 1024px;
-  margin: 36px 0
+    display: none;
 }
 .search form {
   width: 100%;
   display: inherit;
+  border: 1px solid rgba(0,122,255,.2);
+  border-radius: 5px;
   justify-content: space-between;
   align-self: flex-start;
   flex-direction: row
 }
+.search .roots{
+    margin-top: 8px;
+    height: 48px;
+}
+.search .roots a{
+    display: inline-flex;
+    width: 48px;
+    height: 48px;
+    border: 1px solid rgba(0,122,255,.2); /*var(--mdc40);*/
+    border-radius: 4px;
+    background: white;
+}
+
+.search .roots object {
+    filter:var(--mseFilter);
+    width: 48px;
+    padding: 6px;    
+}
+
+.search .roots a+a{
+    margin-inline-start:6px;
+}
+
 .searchTerm {
   width: 100%;
   border: none;
@@ -866,4 +913,29 @@ body[dir=rtl] .large .arrow {
     color: #1b1e21;
     background-color: #d6d8d9;
     border-color: #c6c8ca;
+}
+
+
+@media only screen and (min-width:769px) {
+    .pc{
+        display: inherit;
+    }
+
+    body[dir=ltr] .ilogo {
+        background-image: url(https://dev.mourjan.com/css/2020/1.0/assets/LogoV5e.svg)
+    }
+
+    body[dir=rtl] .ilogo {
+        background-image: url(https://dev.mourjan.com/css/2020/1.0/assets/LogoV5a.svg);
+        width: 308px
+    }
+
+    .search {    
+        display: inline-flex;
+        flex-grow:1;
+        flex-flow: column;
+        max-width: 1024px;
+        margin: 36px 0 6px;
+    }
+
 }

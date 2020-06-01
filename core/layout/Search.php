@@ -1212,7 +1212,7 @@ class Search extends Page {
             $pic=null;
             $this->appendLocation=true;
             
-            if (!($this->user()->level()===9||$this->user->info['id']==$ad->uid())) {
+            if (!($this->user()->level()===9||$this->user->id()==$ad->uid())) {
                 $this->stat['ad-imp'][]=$id;
             }
             
@@ -1240,11 +1240,10 @@ class Search extends Page {
             
             $isNewToUser=(isset($this->user->params['last_visit']) && $this->user->params['last_visit'] && $this->user->params['last_visit'] < $ad->epoch());            
             $textClass='en';
-            $liClass='';
             
-            if ($this->router->module==='detail' && $this->router->id==$ad->id()) {
-                $liClass.='on ';
-            }
+            //if ($this->router->module==='detail' && $this->router->id==$ad->id()) {
+            //    $liClass.='on ';
+            //}
 
             if ($ad->rtl()) { $textClass='ar'; }
             
@@ -1256,17 +1255,15 @@ class Search extends Page {
             if ($this->user()->isLoggedIn()) {
                 if ($this->userFavorites) {
                     $favLink="<span onclick='fv(this)' class='i fav on' title='".$this->lang['removeFav']."'></span>";
-                    $liClass.='fon ';
                 }
                 elseif ($this->user->favorites) {
                     if (in_array($ad->id(), $this->user->favorites)) {
                         $favLink="<span onclick='fv(this)' class='i fav on' title='".$this->lang['removeFav']."'></span>";
-                        $liClass.='fon ';
                     }
                 }
             }
             // onclick=oad(this)
-            ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><a href=<?=$ad->url()?>><?php
+            ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><a class=block href=<?=$ad->url()?>><?php
             ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id(). ' itemprop=itemListElement'.$itemScope?>><?php
             if ($ad->isFeatured()) {
                 echo '<img class=tag src="', $this->router->config->imgURL, '/prtag-en.svg" />';

@@ -11,6 +11,7 @@ use Sinergi\BrowserDetector\Browser;
 
 class User {
 
+    private array $uid_profiles_cache=[];
     var $session_id=null;
 
     public array $info=[];
@@ -300,6 +301,7 @@ class User {
         }
     }
     
+    
     function getUserByEmailAndProvider($email, $provider){
         $res = false;
         $email = trim($email);
@@ -307,6 +309,7 @@ class User {
         
         return $res;
     }
+    
     
     function id() : int {
         return $this->info['id'] ?? 0;
@@ -347,15 +350,28 @@ class User {
                 return $this->data;
             }
             
-            $this->data = new MCUser($this->id());
+            $this->data=new MCUser($this->id());
             $this->info['level'] = $this->data->getLevel();
             $this->info['verified'] = $this->data->isMobileVerified();
             $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());
+            $this->uid_profiles_cache[$this->id()]=$this->data;
             return $this->data;
         }
         
         return new MCUser();
     }
+    
+    
+    public function getProfileOfUID(int $uid) : MCUser {
+        if ($uid<=0) { $uid=$this->id(); }
+        if (isset($this->uid_profiles_cache[$uid])) {
+            return $this->uid_profiles_cache[$uid];
+        }
+        $profile=new MCUser($uid);
+        $this->uid_profiles_cache[$uid]=$profile;
+        return $profile;        
+    }
+    
     
     
     function getAdminFilters() : array {

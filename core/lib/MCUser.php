@@ -40,7 +40,7 @@ class MCJsonMapper {
 
 class MCUser extends MCJsonMapper {   
     public int $id = 0;
-    public string $pid;                  // Provider identifier
+    public string $pid;           // Provider identifier
     protected string $email;
     protected $prvdr;             // Provider
     protected $fn;                // Full name
@@ -48,7 +48,7 @@ class MCUser extends MCJsonMapper {
     protected $pu;                // Provider profile URL
     protected $rd;                // registration date
     protected $lvts;              // Last visit timestamp
-    protected int $lvl;               // User level --> 0: normal, 4: warned, 5: blocked, 6: publisher, 9: administrator
+    protected int $lvl;           // User level --> 0: normal, 4: warned, 5: blocked, 6: publisher, 9: administrator
     protected $name;              // User name
     protected $um;                // User mail
     protected $up;                // User Password
@@ -58,11 +58,11 @@ class MCUser extends MCJsonMapper {
     protected $lrts;              // last ad renew timestamp
     protected float $balance;
     
-    protected MCUserOptions $opts;              // MCUserOptions    
-    protected MCMobile $mobile;            // MCMobile
-    protected array $dependants = [];   // Related user ids
-    protected $devices = false;   // MCDevice ArrayList;
-    protected $prps;              // MCPropSpace
+    protected MCUserOptions $opts;  // MCUserOptions    
+    protected MCMobile $mobile;     // MCMobile
+    protected array $dependants=[]; // Related user ids
+    protected $devices = false;     // MCDevice ArrayList;
+    protected $prps;                // MCPropSpace
     protected $xmpp = 0;
      
     private $jwt = ['token'=>false, 'secret'=>false]; //, 'claim'=>[]];
@@ -70,14 +70,14 @@ class MCUser extends MCJsonMapper {
     public ?MCDevice $device = null; // used to deal with current logged in device
     
     function __construct($source_data=false) {
-        $this->metadata = ['devices'=>'MCDevice'];
-        $this->opts = new MCUserOptions();
-        $this->mobile = new MCMobile();
+        $this->metadata=['devices'=>'MCDevice'];
+        $this->opts=new MCUserOptions;
+        $this->mobile=new MCMobile;
 
         if ($source_data!==FALSE) {
             if (\is_numeric($source_data)) {
                 $this->parseArray(NoSQL::instance()->fetchUser($source_data));
-            }         
+            }
             else if (\is_string($source_data) && $source_data) {
                 if ($source_data[0]=='{') {
                     $this->set($source_data);
@@ -93,18 +93,18 @@ class MCUser extends MCJsonMapper {
             }
         
             if (!($this->opts instanceof MCUserOptions)) {
-                $this->opts = new MCUserOptions();
+                $this->opts = new MCUserOptions;
             }
         }
     }
     
 
     public static function getByUUID(string $uuid) : MCUser {
-        $result = new MCUser();
+        $result=new MCUser;
         if (NoSQL::instance()->fetchUserByUUID($uuid, $bins)==NoSQL::OK) {            
             $result->parseArray($bins);
             if (!($result->opts instanceof MCUserOptions)) {
-                $result->opts = new MCUserOptions();
+                $result->opts=new MCUserOptions;
             }
             $result->getMobile();
         }
@@ -145,7 +145,7 @@ class MCUser extends MCJsonMapper {
 
             $this->opts->parseAssoc($record[ASD\USER_OPTIONS] ?? []);
 
-            $this->mobile = new MCMobile();
+            $this->mobile=new MCMobile;
 
             $uuid = '';
             if (isset($record['logged_by_device'])) {
@@ -162,10 +162,10 @@ class MCUser extends MCJsonMapper {
                 }
             }
         
-            $this->jwt['token'] = $record['jwt']['token'] ?? FALSE;
-            $this->jwt['secret'] = $record['jwt']['secret'] ?? FALSE;
+            $this->jwt['token']=$record['jwt']['token'] ?? FALSE;
+            $this->jwt['secret']=$record['jwt']['secret'] ?? FALSE;
 
-            $this->xmpp = $record[ASD\USER_XMPP_CREATED] ?? 0;
+            $this->xmpp=$record[ASD\USER_XMPP_CREATED] ?? 0;
         }
     }   
     

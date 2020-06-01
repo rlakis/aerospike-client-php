@@ -48,9 +48,10 @@ if (!isset($argc)) {
     
     $router->close();
     
-    
+    /*
     $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
     $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);    
+    
     if ($contentType!=='application/json' && \strpos($requestURI, 'ajax-')==false) {
         $data=tideways_xhprof_disable();
         $XHPROF_ROOT= realpath(dirname(__FILE__).'/web/xhprof');
@@ -61,5 +62,5 @@ if (!isset($argc)) {
 
         $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
         echo '<p style="background-color:var(--mlc);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a rel=noopener style="color:white;" target=_blank href="', "https://h1.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
-    }
+    }*/
 }

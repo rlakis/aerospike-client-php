@@ -52,7 +52,7 @@ class Home extends Page {
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        ?><section class=search-box style="margin-bottom:8px;box-shadow:0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
+        ?><section class="search-box flex" style="margin-bottom:8px;box-shadow:0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
         $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
@@ -165,7 +165,8 @@ class Home extends Page {
     
     
     public function mostPopular() : void {
-        ?><div class="row viewable" style="margin-bottom:40px"><div class=col-12><div class="card format1"><header class="plain"><h4><?=$this->lang['active_sections']?></h4></header><?php
+        if (1) return;
+        ?><div class="row viewable pc" style="margin-bottom:40px"><div class=col-12><div class="card format1"><header class="plain"><h4><?=$this->lang['active_sections']?></h4></header><?php
         ?><div class="card-content"><?php
         $sections=[];
         $labels=[];
@@ -288,14 +289,13 @@ class Home extends Page {
                 }
                 */
                 $i=0;
-                echo '<div style="max-height:310px;" class=col-12>';
+                ?><div class="col-12 wse"><?php
                 foreach ($record as $f) {
                     $this->sectionWidget($f['se'], $f['pu']);
                     $i++;
                     if ($i>3) { break; }
                 }
-                echo '</div>';
-                ?></div></div></div><?php
+                ?></div></div></div></div><?php
             }
         }
     }
@@ -310,11 +310,11 @@ class Home extends Page {
          $q.=' order by r desc limit 5';
          $rs=$this->router->db->ql->search($q);
          if ($rs['total_found']>0) {
-             echo '<div class=col-12>';
-             foreach ($rs['matches'] as $row) {
+            ?><div class="col-12 wad"><?php
+            foreach ($rs['matches'] as $row) {
                 $this->adWidget($row['id']);
             }
-            echo '</div>';
+            ?></div><?php
          }
         ?></div></div></div><?php
     }
@@ -329,11 +329,11 @@ class Home extends Page {
          $q.=' order by date_added desc limit 5';
          $rs=$this->router->db->ql->search($q);
          if ($rs['total_found']>0) {
-             echo '<div class=col-12>';
-             foreach ($rs['matches'] as $row) {
+            ?><div class="col-12 wad"><?php
+            foreach ($rs['matches'] as $row) {
                 $this->adWidget($row['id']);
             }
-            echo '</div>';
+            ?></div><?php
          }
          ?></div></div></div><?php
         

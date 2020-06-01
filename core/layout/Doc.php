@@ -609,7 +609,7 @@ class Doc extends Page{
         ?></div></li><?php
         
         
-        ?><li><a href="javascript:chapter(2)"><?=$rtl?'كيفية الشراء':'How to buy it'?><span class=disclosure>›</span></a><?php
+        ?><li id="how-to"><a href="javascript:chapter(2)"><?=$rtl?'كيفية الشراء':'How to buy it'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter2><?php
         ?><h4 class=mb-16>A) Using your credit card</h4><?php
         ?><p><span class=fw-500>mourjan <span style="color:var(--premium)">PREMIUM DAYS</span></span> can be purchased directly using your credit card. Choose the card that is best suitable for you or keep on reading to find out other payment options.</p><?php

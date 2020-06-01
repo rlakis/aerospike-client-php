@@ -35,17 +35,22 @@ const wording={
 const lg=$$.dir==='rtl'?'a':'e';
 Element.prototype.article=function(){ let i=this; return i.closest('article'); };
 
+oload=function(e) {
+    let svg=e.contentDocument.querySelector('svg');
+    svg.setAttributeNS(null, 'stroke-width', '2px');
+}
+
 $.addEventListener("DOMContentLoaded", function () {
     var lazyloadImages;
     var delImage=function(){
         var answer = window.confirm(d.ar ? "هل انت اكيد من حذف هذه الصورة من الاعلان؟" : "Do you really want to remove this picture?");
         if (answer) {
-            let aa=this.article();
-            fetch('/ajax-changepu/?img=1&i=' +aa.id + '&pix=' + this.parentElement.query('img').dataset.path, {method: 'GET', mode: 'same-origin', credentials: 'same-origin', headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}})
+            let adw=this.article();
+            fetch('/ajax-changepu/?img=1&i=' +adw.id + '&pix=' + this.parentElement.query('img').dataset.path, {method: 'GET', mode: 'same-origin', credentials: 'same-origin', headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}})
                 .then(response => { return response.json(); })
                 .then(data => {                    
-                    if(aa){
-                        let holder = aa.query('p.pimgs'); 
+                    if (adw) {
+                        let holder = adw.query('.photos'); 
                         if (holder && data.success===1) {
                             this.parentElement.remove();
                             if (holder.childNodes.length===0) {
@@ -63,7 +68,7 @@ $.addEventListener("DOMContentLoaded", function () {
         img.onclick = function () {
             d.slideView(this);
         };                    
-        var del = createElem('div', 'del', '<i class="icn icnsmall icn-minus-circle"></i>', 1);
+        var del = createElem('div', 'delpix', '-', 1);        
         del.onclick = delImage;
         img.closest('span').append(del);
     };
@@ -391,7 +396,6 @@ var d = {
        h4.style.setProperty('text-align', 'start');
        h4.style.setProperty('margin-bottom', '0');
        combo.appendChild(h4);
-       console.log(aa.id);
        fetch('/ajax-balance/?u='+aa.dataset.uid, {method: 'GET', mode: 'same-origin', credentials: 'same-origin'})
                .then(res => res.json())
                .then(response => {
@@ -497,7 +501,7 @@ var d = {
         }
         if (moveTo) { moveTo.append(form); }
         return {'form': form, 'select': select, 'text': text, 'ok': ok,
-            'show': function () {form.style.display='block';},
+            'show': function () {form.style.display='flex';},
             'hide': function () {form.style.display='none';}
         };
     },
@@ -831,7 +835,7 @@ var d = {
                         let rbt=document.getElementById('refreshChart');
                         if(rbt){
                             rbt.style.display='inline';
-                            rbt.style.top=(canvas.offsetTop+8)+"px";
+                            rbt.style.top=(canvas.offsetTop+1)+"px";
                             rbt.style.left=(canvas.offsetLeft+canvas.offsetWidth-68)+"px";
                         }
                     }
@@ -854,11 +858,7 @@ var d = {
     slideView: function (img) {
         let i=0, n=0;
         let p=img.parentElement;
-        img.closest('p.pimgs').childNodes.forEach(function(s){i++;if(s===p)n=i;});
-        //img.parentElement.parentElement.childNodes.forEach(function(spx){
-        //    i++;
-        //    if(spx===p){ n=i; }
-        //});
+        img.closest('.photos').childNodes.forEach(function(s){i++;if(s===p)n=i;});
         this.slides = new SlideShow(d.items[img.article().id]/* new Ad(img.parentElement.parentElement.parentElement.id)*/, n);
     },
     
@@ -1187,7 +1187,7 @@ class Ad {
             this._message = this._header.query('.msg');
             this.dataset = this.node.dataset;
             this.mediaCount = 0;
-            var wrp = this.node.query('p.pimgs');
+            var wrp = this.node.query('.photos');
             if (wrp) {
                 this.pixSpans = wrp.queryAll('span');
                 if (this.pixSpans && this.pixSpans.length) {
@@ -1275,11 +1275,12 @@ class Ad {
     
     unsetAs(c) {
         this.node.classList.remove(c);
+        return this;
     }
     
     rejected(t) {
         if (this.getStatus()<7) {
-            this.unsetAs('approved');
+            this.unsetAs('approved').unsetAs('warn');
             this.setAs('rejected');
             this.setMessage(t);
             this.node.dataset.status = 3;
@@ -1288,7 +1289,7 @@ class Ad {
     
     approved() {
         if (this.getStatus()<7) {
-            this.unsetAs('rejected');
+            this.unsetAs('rejected').unsetAs('warn');
             this.setAs('approved');
             this.node.dataset.status = 2;
         }
@@ -1538,7 +1539,7 @@ const reqSIO = async () => {
                         } else {
                             link = '/myads/' + (d.ar ? '' : 'en/') + '#' + ad.id;
                         }
-                        t = d.ar ? 'الإعلان أصبح فعالاً، <a href="' + link + '">انقر(ي) هنا</a> لتفقد الإعلانات الفعالة' : 'Ad is online now, <a href="' + link + '">click here</a> to view Active Ads';
+                        t = d.ar ? 'الإعلان أصبح فعالاً، &nbsp;<a href="' + link + '">انقر(ي) هنا</a> لتفقد الإعلانات الفعالة' : 'Ad is online now,&nbsp;<a href="' + link + '">click here</a>&nbsp;to view Active Ads';
                         ad.maskText(t);
                         break;
                 }

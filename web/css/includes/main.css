@@ -110,11 +110,11 @@ i.iborder {
   display: inherit;
   width: 100%;
   padding: 4px 0;
-  float: left
 }
+/*
 body[dir=rtl] [class*=col-] {
   float: right
-}
+}*/
 .hot {
   color: #f33!important
 }
@@ -218,41 +218,37 @@ li > i {
 .fill-si {
   filter: invert(60%) sepia(13%) saturate(394%) hue-rotate(156deg) brightness(97%) contrast(86%)
 }
-.icn.ro {
-  width: 72px;
-  height: 72px
-}
 .icn.ro.i1 {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/1.svg) no-repeat center
+  background: url(/css/2020/1.0/assets/1.svg) no-repeat center/contain
 }
 .icn.ro.i2 {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/2.svg) no-repeat center;
-  width: 104px
+  background: url(/css/2020/1.0/assets/2.svg) no-repeat center/contain
 }
 .icn.ro.i3 {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/3.svg) no-repeat center
+  background: url(/css/2020/1.0/assets/3.svg) no-repeat center/contain
 }
 .icn.ro.i4 {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/4.svg) no-repeat center
+  background: url(/css/2020/1.0/assets/4.svg) no-repeat center/contain
 }
 .icn.ro.i99 {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/99.svg) no-repeat center
+  background: url(/css/2020/1.0/assets/99.svg) no-repeat center/contain
 }
+
 .icn-bars {
   background-color: #fff;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/bars.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/bars.svg) no-repeat 50% 50%
 }
 .icn-search {
   background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/search.svg) no-repeat center
 }
 .icn-bars {
-  background: url(https://h1.mourjan.com/web/css/1.0/fa/duotone/bars.svg) no-repeat center
+  background: url(/css/2020/1.0/fa/duotone/bars.svg) no-repeat center
 }
 .icn-bell {
   background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/bell.svg) no-repeat center
 }
 .icn-user {
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/user.svg) no-repeat center
+  background: url(https://dev.mourjan.com/css/2020/1.0/assets/user.svg) no-repeat center
 }
 .icn-language {
   background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/globe.svg) no-repeat center
@@ -266,7 +262,7 @@ li > i {
 }
 .icn-emblem {
   filter: invert(0)!important;
-  background: url(https://h1.mourjan.com/web/css/1.0/assets/LogoV5.svg) no-repeat 4px
+  background: url(/css/2020/1.0/assets/LogoV5.svg) no-repeat 4px
 }
 .icn-map-marker {
   background-color: #3cb371;
@@ -274,57 +270,57 @@ li > i {
 }
 .icn-rss {
   background-color: orange!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/rss.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/rss.svg) no-repeat 50% 50%
 }
 .icn-camera {
   background: url(https://dev.mourjan.com/css/2020/1.0/assets/cam.svg) no-repeat 50% 50%
 }
 .icn-angle-left {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/angle-left.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/angle-left.svg) no-repeat 50% 50%
 }
 .icn-angle-right {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/angle-right.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/angle-right.svg) no-repeat 50% 50%
 }
 .icn-angle-down {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/angle-down.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/angle-down.svg) no-repeat 50% 50%
 }
 .icn-chevron-left {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/chevron-left.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/chevron-left.svg) no-repeat 50% 50%
 }
 .icn-chevron-right {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/regular/chevron-right.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/chevron-right.svg) no-repeat 50% 50%
 }
 .icn-whatsapp {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/brands/whatsapp.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/brands/whatsapp.svg) no-repeat 50% 50%
 }
 .icn-phone {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/solid/phone.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/solid/phone.svg) no-repeat 50% 50%
 }
 .icn-email {
   background-color: #fff!important;
-  -webkit-mask: url(https://h1.mourjan.com/web/css/1.0/fa/solid/envelope.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/solid/envelope.svg) no-repeat 50% 50%
 }
 .icn-coin {
-  background: url(https://h1.mourjan.com/web/css/1.0/assets/coin.svg) no-repeat 50% 50%;
+  background: url(/css/2020/1.0/assets/coin.svg) no-repeat 50% 50%;
   background-size: contain
 }
 .icn-ban {
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/ban.svg) no-repeat 50% 50%/contain;
+  background: url(/css/2020/1.0/fa/solid/ban.svg) no-repeat 50% 50%/contain;
   filter: invert(37%) sepia(96%) saturate(7088%) hue-rotate(354deg) brightness(95%) contrast(124%)
 }
 .icn-alert {
-  background: url(https://h1.mourjan.com/web/css/1.0/fa/regular/exclamation-triangle.svg) no-repeat 50% 50%/contain;
+  background: url(/css/2020/1.0/fa/regular/exclamation-triangle.svg) no-repeat 50% 50%/contain;
   filter: invert(73%) sepia(84%) saturate(899%) hue-rotate(358deg) brightness(106%) contrast(105%)
 }
 .icn-thumbs-up {
-  background: url(https://h1.mourjan.com/web/css/1.0/fa/regular/thumbs-up.svg) no-repeat 50% 50%/contain;
+  background: url(/css/2020/1.0/fa/regular/thumbs-up.svg) no-repeat 50% 50%/contain;
   filter: invert(51%) sepia(86%) saturate(420%) hue-rotate(82deg) brightness(86%) contrast(87%)
 }
 body[dir=rtl] .icntop {
@@ -353,22 +349,11 @@ body[dir=rtl] .icntop {
   color: #fff
 }
 */
-.ilogo {
-  margin: 9px 18px;
-  height: 72px;
-  width: 72px;
-  display: inline-block;
-  background-image: url(https://dev.mourjan.com/css/2020/1.0/assets/LogoV5.svg);
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  filter: invert(1)
-}
 .card {
   display: inline-flex;
   flex: 1 auto;
   flex-flow: column;
-  width: 100%;
+  /*width: 100%;*/
   margin: 25px 0;
   box-shadow: 0 1px 4px 0 rgba(0,0,0,.14);
   border-radius: 6px;
@@ -1291,13 +1276,7 @@ body[dir=rtl] .slogan {
     height: 68px
   }
     
-  body[dir=ltr] .ilogo {
-    background-image: url(https://dev.mourjan.com/css/2020/1.0/assets/LogoV5e.svg)
-  }
-  body[dir=rtl] .ilogo {
-    background-image: url(https://dev.mourjan.com/css/2020/1.0/assets/LogoV5a.svg);
-    width: 308px
-  }
+  
 }
 
 @media only screen and (min-width:1920px) {
