@@ -108,7 +108,8 @@ class Home extends Page {
                 ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($sections)?>' onclick="rootWidget(this);"><?php
                 ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php
                 ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
-                ?><div class=bar></div></div><?php 
+                /*?><div class=bar></div></div><?php*/
+                ?></div><?php
             }
             ?></div><div id=rs class="col-12 lrs"></div><?php
         }
@@ -329,7 +330,7 @@ class Home extends Page {
          $q.=' order by date_added desc limit 5';
          $rs=$this->router->db->ql->search($q);
          if ($rs['total_found']>0) {
-            ?><div class="col-12 wad"><?php
+            ?><div class="col-12 wad mb-32"><?php
             foreach ($rs['matches'] as $row) {
                 $this->adWidget($row['id']);
             }

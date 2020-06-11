@@ -1628,7 +1628,7 @@ class Page extends Site {
         }
         $slogan=$this->router->isArabic()?'كل ما كنت تبحث عنه':'EVERYTHING YOU\'VE BEEN LOOKING FOR';
         
-        ?><div class="row top-header"><div class="viewable full-height ff-cols"><?php
+        ?><div class="pc row top-header"><div class="viewable full-height ff-cols"><?php
         ?><ul><?php
         if ($this->router->countryId>0 && isset($this->router->countries[$this->router->countryId])) {
             ?><li><a id=regions href="javascript:regionWidget()" data-regions='<?=\json_encode($this->supportedCountries())?>'><?php
@@ -1657,7 +1657,10 @@ class Page extends Site {
         
         ?><header><div class="viewable ff-rows full-height sp-between"><?php  
         ?><div><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div><?php
-        ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a><?php
+        ?><div><?php
+        ?><a href="#"><i class="icn magnifier i20 invert"></i></a><?php
+        ?><a href="#"><i class="icn burger i20 invert"></i></a><?php
+        ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div><?php
         ?></div></header><?php
 
         //\error_log('page uri ' .$this->getPageUri() . '  vs  ' . $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:''));
@@ -1703,8 +1706,11 @@ class Page extends Site {
         ?></form><?php
         if ($this->router->module!=='index') {
             ?><div class=roots><?php
-            foreach ($this->router->roots as $root) {
+            foreach ($this->router->roots as $root) {                
+                ?><a href="#"><img src="<?=$this->router->config->cssURL.'/1.0/assets/'.$root[\Core\Data\Schema::BIN_ID].'.svg'?>"></a><?php
+                /*
                 ?><a href="#"><object onload="this.contentDocument.querySelector('svg').setAttributeNS(null, 'stroke-width', '2px');" data="<?=$this->router->config->cssURL.'/1.0/assets/'.$root[\Core\Data\Schema::BIN_ID].'.svg'?>"></object></a><?php
+                 */
             }
             ?></div><?php
         }
@@ -2770,7 +2776,7 @@ class Page extends Site {
         
         // premuim promotion
         if ($this->user->isLoggedIn() && $this->router->module!=='myads') {
-            ?><div class=row><div class="premium-banner pc"><?php
+            ?><div class="pc row"><div class=premium-banner><?php
                 ?><a href=<?=$this->router->getLanguagePath('/gold/')?>><img src="<?=$this->router->config->imgURL?>/premium-<?=$this->router->language?>-v1.svg" width=284 /></a><?php
                 ?><span class=vbar></span><?php
                 ?><div><span><?=$this->lang['go_premium']?>!</span><span><?=$this->lang['gold_note']?>.<a href=<?=$this->router->getLanguagePath('/gold/')?>><?=$this->lang['learn_more']?></a></span><?php
@@ -2790,7 +2796,15 @@ class Page extends Site {
         
         echo '</main>';
         
-        ?><footer class="row ha-center pc"><div class="viewable ff-rows"><?php
+        ?><footer class=ha-center><?php
+        ?><nav><?php
+        ?><a href="#"><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
+        ?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php            
+        ?><a href="#"><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
+        ?><a href="#"><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            
+        ?><a href="#"><div><img src="/css/2020/1.0/assets/msettings.svg" />Settings</div></a><?php            
+        ?></nav><?php
+        ?><div class="viewable ff-rows"><div class=row><?php
         ?><div class="col-4 ff-cols"><?php
         ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200 /><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
@@ -2844,6 +2858,8 @@ class Page extends Site {
          * 
          */
         ?></ul></div></div><?php
+        
+        ?></div><?php
             
         /*
         if ($this->router->module==='index') {
@@ -4557,6 +4573,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if (!isset($this->included[$filename])) {
             $cssfile=$this->router->config->cssDir.'/includes/'.$filename.'.css';
             if (\file_exists($cssfile)) {
+               
                 /*
                 $mincss=$this->router->config->cssDir.'/includes/min/'.$filename.'.css';
                 
@@ -4581,6 +4598,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if (!isset($this->included[$filename])) {
             $jsfile=$this->router->config->jsDir.'/includes/'.$filename;
             if (\file_exists($jsfile)) {
+                 \error_log($jsfile.PHP_EOL);
                 /*
                 $minjs=$this->router->config->baseDir.'/web/js/includes/min/'.$filename;
                 if (!\file_exists($minjs) || (\file_exists($minjs) && (\filemtime($jsfile)>\filemtime($minjs)))) {
@@ -5540,12 +5558,12 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
     
     function _body() : void {
-        echo '<div id=wrapper class=wrapper>', "\n";
+        //echo '<div id=wrapper class=wrapper>', "\n";
         $this->top();
         $this->body();
         $this->footer();
-        echo '</div></body>';        
-        echo '</html>';
+        //echo '</div></body></html>';        
+        echo '</body></html>';
         if (1) { return; }
         /*--------------------------- Old Code ---------------------------*/
         

@@ -245,7 +245,8 @@ class Admin extends Page {
         }
 
         $this->render();
-        $this->inlineJS('util.js')->inlineJS('admin.js');
+        //$this->inlineJS('util.js')->inlineJS('admin.js');
+        
     }
 
     
@@ -443,6 +444,7 @@ class Admin extends Page {
                 $this->renderUserAdminPanel();
                 break;
         }
+        $this->inlineJS('admin.js');
     }
     
     function renderSynonymPanel(){

@@ -180,8 +180,7 @@ var d = {
     count: (typeof $$.queryAll("article")==='object') ? $$.queryAll("article").length : 0,
     isAdmin: function () { return this.level>=9; },
     setId: function (kId) {
-        console.log('setId', kId, typeof this.items[kId]);
-        
+        //console.log('setId', kId, typeof this.items[kId]);        
         if(this.ad) this.ad.unselect();
         this.currentId=kId;
         this.ad=this.items[kId];
@@ -380,7 +379,7 @@ var d = {
        aa.query('div.user').remove();
        aa.query('div.note').query('b').remove();
        aa.query('div.note').style.setProperty('font-size', '12px');
-       aa.queryAll('section').forEach( section => { section.query('img').remove() } );
+       aa.queryAll('div.adbody').forEach( section => { section.query('img').remove() } );
        aa.query('header').remove();
        aa.query('footer').remove();
        aa.queryAll('img').forEach(img=>{img.style.setProperty('max-height', '150px')});

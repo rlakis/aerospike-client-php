@@ -343,35 +343,41 @@ class MyAds extends UserPage {
             
             if ($state===1) {
                 $baseUrl=$this->router->getLanguagePath('/myads/');
-                ?><div id=filters><form action="<?=$baseUrl?>" method=GET class=account><input type=hidden name=sub value=pending /><?php
+                ?><div id=filters><form action="<?=$baseUrl?>" method=GET class=account><?php
+                ?><input type=hidden name=sub value=pending /><?php
                 if ($filters['uid']) {
                     echo '<input type=hidden name=fuid value="', $filters['uid'], ' />', $this->router->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
                 }
                 
-                echo '<select name=fhl onchange="this.form.submit()">';
+                if ($filters['active']) {
+                    ?><select name=fh onchange="this.form.submit()"></select><?php
+                }
+                
+                
+                ?><select name=fhl onchange="this.form.submit()"><?php
                 echo '<option value=0', $filters['lang']==0?' selected':'', '>', $this->lang['lg_sorting_0'],'</option>';
                 echo '<option value=1', $filters['lang']==1?' selected':'', '>العربي فقط</option>';
                 echo '<option value=2', $filters['lang']==2?' selected':'', '>الانجليزي فقط</option>';
-                echo '</select>';
+                ?></select><?php
 
-                echo '<select name=fro onchange="this.form.submit()">';
+                ?><select name=fro onchange="this.form.submit()"><?php
                 echo '<option value=0', $filters['root']==0 ? ' selected':'', '>', $this->lang['opt_all_sections'], '</option>';
                 foreach ($this->router->pageRoots as $id=>$root) {
                     echo '<option value=', $id, $filters['root']==$id ? ' selected':'', '>', $root['name'], '</option>';
                 }
-                echo '</select>';
+                ?></select><?php
                 
                 if ($filters['root']==3){
-                    echo '<select name=fpu onchange="this.form.submit()">';
+                    ?><select name=fpu onchange="this.form.submit()"><?php
                     echo '<option value=0', $filters['purpose']==0?' selected':'', '>', $this->lang['opt_all_sections'], '</option>';
                     foreach ($this->router->pageRoots[3]['purposes'] as $id=>$purpose) {
                         echo '<option value=', $id, $filters['purpose']==$id?' selected>':'>', $purpose['name'], '</option>';
                     }
-                    echo '</select>';
+                    ?></select><?php
                 }
                 
                 if ($filters['active']) {
-                    echo '<input type=reset onclick="location.href=\'', $baseUrl, '?sub=pending\'" value="', $this->lang['search_cancel'], '" />';
+                    ?><input style="width:50%;margin-top:8px;border: 1px solid var(--mdc12);border-radius:4px;font-size:15px;color:var(--mdc80)" type=reset onclick="location.href='<?=$baseUrl?>?sub=pending'" value="<?=$this->lang['search_cancel']?>" /><?php
                 }
                 ?></form></div><?php
             }

@@ -62,7 +62,9 @@ ul{list-style-type:none;list-style-position:inside;}
 .navbar{border-color:inherit;color:inherit;padding:0;margin:0;height:40px;font-size:14px;line-height:1.428571429;}
 .navbar:before{display:table;content:" ";}
 .navbar{border-top:none;box-shadow:none;margin:0;}
+/*
 .ilogo{margin:9px 18px;height:72px;width:72px;display:inline-block;background-image:url(https://h1.mourjan.com/web/css/1.0/assets/LogoV5.svg);background-position:center;background-repeat:no-repeat;background-size:cover;}
+*/
 .card{display:inline-block;width:100%;margin:25px 0;box-shadow:0 1px 4px 0 rgba(0,0,0,0.14);border-radius:6px;color:rgba(0,0,0,0.87);background:#fff;}
 .card-header{display:inline-block;position:absolute;height:62px;margin:-20px 14px 0 14px;padding:12px;box-shadow:0 4px 20px 0 rgba(0,0,0,0.14),0 7px 10px -5px rgba(255,152,0,0.4);border-radius:inherit;}
 .card .card-header{z-index:3;}

@@ -147,6 +147,7 @@ class PageSide {
             $b.='<span class="alert alert-warning" style="align-self:center;width:auto"><span class="wait"></span>'.$hours.'</span>';
         }
         
+        
         if ($this->page->uid>0 && $this->page->uid!==$this->page->user->id() && $this->page->user->level()===9) {
             $b.="<span id=filters class='alert w100'>{$this->page->lang['user_type_label']}&nbsp;<select onchange=\"d.setUserType(this,{$this->page->uid})\">";
             $b.="<option value=0>{$this->page->lang['user_type_option_0']}</option>";

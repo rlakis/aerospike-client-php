@@ -3,6 +3,7 @@ Config::instance()->incLayoutFile('Page');
 
 use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
+use Core\Lib\SphinxAPI;
 
 class Search extends Page {    
 
@@ -1604,28 +1605,28 @@ class Search extends Page {
                         echo $this->summarizeSearch();                    
                     }
                     $this->renderSideSections();
-                    echo '<div class="no">';
+                    ?><div class="no"><?php
                     if ($this->router->params['q']) {
                         echo $this->lang['noPartnerQAds'];                    
                     }
                     else {
                         echo $this->lang['noPartnerAds'];                    
                     }
-                    echo '</div>';
-                }
-                elseif ($this->userFavorites) {
-                    echo $this->summarizeSearch();
-                } 
+                    ?></div><?php
+            }
+            elseif ($this->userFavorites) {               
+                echo $this->summarizeSearch();
+            } 
             else {                            
                 if ($this->searchResults['body']['total_found']==0) {
                     echo $this->summarizeSearch();
                 }
-                $purposeId = $this->router->purposeId;
-                $sectionId = $this->router->sectionId;
-                $rootId = $this->router->rootId;
-                $q = $this->router->params['q'];
-                $extendedId = $this->extendedId;
-                $localityId = $this->localityId;
+                $purposeId=$this->router->purposeId;
+                $sectionId=$this->router->sectionId;
+                $rootId=$this->router->rootId;
+                $q=$this->router->params['q'];
+                $extendedId=$this->extendedId;
+                $localityId=$this->localityId;
 
                 $this->alternate_search($keywords);
                                                         
@@ -1634,15 +1635,15 @@ class Search extends Page {
                 $this->router->rootId = $rootId;
                 $this->router->params['q'] = $q;
                 $this->extendedId=  $extendedId;
-                $this->localityId=$localityId;
+                $this->localityId=$localityId;                
             }
         }
         
         
         if ($this->router->watchId && $this->searchResults!==false) {
-            $cSec = count($this->watchInfo);
+            $cSec=\count($this->watchInfo);
             if ($cSec) {
-                $lang = $this->router->language == 'ar' ? '' : 'en/';
+                $lang=$this->router->language==='ar'?'':'en/';
                 $isOwner = $this->user->info['id'] == $this->router->watchId;
                 $idKey = $this->user->encodeId($this->pageUserId);
                 ?><ul id="watchbox" class='seli h sh rct<?= $this->searchResults['body']['total_found']>10 ?' selip':'' ?>'><?php
@@ -1744,7 +1745,9 @@ class Search extends Page {
                     ?></p><?php
             }
         }
-        ?></div></div><?php 
+        if ($hasResults) {
+            ?></div></div><?php
+        }
         ?></div><?php 
         
         if ($this->searchResults['body']['total_found']) {
@@ -2170,34 +2173,34 @@ class Search extends Page {
         $adLang='';
         if (!$this->router->isArabic()) { $adLang=$this->router->language.'/'; }
         if ($this->router->watchId) {
-            $hasShare = $this->router->cfg['enabled_sharing'] && $this->router->module == 'search' && $count;
-            $formatted = number_format($count);
+            $hasShare=$this->router->cfg['enabled_sharing'] && $this->router->module==='search' && $count>0;
+            $formatted=\number_format($count);
             $bread='';
             if ($this->channelId && $this->watchName) {
                 $idKey=$this->user->encodeId($this->pageUserId);
                 $bread.='<div class="brd">';
-                $bread.='<a href="/watchlist/?u='.$idKey.'">' . $this->lang['myList'] . '</a>';
-                $bread.= '<a class="i rss" target="_blank" href="/watchlist/?u='.$idKey.'&channel='.$this->channelId.'&rss=1" id="rss-link"></a>';
-                $bread.='<b>' . $this->watchName . '</b>';
-                $bread .= '</div>';
+                $bread.='<a href="/watchlist/?u='.$idKey.'">'.$this->lang['myList'].'</a>';
+                $bread.='<a class="i rss" target="_blank" href="/watchlist/?u='.$idKey.'&channel='.$this->channelId.'&rss=1" id="rss-link"></a>';
+                $bread.='<b>'.$this->watchName.'</b>';
+                $bread.='</div>';
             }
             else {
                 $idKey=$this->user->encodeId($this->pageUserId);
-                $bread.='<div class="brd">';
-                $bread.= '<a class="i rss" target="_blank" href="/watchlist/?u='.$idKey.'&rss=1" id="rss-link"></a>';
-                $bread.='<b>' . $this->lang['myList'] . '</b>';
-                $bread .= '</div>';
+                $bread.='<div class=brd>';
+                $bread.='<a class="i rss" target="_blank" href="/watchlist/?u='.$idKey.'&rss=1" id="rss-link"></a>';
+                $bread.='<b>'.$this->lang['myList'].'</b>';
+                $bread.='</div>';
             }
-            $bread.= "<p class='ph'>";
+            $bread.='<p class=ph>';
             if ($this->router->isArabic()) {
                 if ($count > 10) {
-                    $bread.= $formatted . " " . $this->lang['ads'];
+                    $bread.=$formatted.' '.$this->lang['ads'];
                 } 
-                elseif ($count > 2) {
-                    $bread.= $formatted . " " . $this->lang['3ad'];
+                elseif ($count>2) {
+                    $bread.=$formatted .' '.$this->lang['3ad'];
                 } 
                 else if ($count == 1) {
-                    $bread.= $this->lang['ad'];
+                    $bread.=$this->lang['ad'];
                 } 
                 elseif ($count == 2) {
                     $bread.= $this->lang['2ad'];
@@ -2206,15 +2209,15 @@ class Search extends Page {
                     $bread.= $this->lang['0ad'];
                 }
                 if ($this->channelId && $this->watchName) {
-                    $bread.= ' ' . $this->lang['in'] . ' ' . $this->watchName;
+                    $bread.=' '.$this->lang['in'].' '.$this->watchName;
                 }
                 if (isset($this->user->params['last_visit'])) {
-                    $bread.=' ' . $this->lang['sinceLast'] . ' ' . $this->formatSinceDate($this->user->params['last_visit']);
+                    $bread.=' '.$this->lang['sinceLast'].' '.$this->formatSinceDate($this->user->params['last_visit']);
                 }
             }
             else {
-                if ($count) {
-                    $bread.= $this->formatPlural($count, "ad");
+                if ($count>0) {
+                    $bread.=$this->formatPlural($count, "ad");
                 }
                 else {
                     $bread.=$this->lang['0ad'];
@@ -2226,16 +2229,17 @@ class Search extends Page {
                     $bread.=' ' . $this->lang['sinceLast'] . ' ' . $this->formatSinceDate($this->user->params['last_visit']);
                 }
             }
-            $bread .= '</p>';
-            if (!$count) {
-                        $bread.='<span class="naf"></span>';
+            $bread.='</p>';
+            
+            if ($count<=0) {
+                $bread.='<span class=naf></span>';
             }
         }
         elseif ($this->router->userId) {
-            $hasShare = $count && $this->router->cfg['enabled_sharing'] && $this->router->module=='search';
-            $formatted = number_format($count);
-            $q = $this->router->params['q'];
-            $uri = '/' . $this->partnerInfo['uri'] . $this->router->getURL(0, 0, 0, $this->router->sectionId, $this->router->purposeId);
+            $hasShare=$count>0 && $this->router->cfg['enabled_sharing'] && $this->router->module==='search';
+            $formatted=\number_format($count);
+            $q=$this->router->params['q'];
+            $uri='/'.$this->partnerInfo['uri'] . $this->router->getURL(0, 0, 0, $this->router->sectionId, $this->router->purposeId);
             $bread='<div class="srch w">';
             $bread.='<form onsubmit="if(document.getElementById(\'q\').value)return true;return false" action="'.$uri.'" method="get">';
             $bread.='<div class="q">'; 
@@ -2247,7 +2251,8 @@ class Search extends Page {
             $bread.='<input class="bt" type="submit" value="'.$this->lang['search'].'" />';
             $bread.='</form>';
             $bread.='</div>';
-            $bread.= "<p class='ph'><b>";
+            
+            $bread.= "<p class=ph><b>";
             if ($this->router->isArabic()) {
                 if ($count > 10) {
                     $bread.= $formatted . " " . $this->lang['ads'];
@@ -2268,37 +2273,37 @@ class Search extends Page {
             else {
                 $bread.= $this->formatPlural($count, "ad");
             }
-            $bread.= '</b> ';
+            $bread.='</b>';
             if ($this->router->params['q']) {
                 $bread.=$this->lang['for'] . ' ' . htmlspecialchars($this->router->params['q'], ENT_QUOTES);
                 if ($this->partnerInfo['title'] || $this->router->sectionId) {
-                    $bread.=' ' . $this->lang['in'] . ' ';
+                    $bread.=' '.$this->lang['in'] . ' ';
                     if ($this->router->isArabic()) {
                         $bread.=$this->lang['pclassifieds'] . ' ';
-                    }                    
+                    }          
                 }
             }
             
             if ($this->router->sectionId) {
                 $bread.=$this->partnerSection;
                 if ($this->router->params['q'] && !$this->router->isArabic()) {
-                    $bread.=' ' . $this->lang['pclassifieds'];
+                    $bread.=' '.$this->lang['pclassifieds'];
                 }
                 if ($this->partnerInfo['title']) {
-                    $bread.=' - ' . $this->partnerInfo['title'];
+                    $bread.=' - '.$this->partnerInfo['title'];
                 }
             }
             $bread.='</p>';
         }
         else {
             // no signed user
-            $hasShare = false;
+            $hasShare=false;
             $bread='';
             $hasPost = (!$forceRebuild && $count);
             if ($this->userFavorites && $count==0) {                
-                $bread.= "<p class='ph phb'>";
+                $bread.="<p class='ph phb'>";
                 $bread.=$this->lang['noFavoritesBrd'];
-                $bread.= '</p>';
+                $bread.='</p>';
                 $bread.='<div class="sid">';
                 $bread.='<p class="phc">'.$this->lang['favBenefit'].'</p>';
                 $bread.='<span class="naf"></span>';
@@ -2311,15 +2316,13 @@ class Search extends Page {
                 return $bread;
             } 
             else {
-                $hasShare=false;
-                $formatted = number_format($count);
+                $formatted=\number_format($count);
                 if (!$this->userFavorites) { 
                     $bread=$this->getBreadCrumb($forceRebuild, $count);                     
                 }
                 
-                if (!$this->router->isPriceList && ($this->router->module!='detail' || ($this->router->module=='detail' && $this->detailAdExpired))) {
-                    if ($count) {
-                        //$bread.='<div class="row col-12 target">';
+                if (!$this->router->isPriceList && ($this->router->module!=='detail' || ($this->router->module==='detail' && $this->detailAdExpired))) {
+                    if ($count>0) {                        
                         
                         $hasEye=0;
                         if ($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$forceRebuild) {
@@ -2329,48 +2332,7 @@ class Search extends Page {
                         }
                         if ($this->user->info['id'] && ($this->user->info['level']==6||$this->user->info['id']==5)) {
                             $hasEye=0;                        
-                        }
-                         /*
-                        if ($this->userFavorites) {
-                            $bread.= "<p class='ph phb'>";
-                        }
-                        else {
-                            $bread.= '<p class="ph'. ($hasEye ? ' phx':''). $count. '">';
-                        }
-                        $bread.='<span><b>';
-                       
-                        if ($this->router->isArabic()) {
-                            if ($count>10) {
-                                $bread.= $formatted." ".$this->lang['ads'];
-                            }
-                            elseif ($count>2) {
-                                $bread.= $formatted." ".$this->lang['3ad'];
-                            }
-                            elseif ($count==1) {
-                                $bread.= $this->lang['ad'];
-                            }
-                            else {
-                                $bread.= $this->lang['2ad'];
-                            }
-                        }
-                        else {
-                            $bread.= $this->formatPlural($count, "ad");
-                       
-                        $bread.= '</b> ';
-                       
-                        if ($this->router->params['q']) {
-                            $bread.=' '.$this->lang['for'].' '.$this->crumbTitle.($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');
-                        }
-                        elseif ($this->userFavorites) {
-                            $bread.=' '.$this->lang['in'].' '. $this->lang['myFavorites'];
-                        } 
-                        else { 
-                            $bread.=' '.$this->crumbTitle.($hasShare ? '&nbsp;<span class="st_email"></span><span class="st_facebook"></span><span class="st_twitter"></span><span class="st_googleplus"></span><span class="st_linkedin"></span><span class="st_sharethis"></span>' : '');                             
-                        }
-                      
-                        $bread .= '</span></p></div>';
-                        }*/
-                        //$bread .= '</div>';
+                        }                   
                     }
                 }                        
             }

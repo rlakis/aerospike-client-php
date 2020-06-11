@@ -271,9 +271,9 @@ class Bin extends AjaxHandler {
                 }
                     
                 if (isset($_GET['fraud']) && \is_numeric($_GET['fraud'])){
-                    $content = \json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true);                    
-                    if ($content['success']===false) {
-                        $content['message'].=' - failed!';
+                    $content=\json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true);                    
+                    if (isset($content['fraud_score'])) {
+                        $content['message']='Failed!';
                         Config::instance()->incLibFile('IPQuality');
                         $content=IPQuality::getIPStatus($content['host']);                        
                     }

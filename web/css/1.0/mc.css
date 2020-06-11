@@ -23,6 +23,8 @@
   --mdc08: rgba(28,65,94,.08);
   --mdc10: rgba(28,65,94,.1);
   --mdc12: rgba(28,65,94,.12);
+  --mdc20: rgba(28,65,94,.2);
+  --mdc25: rgba(28,65,94,.25);
   --mdc30: rgba(28,65,94,.3);
   --mdc40: rgba(28,65,94,.4);
   --mdc45: rgba(28,65,94,.45);
@@ -57,25 +59,39 @@
   box-sizing: border-box
 }
 html {
-  height: 100%
+    width: 100%;
+    margin: 0px;
+    padding: 0px;    
+    height: 100%;
+    height: -webkit-fill-available;
+    height: -moz-available;
+    overflow-x: hidden;
 }
-html * {
+html * {    
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -ms-touch-action: manipulation;
   touch-action: manipulation
 }
 body {
-  font-family: 'Roboto',Almarai,-apple-system,system;
-  font-style: normal;
-  font-size: 1em;
-  color: var(--mdc70);
-  margin: 0;
-  background-color: #fff;
-  line-height: 1
+    display: flex;
+    position: initial;
+    flex-flow: row wrap;
+    font-family: 'Roboto',Almarai,-apple-system,system;
+    font-style: normal;
+    font-size: 1em;
+    color: var(--mdc70);
+    margin: 0;
+    background-color: #fff;
+    line-height: 1;
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    overflow-x: hidden;
 }
 main {
-  flex: 1 auto
+    display: inherit;
+    flex: 1;
+    min-height:50vh;    
 }
 fieldset,
 img {
@@ -91,26 +107,67 @@ a {
     display: inline-flex;
     align-items: center;
 }
+
 header {
-  display: flex;
   align-items: center;
   background-color: var(--mlc);
   color: #f9f9f9;
   padding: 0;
   text-align: center;
-  /*margin-bottom: 4px;*/
   font-size: .9em;
   height: 60px;
 }
 
-footer {
-  padding: 76px 0;
-  text-align: auto;
-  order: 999;
-  background-color: var(--mlc);
-  box-shadow: 0 8px #7abaff inset;
-  color: #fff
+body > header div:last-child{
+    margin-inline-end:5px;    
 }
+body > header div:last-child a+a{
+    margin-inline-start:20px;
+}
+
+body > footer {
+    position: fixed;
+    bottom: 0;
+    padding: 6px 0;
+    z-index: 5;
+    background-color:#dde3e7;    
+    box-shadow: 0 4px #ededed inset;        
+    color: #fff;
+    width: 100%;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    height: 68px;
+}
+body > footer>div:last-child{
+    display: none;
+}
+
+footer nav {
+    display: inherit;
+    height: 100%;
+    color: var(--mdc90);
+    padding: 0 8px;
+    font-size: 12px;
+    justify-content: space-between;
+}
+
+footer nav div {
+    display: inherit;
+    flex-direction: column;
+    align-items: center;
+}
+
+footer nav img {
+    width: 22px;
+    margin-bottom: 8px;
+}
+
+footer nav a {
+    color: inherit;
+    height: 100%
+    
+}
+
 footer ul {
   color: #fff;
   display: flex;
@@ -148,19 +205,17 @@ footer .addr {
     margin-inline-start: 52px;
     margin-block-start: 44px;
 }
-
-
-.wrapper {
-  display: flex;
-  flex-flow: row wrap
-}
-.wrapper > * {
-  flex: 1 100%;
-  flex-flow: column
+body > * {
+    display: inherit;
+    flex: 1 100%;
+    flex-flow: column
 }
 .viewable {
     display: inline-flex;
-    width: 100%
+    position: relative;
+    width: 100%;
+    width: -webkit-fill-available;
+    width: -moz-available;
 }
 .row {
   display: flex;
@@ -176,6 +231,24 @@ footer .addr {
   clear: both;
   display: table
 }
+.col-1,
+.col-10,
+.col-11,
+.col-12,
+.col-2,
+.col-3,
+.col-4,
+.col-5,
+.col-6,
+.col-7,
+.col-8,
+.col-9 {
+    display: inline-flex;
+    align-items: center;
+    width: 100%;
+    padding: 4px 0;
+}
+
 .tel{
     unicode-bidi: plaintext;
     text-align: match-parent;
@@ -298,6 +371,13 @@ footer .addr {
   margin: 0;
 }
 
+.icn.burger {
+    background: url(https://dev.mourjan.com/css/2020/1.0/assets/burger.svg) center no-repeat
+}
+
+.icn.magnifier {
+    background: url(https://dev.mourjan.com/css/2020/1.0/assets/magnifier.svg) center no-repeat
+}
 
 .icn-ae {
   background: url(https://dev.mourjan.com/css/2020/flags/ae.svg) center no-repeat
@@ -420,7 +500,6 @@ footer .addr {
 
 
 .search-box {
-  background-color: #eff2f4;
   padding-bottom: 30px;
 }
 
@@ -436,10 +515,13 @@ footer .addr {
   align-self: flex-start;
   flex-direction: row
 }
-.search .roots{
+
+.search .roots {
     margin-top: 8px;
     height: 48px;
 }
+
+
 .search .roots a{
     display: inline-flex;
     width: 48px;
@@ -449,7 +531,7 @@ footer .addr {
     background: white;
 }
 
-.search .roots object {
+.search .roots object, .search a>img {
     filter:var(--mseFilter);
     width: 48px;
     padding: 6px;    
@@ -847,7 +929,6 @@ body[dir=rtl] .large .arrow {
     body {
         margin: 0 auto;
         width: 1920px;
-        display: block
     }
     .viewable {
         max-width: 1600px
@@ -917,10 +998,36 @@ body[dir=rtl] .large .arrow {
 
 
 @media only screen and (min-width:769px) {
-    .pc{
+    .pc {
         display: inherit;
     }
 
+    body > footer {
+        position: relative;
+        padding: 76px 0;
+        background-color: var(--mlc);
+        box-shadow: 0 8px #7abaff inset;
+        height: auto;
+    }
+
+    .col-1 { width: 8.33% }
+    .col-2 { width: 16.66% }
+    .col-3 { width: 25% }
+    .col-4 { width: 33.33% }
+    .col-5 { width: 41.66% }
+    .col-6 { width: 50% }
+    .col-7 { width: 58.33% }
+    .col-8 { width: 66.66% }
+    .col-9 { width: 75% }
+    .col-10 { width: 83.33% }
+    .col-11 { width: 91.66% }
+    .col-12 { width: 100% }
+    [class*=col-] {
+        display: inline-flex;
+        align-items: inherit;
+        padding: 8px
+    }
+    
     body[dir=ltr] .ilogo {
         background-image: url(https://dev.mourjan.com/css/2020/1.0/assets/LogoV5e.svg)
     }
@@ -930,6 +1037,28 @@ body[dir=rtl] .large .arrow {
         width: 308px
     }
 
+    
+    body>header div a:not(:last-child) {
+        display: none
+    }
+    
+    main {
+        background-color: #eff2f4;
+    }
+    
+    body footer nav {
+        display: none;
+    }
+    
+    body>footer>div:first-child{
+        display: none;
+    }
+    
+    body>footer>div:last-child{
+        display: inherit;
+    }
+
+
     .search {    
         display: inline-flex;
         flex-grow:1;
@@ -937,5 +1066,10 @@ body[dir=rtl] .large .arrow {
         max-width: 1024px;
         margin: 36px 0 6px;
     }
+    
+    .search-box {
+        background-color: #eff2f4;
+    }
+
 
 }
