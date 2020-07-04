@@ -165,7 +165,7 @@ class User {
         }
         if ($init) {
             $this->site=$site;
-            //$this->sysAuthById(480301);
+            //$this->sysAuthById(44835);
             $this->populate();
             $this->getSessionHandlerCookieData();
             

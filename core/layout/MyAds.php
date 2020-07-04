@@ -502,7 +502,6 @@ class MyAds extends UserPage {
         
         if ($this->user->level()===9) {
             $isAdmin=true;
-            $mobileValidator=libphonenumber\PhoneNumberUtil::getInstance();
         }
         
         $sub=$this->getGetString('sub');
@@ -516,7 +515,11 @@ class MyAds extends UserPage {
         //if ($isAdmin===true && $uid>0 && $uid!==$this->user->id()) {
         //    $this->renderUserTypeSelector($this->user->data);
         //}
-        echo $this->side->setClassCSS('col-2 ff-cols side')->avatar()->menu()->addBlock('editors', $this->renderEditorsBox($state))->build();
+        $this->side->avatar()->menu();
+        if ($isSuperAdmin) {
+            $this->side->addBlock('editors', $this->renderEditorsBox($state));
+        }
+        echo $this->side->build();
      
         ?><div class="col-10 ff-cols body"><?php
         $this->welcome();
@@ -545,7 +548,7 @@ class MyAds extends UserPage {
             }
             
             ?><div class=row><div class=mls><?php
-            $linkLang=$this->router->language==='ar' ? '' : $this->router->language.'/';
+            $linkLang=$this->router->language==='ar'?'':$this->router->language.'/';
             
             $this->adList->rewind();
             while ($this->adList->valid()) {
@@ -560,6 +563,7 @@ class MyAds extends UserPage {
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
                     if (!$isSuperAdmin && $assignedAdmin && $assignedAdmin!=$this->user()->id()) {
+                        $this->adList->next();
                         continue;
                     }
                     if ($isSuperAdmin && $assignedAdmin) {
@@ -658,13 +662,13 @@ class MyAds extends UserPage {
                         foreach ($cui['p'] as $p) { 
                             $isUserMobile = false;
                             try {
-                                $num = $mobileValidator->parse($p['v'],$p['i']);
-                                if ($num && $mobileValidator->isValidNumber($num)) {
+                                $num=$this->phoneUtil->parse($p['v'],$p['i']);
+                                if ($num && $this->phoneUtil->isValidNumber($num)) {
                                     if ($userMobile && '+'.$userMobile == $p['v']) {
                                         $isUserMobile=true;
                                     }
                                 
-                                    $type=$mobileValidator->getNumberType($num);  
+                                    $type=$this->phoneUtil->getNumberType($num);  
                                     $phoneValidErr=0;
                                     switch((int)$p['t']){
                                         case 1:
@@ -735,8 +739,8 @@ class MyAds extends UserPage {
                     
                     $profileLabel=$cad->profile()->getProvider()?$cad->profile()->getProvider():'profile';
                     if ($userMobile) {
-                        $unum = $mobileValidator->parse('+'.$userMobile, 'LB');
-                        $XX = $mobileValidator->getRegionCodeForNumber($unum);
+                        $unum=$this->phoneUtil->parse('+'.$userMobile, 'LB');
+                        $XX=$this->phoneUtil->getRegionCodeForNumber($unum);
                         $profileLabel = '+'.$userMobile;
                         if ($XX) { $profileLabel = '('.$XX. ')' . $profileLabel; }
                     }
@@ -1054,7 +1058,8 @@ class MyAds extends UserPage {
                                 ?><button onclick="d.reject(this,<?= $cad->uid() ?>)"><?= $this->lang['reject'] ?></button><?php 
                             }
                             if (!$isSuperAdmin && !$onlySuper && !$isSystemAd) {
-                                ?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php
+                                ?><button onclick="d.help(this,<?= $cad->uid() ?>)"><?= $this->lang['ask_help'] ?></button><?php 
+                                /*?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php*/
                             }                            
                             if ($isSuperAdmin && $rank<2) {
                                 ?><button onclick="d.ban(this,<?= $cad->uid() ?>)"><?= $this->lang['block'] ?></button><?php 

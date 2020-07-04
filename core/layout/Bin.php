@@ -137,7 +137,7 @@ class Bin extends AjaxHandler {
 
     
     private function output() : void {
-        \header("Content-Type: application/json");
+        \header("Content-Type: application/json");        
         echo \json_encode($this->resp);
         exit(0);
     }
@@ -154,7 +154,6 @@ class Bin extends AjaxHandler {
             $this->resp['error'].=' ';
             $this->resp['error'].=$details[$this->router->language];
         }
-        
         $trace=\debug_backtrace();
         if (\is_array($trace) && \count($trace)>1) {
             $this->resp['error'].=' (';
@@ -1605,7 +1604,7 @@ class Bin extends AjaxHandler {
                         if (!$archive) {
                             $date=new DateTime;
                             $starting_date=$date->modify('-1 month');
-                            \error_log($starting_date->format('Y-m-d').PHP_EOL);
+                            //\error_log($starting_date->format('Y-m-d').PHP_EOL);
                             
                             $sdate=\time()-2592000; // 30 days              
                             $ads=$redis->sMembers('U'.$uid);
@@ -1626,7 +1625,7 @@ class Bin extends AjaxHandler {
                                     if ($dated<$starting_date) {
                                         continue;
                                     }
-                                    \error_log($dated->format('Y-m-d').PHP_EOL);
+                                    //\error_log($dated->format('Y-m-d').PHP_EOL);
                                     //if (\strtotime($date)<$sdate) {  continue;  }
                                     
                                     if (isset($res[$date])) {
@@ -3776,11 +3775,11 @@ class Bin extends AjaxHandler {
                 if ($ad_id>0 && $coins>0 && $this->user->id()===$this->user->decodeId($u_key)) {
                     $this->router->db->setWriteMode();
                     $result=$this->router->db->queryResultArray("
-                            select a.id, b.id as bo_id, a.state from ad_user a 
+                            select a.id, b.id as bo_id, a.state 
+                            from ad_user a 
                             left join t_ad_bo b on b.ad_id=a.id and b.blocked=0 
                             where a.id=? and a.web_user_id=?",
                             [$ad_id, $this->user->id()]);
-                    
                     if (\is_array($result) && \count($result)>0) {
                         if ($result[0]['STATE']==7) {
                             $pass=true;
@@ -3810,6 +3809,9 @@ class Bin extends AjaxHandler {
                         else {
                             $this->error(self::ERR_SYS_FAILURE, ['en'=>'This ad is not published!', 'ar'=>'هذا الاعلان غير منشور!']);
                         }
+                    }
+                    else {
+                        $this->error(self::ERR_USER_UNAUTHORIZED);
                     }
                 }
                 else {

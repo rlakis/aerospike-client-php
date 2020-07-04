@@ -71,26 +71,28 @@ class PageSide {
     
     function __construct(UserPage $page) {
         $this->page=$page;
-        $this->buffer['open']='<div class=side>';        
+        $this->buffer['open']='<aside>';        
     }
     
     
     
     public function build() : void {
-        $this->buffer['close']='</div>';
+        $this->buffer['close']='</aside>';
         echo \implode('', $this->buffer);
     }
     
     
     public function setClassCSS(string $classList) : PageSide {
-        $this->buffer['open']="<div class='{$classList}'>";
+        $this->buffer['open']="<aside class='{$classList}'>";
         return $this;
     }
     
     
     public function avatar() : PageSide {
-        $profile=$this->page->user->getProfileOfUID($this->page->uid);        
-        $num=$this->page->phoneUtil->parse("+{$profile->getMobileNumber()}", 'LB');
+        $profile=$this->page->user->getProfileOfUID($this->page->uid);
+        $mobileNumber=$profile->getMobileNumber();
+        $num=$mobileNumber>0?$this->page->phoneUtil->parse("+{$mobileNumber}", 'LB'):'';
+        
         $name=empty($profile->getFullName())?'No Name':$profile->getFullName();
         $b ='<div class="avatar ff-cols ha-center va-center mb-64">';
         $b.="<img class=ifilter style='width:105px;' src={$this->page->router->config->cssURL}/1.0/assets/avatar.svg />";

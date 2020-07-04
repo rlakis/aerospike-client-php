@@ -154,8 +154,8 @@ class Home extends Page {
         echo '</div>', "\n";
         */
         
-        $this->searchingNow();
         $this->recommendedForYou();
+        $this->searchingNow();
         $this->recentUploads();
         $this->mostPopular();
         
@@ -472,7 +472,7 @@ class Home extends Page {
             }
         }
         else {
-            if ($this->user->params['user_country']) {   
+            if ($this->user->params['user_country']??0) {   
                 $this->formatNumbers=strtoupper($this->user->params['user_country']);
             } elseif($this->router->countryId) {
                 $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);

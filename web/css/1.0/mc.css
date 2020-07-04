@@ -1,6 +1,7 @@
 @charset "UTF-8";
 :root {
-  --mourjanC: rgba(10,122,255,1);
+    --apr: 3;
+    --mourjanC: rgba(10,122,255,1);
   --midnight: rgba(44,62,80,1);
   --color-1: #fd8a6f;
   --color-2: #ff5f67;
@@ -21,25 +22,34 @@
   --blue:rgb(15, 107, 208);
 
   --premium: #E3B788;
-  --mlc: rgba(15, 107, 208, 1); /*rgba(0,122,255,1);  */
-  --mdc: rgba(28,65,94,1);
-  --mlc90: rgba(15, 107, 208,.9);    
-  --mdc02: rgba(28,65,94,.02);
-  --mdc04: rgba(28,65,94,.04);
-  --mdc05: rgba(28,65,94,.05);
-  --mdc08: rgba(28,65,94,.08);
-  --mdc10: rgba(28,65,94,.1);
-  --mdc12: rgba(28,65,94,.12);
-  --mdc20: rgba(28,65,94,.2);
-  --mdc25: rgba(28,65,94,.25);
-  --mdc30: rgba(28,65,94,.3);
-  --mdc40: rgba(28,65,94,.4);
-  --mdc45: rgba(28,65,94,.45);
-  --mdc50: rgba(28,65,94,.5);
-  --mdc60: rgba(28,65,94,.6);
-  --mdc70: rgba(28,65,94,.7);
-  --mdc80: rgba(28,65,94,.8);
-  --mdc90: rgba(28,65,94,.9);
+  /*--mlc: rgba(15, 107, 208, 1); /*rgba(0,122,255,1);  */
+  --mdc:rgba(47, 72, 88, 1); /*rgba(0,65,90,1);*/
+  --mlc:rgba(51, 101, 138,1); /*rgba(0,122,255,1);  */
+  --mbc:rgba(134, 187, 216, 1);
+  --mcc:rgba(246, 174, 45, 1);
+  --mhc:rgba(242, 100, 25, 1);
+  
+  --mbc50:rgba(134, 187, 216, 0.5);
+  --mlc75:rgba(51, 101, 138,.75);
+  --mlc90:rgba(51, 101, 138,.9);    
+  
+  --mdc02: rgba(47, 72, 88,.02);
+  --mdc03: rgba(47, 72, 88,.03);
+  --mdc04: rgba(47, 72, 88,.04);
+  --mdc05: rgba(47, 72, 88,.05);
+  --mdc08: rgba(47, 72, 88,.08);
+  --mdc10: rgba(47, 72, 88,.1);
+  --mdc12: rgba(47, 72, 88,.12);
+  --mdc20: rgba(47, 72, 88,.2);
+  --mdc25: rgba(47, 72, 88,.25);
+  --mdc30: rgba(47, 72, 88,.3);
+  --mdc40: rgba(47, 72, 88,.4);
+  --mdc45: rgba(47, 72, 88,.45);
+  --mdc50: rgba(47, 72, 88,.5);
+  --mdc60: rgba(47, 72, 88,.6);
+  --mdc70: rgba(47, 72, 88,.7);
+  --mdc80: rgba(47, 72, 88,.8);
+  --mdc90: rgba(47, 72, 88,.9);
   
   --mpc1: #ff6167;  /* For Sales */
   --mpc2: #2acf8e;  /* For Rent */
@@ -55,7 +65,8 @@
   --mpu1F: invert(46%) sepia(38%) saturate(2637%) hue-rotate(326deg) brightness(114%) contrast(103%);
   --mpu2F: invert(99%) sepia(65%) saturate(2147%) hue-rotate(76deg) brightness(85%) contrast(85%);
   --mpu3F: invert(34%) sepia(13%) saturate(3566%) hue-rotate(210deg) brightness(94%) contrast(94%);
-  --mseImgFilter: invert(70%) sepia(65%) saturate(5500%) hue-rotate(199deg) brightness(105%) contrast(101%);
+  /*--mseImgFilter: invert(70%) sepia(65%) saturate(5500%) hue-rotate(199deg) brightness(105%) contrast(101%);*/
+  --mseImgFilter: invert(30%) sepia(100%) saturate(1063%) hue-rotate(190deg) brightness(92%) contrast(106%);
   /*--mroFilter: invert(18%) sepia(95%) saturate(421%) hue-rotate(163deg) brightness(90%) contrast(89%);*/
   --mroFilter: invert(57%) sepia(7%) saturate(1090%) hue-rotate(163deg) brightness(93%) contrast(89%);
   --mseFilter: invert(55%) sepia(11%) saturate(758%) hue-rotate(141deg) brightness(87%) contrast(83%)
@@ -98,6 +109,14 @@ body {
 main {
     display: inherit;
     flex: 1;        
+}
+aside {
+    display: flex;
+    flex-direction: column;
+    border-inline-end: 1px solid var(--mdc30);
+}
+aside [class*=col-] {
+    padding: 0;
 }
 fieldset,
 img {
@@ -185,7 +204,7 @@ footer ul {
 footer li {
   display: inherit;
   flex: 1 auto;
-  border-bottom: 1px solid rgba(0,255,255,.25)
+  border-bottom: 1px solid var(--mbc50)
 }
 footer a {
   color: rgba(255,255,255,.75)
@@ -436,7 +455,7 @@ body > * {
 
 .btn {
     font-family: inherit;
-    background-color: var(--mlc);
+    background-color:#367FA6;
     color: #fff;
     /*display: inline-block;*/
     padding: 6px 12px;
@@ -516,8 +535,8 @@ body > * {
   width: 100%;
   height: 58px;
   display: inherit;
-  border: 1px solid rgba(0,122,255,.2);
-  border-radius: 5px;
+  border: 1px solid var(--mbc50);
+  border-radius: 3px;
   justify-content: space-between;
   align-self: flex-start;
   flex-direction: row
@@ -533,7 +552,7 @@ body > * {
     display: inline-flex;
     width: 48px;
     height: 48px;
-    border: 1px solid rgba(0,122,255,.2); /*var(--mdc40);*/
+    border: 1px solid var(--mbc50);
     border-radius: 4px;
     background: white;
 }
@@ -569,8 +588,8 @@ body > * {
   width: 84px;
   height: 56px;
   border: 0;
-  border-left: 1px solid rgba(15, 107, 208,.2);
-  border-radius: 0 5px 5px 0;
+  border-left: 1px solid var(--mbc);
+  border-radius: 0 3px 3px 0;
   background: var(--mlc);
   cursor: pointer;
   padding-top: 0
@@ -602,7 +621,6 @@ body > * {
   align-items: center;
   padding: 1px 1px 1px 5px;
   height: 100%;
-  background-color: #f3f3f3
 }
 .search .facade:hover {
   background-color: #dadada;
@@ -615,7 +633,7 @@ body > * {
   user-select: none;
   width: auto;
   background-color: #fff;
-  border-radius: 5px
+  border-radius: 3px
 }
 .sbe {
   position: relative;
@@ -634,7 +652,7 @@ body > * {
   height: 56px;
   line-height: 36px;
   cursor: pointer;
-  border-inline-end: 1px solid rgba(0,122,255,.2)
+  border-inline-end: 1px solid var(--mbc50)
 }
 .strg > * {
   margin: 0 12px
@@ -853,7 +871,7 @@ body[dir=rtl] .mhbanner .p1 .um {
   width: 506px
 }
 .mfbanner .btn {
-  background-color: #ff6167;
+  background-color: var(--mhc);
   border-radius: 10px;
   color: #f9f9f9;
   font-size: 15px;
@@ -865,6 +883,7 @@ body[dir=rtl] .mhbanner .p1 .um {
     display: inherit;
     flex: 1;
     padding: 6px 0 0;
+    margin-bottom: 6px;
     line-height:1.8em;
     align-items:center;
     justify-content: center;
@@ -1004,6 +1023,20 @@ body[dir=rtl] .large .arrow {
 }
 
 
+ @media only screen and (min-width:1280px) {
+    :root {
+        --apr: 4;
+    }
+}
+
+@media only screen and (min-width:1600px) {
+    :root {
+        --apr: 5;
+    }
+}
+
+
+
 @media only screen and (min-width:769px) {
     .pc {
         display: inherit;
@@ -1018,7 +1051,7 @@ body[dir=rtl] .large .arrow {
         position: relative;
         padding: 76px 0;
         background-color: var(--mlc);
-        box-shadow: 0 8px #7abaff inset;
+        box-shadow: 0 8px var(--mbc) inset;
         height: auto;
     }
 
@@ -1055,7 +1088,7 @@ body[dir=rtl] .large .arrow {
     }
     
     main {
-        background: var(--mdc05);
+        background: var(--mdc03);
     }
     
     body footer nav {
@@ -1080,7 +1113,7 @@ body[dir=rtl] .large .arrow {
     }
     
     .search-box {
-        background-color:var(--mdc05) /*#eff2f4*/;
+        background-color:var(--mdc03) /*#eff2f4*/;
     }
 
 

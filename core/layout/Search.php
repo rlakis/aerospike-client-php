@@ -1379,7 +1379,7 @@ class Search extends Page {
                          
             $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:$this->lang['any1'];
             $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:$this->lang['any1'];
-            ?><div class=row><div class="col-3 side"><?php
+            ?><div class=row><aside class="col-3 side"><?php
             ?><div class=asrch><header><?= $this->lang['advanced_search']?></header><?php
             ?><label><?=$this->lang['searching_in']?></label><div class=sbw><div class=sbe><div class=strg><?php
             ?><span><?=$section_name?></span><div class=arrow></div><?php
@@ -1472,7 +1472,7 @@ class Search extends Page {
             $this->renderPageSideSections();            
             
             //echo $this->renderExtendedLinks();
-            ?></div><?php
+            ?></aside><?php
             
             ?><div class="row col-9 ff-cols"><div id=cards class="ls col-12" <?php
                 

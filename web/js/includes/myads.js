@@ -425,9 +425,7 @@ var d = {
                            console.log(result);
                            if (typeof(result.dismiss)!=='string') { 
                               
-                                if (result.value>0) {
-                                   console.log('result', result.value);
-                                   
+                                if (result.value>0) {                                   
                                    fetch('/ajax-mpre', {
                                        method:'POST', 
                                        mode:'same-origin', 

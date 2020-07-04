@@ -122,7 +122,7 @@ header div {
   display: inherit
 }
 header .btn {
-  background-color: #ff6167;
+  background-color: var(--mhc) /*ff6167*/;
   border-radius: 10px;
   color: #f9f9f9;
   font-size: 14px;
@@ -570,9 +570,11 @@ dt > a > span {
 .ad {
   display: inherit;
   position: relative;
+  /*
   min-width: 300px;
   max-width: 360px;
-  width: 320px;
+  */
+  width: calc( 100% / var(--apr) - 16px );
   margin: auto
 }
 /*
@@ -1176,6 +1178,7 @@ body[dir=rtl] .slogan {
 .xr-border {
   border-right: 1px #ccc solid
 }
+
 @media screen and (max-width:768px) {
   .ad {
     float: left;
@@ -1187,7 +1190,7 @@ body[dir=rtl] .slogan {
     -webkit-columns: 1;
     -moz-columns: 1
   }
-  .side {
+  aside {
     width: 0;
     overflow-x: hidden;
     margin: 0;
@@ -1223,7 +1226,7 @@ body[dir=rtl] .slogan {
 }
 
 @media only screen and (min-width:1920px) {
-  .adv {
+    .adv {      
         height: 600px
-  }
+    }
 }

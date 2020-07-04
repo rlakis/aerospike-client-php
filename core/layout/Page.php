@@ -4598,7 +4598,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         if (!isset($this->included[$filename])) {
             $jsfile=$this->router->config->jsDir.'/includes/'.$filename;
             if (\file_exists($jsfile)) {
-                 \error_log($jsfile.PHP_EOL);
+                // \error_log($jsfile.PHP_EOL);
                 /*
                 $minjs=$this->router->config->baseDir.'/web/js/includes/min/'.$filename;
                 if (!\file_exists($minjs) || (\file_exists($minjs) && (\filemtime($jsfile)>\filemtime($minjs)))) {

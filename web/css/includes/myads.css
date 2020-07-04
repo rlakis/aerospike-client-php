@@ -590,12 +590,12 @@ article .mask {
 
 
 
-body[dir=rtl] .side li.on i:after {
+body[dir=rtl] aside li.on i:after {
     left: auto;
     right: 100%;
 }
 
-body[dir=rtl] .side li.on b:after {
+body[dir=rtl] aside li.on b:after {
     left:auto;
     right: 0;
 }
