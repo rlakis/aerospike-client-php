@@ -1,8 +1,16 @@
-div.breadcrumb{padding:0 8px;justify-content:space-between;align-items: center;color:var(--mColor70);font-size:15px}
+div.breadcrumb{
+    flex-flow: column;
+    padding:0 8px;
+    justify-content:space-between;
+    align-items: center;
+    color:var(--mColor70);
+    font-size:15px
+}
 ul.breadcrumb {
     display:flex;
+    flex-flow: column;
     padding: 0;
-    margin-inline-start:calc(25% + 32px);
+    margin-inline-start:0;
     list-style:none;
 }
 
@@ -68,13 +76,42 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   flex-flow: row wrap;
   align-content: flex-start
 }
+
 .ls li {
   line-height: 1.5em;
   overflow: hidden
 }
+
+.ls .ad {
+    height: auto;
+    width: -moz-available;
+    width: -webkit-fill-available;
+    max-width: -moz-available;
+    max-width: -webkit-fill-available;
+}
+
+.ls .ad.full {
+    height: auto;
+}
 .ls .card {
   height: 320px
 }
+
+
+.ls .ad .widget {
+    border-radius: 0;
+}
+
+.ls .ad .image {
+    height: 162px;
+    max-height: 162px;
+}
+
+.ls .ad .image.seclogo {
+ border-radius: 0;
+}
+
+
 .ls .card .card-image {
   height: 60%;
   position: relative;
@@ -109,20 +146,18 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
 }
 
 /* page left side */
-.side {
-  /*flex-direction: column;*/
-  /*background-color: #eff2f4;*/
-  /*border: 0;*/
-  margin: 8px 8px 0;
-  /*box-shadow: 0 10px 30px -12px rgba(0,0,0,.42),0 4px 25px 0 rgba(0,0,0,.12),0 8px 10px -5px rgba(0,0,0,.2);*/
-  padding: 0!important;
-  z-index: 9;
-  margin-bottom: 32px
+aside {
+    margin: 8px 8px 0;
+    padding: 0!important;
+    z-index: 9;
+    margin-bottom: 32px
 }
-.side > div {
+
+aside > div {
   padding: 0 8px!important
 }
-.side .title {
+
+aside .title {
   display: inherit;
   align-items: center;
   height: 3em;
@@ -133,17 +168,19 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   padding: 0;
   box-shadow: 0 4px 20px 0 rgba(0,0,0,.14)
 }
-.side .title h5 {
+
+aside .title h5 {
   font-size: .9rem!important;
   padding: 0;
   margin-top: 1.25rem
 }
-.side ul {
+
+aside ul {
   padding: 0;
   padding-inline-start: 0;
   margin: 4px 0 8px
 }
-.side li {
+aside li {
   line-height: 44px;
   padding: 0;
   display: flex;
@@ -151,33 +188,27 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   overflow: hidden;
   text-overflow: ellipsis
 }
-.side a {
+aside a {
   width: 100%;
   display: block;
   color: var(--mdc70);
   display: inline-flex;
   align-items: center
 }
-.side a:hover {
+aside a:hover {
   background-color: rgba(200,200,200,.2);
   color: var(--mourjanC)
 }
-.side [class*=icn-] {
+aside [class*=icn-] {
   width: 24px;
   height: auto;
   margin-inline-end: 8px
 }
-.side .c {
+aside .c {
   font-size: .8em
 }
-/*
-.side {
-  box-shadow: none;
-  border-inline-end: 1px solid var(--mdc30);
-  border-radius: 0
-}
-*/
-.side .asrch {
+
+aside .asrch {
   width: 100%;
   display: inherit;
   flex-flow: column;
@@ -185,7 +216,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   padding-block-end: 40px!important;
   color: var(--mdc50)
 }
-.side .asrch a.btn {
+aside .asrch a.btn {
   background-color: var(--mlc);
   margin-top: 16px;
   color: #fff;
@@ -195,7 +226,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   font-weight: 700;
   justify-content: center
 }
-.side .asrch header {
+aside .asrch header {
   font-size: 20px;
   background-color: inherit;
   color: var(--mdc70);
@@ -204,14 +235,14 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   border-bottom: 1px solid var(--mdc30);
   min-height: 32px
 }
-.side .asrch label {
+aside .asrch label {
   display: inline-flex;
   font-size: 17px;
   font-weight: 400;
   margin-inline-start: 4px;
   margin-block-start: 16px
 }
-.side .asrch input {
+aside .asrch input {
   width: 100%;
   height: 38px;
   border: 1px solid var(--mdc30);
@@ -225,7 +256,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   color: var(--mdc40);
   opacity: 1; /* Firefox */
 }
-.side .asrch .strg {
+aside .asrch .strg {
   font-size: 16px;
   font-weight: 400;
   padding: 0;
@@ -236,36 +267,36 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   color: var(--mdc45)
 }
 
-.side .asrch .strg:hover {
+aside .asrch .strg:hover {
   color: #fff
 }
 
-.side .asrch .strg > * {
+aside .asrch .strg > * {
     margin:0;
 }
 
-.side .asrch .strg .arrow {
+aside .asrch .strg .arrow {
     margin-inline-end: 6px;
 }
 
-body[dir=rtl] .side .asrch .strg .arrow {
+body[dir=rtl] aside .asrch .strg .arrow {
     margin-inline-end: 12px;
 }
 
-.side .asrch .two {
+aside .asrch .two {
   width: 100%;
   display: inline-flex;
   flex-flow: row;
   justify-content: space-between
 }
-.side .asrch .two .sbe {
+aside .asrch .two .sbe {
   width: 100%
 }
-.side .asrch .two .col-6 {
+aside .asrch .two .col-6 {
   width: 45%;
   padding: 0
 }
-.side .asrch .sort {
+aside .asrch .sort {
   --check-size: 20px;
   display: inherit;
   flex-flow: column;
@@ -274,21 +305,21 @@ body[dir=rtl] .side .asrch .strg .arrow {
   border-radius: 10px;
   margin-top: 16px
 }
-.side .asrch .sort h2 {
+aside .asrch .sort h2 {
   margin: 0;
   color: var(--mdc90);
   font-size: 20px;
   margin: 0 0 10px 0
 }
-.side .asrch .sort fieldset {
+aside .asrch .sort fieldset {
     margin: 0;
     padding: 0;
     padding-inline-start:6px;
 }
-.side .asrch .sort ul {
+aside .asrch .sort ul {
     margin: 10px 0 0
 }
-.side .asrch .sort li {
+aside .asrch .sort li {
   position: relative;
   align-items: center;
   height: 26px;
@@ -297,24 +328,24 @@ body[dir=rtl] .side .asrch .strg .arrow {
   line-height: var(--check-size);
   padding: 0
 }
-.side .asrch .sort ul li:hover .check {
+aside .asrch .sort ul li:hover .check {
   background-color: #f0f0f0;
   border: 1px solid var(--mlColor50)
 }
-.side .asrch .sort ul li input {
+aside .asrch .sort ul li input {
   position: absolute;
   opacity: 0;
   cursor: pointer;
   height: 0;
   width: 0
 }
-.side .asrch .sort ul li input:checked ~ .check {
+aside .asrch .sort ul li input:checked ~ .check {
   background-color: #2196f3
 }
-.side .asrch .sort ul li input:checked ~ .check:after {
+aside .asrch .sort ul li input:checked ~ .check:after {
   display: block
 }
-.side .asrch .sort ul li label {
+aside .asrch .sort ul li label {
   position: relative;
   width: 100%;
   margin: 0;
@@ -323,7 +354,7 @@ body[dir=rtl] .side .asrch .strg .arrow {
   z-index: 10;
   color: var(--mdc70)
 }
-.side .asrch .sort ul li .check {
+aside .asrch .sort ul li .check {
   z-index: 8;
   position: absolute;
   top: 0;
@@ -334,7 +365,7 @@ body[dir=rtl] .side .asrch .strg .arrow {
   border: 1px solid var(--mdc30);
   display: inline-block
 }
-.side .asrch .sort ul li .check:after {
+aside .asrch .sort ul li .check:after {
   content: "";
   position: absolute;
   display: none;
@@ -348,24 +379,24 @@ body[dir=rtl] .side .asrch .strg .arrow {
   -ms-transform: rotate(45deg);
   transform: rotate(45deg)
 }
-body[dir=rtl] .side .asrch .sort ul li .check {
+body[dir=rtl] aside .asrch .sort ul li .check {
     left: auto;
     right: 0;
     
 }
-.side .asrch .se {
+aside .asrch .se {
   width: 30px;
   height: 30px;
   margin-inline-end: 8px;
   filter: var(--mseFilter)
 }
-.side .options {
+aside .options {
   padding-top: 4px
 }
-.side .option {
+aside .option {
   font-weight: 400
 }
-.side .sbe.open .options {
+aside .sbe.open .options {
   width: auto
 }
 
@@ -403,4 +434,39 @@ body[dir=rtl] .side .asrch .sort ul li .check {
   height: 72px;
   max-width: none;
   margin-right: 10px
+}
+
+
+@media only screen and (min-width:769px) {
+    div.breadcrumb {
+        flex-flow: row;
+    }
+    
+    ul.breadcrumb {
+        flex-flow: row;
+        margin-inline-start: calc(25% + 32px);
+    }
+    
+    .ls .ad {
+        height: 360px;
+        width: 360px;
+        margin-bottom: 32px;
+        max-width:none;
+    }
+    
+    .ls .ad.full {
+        width:-moz-available;
+        width:-webkit-fill-available;
+        max-width:-moz-available;
+        max-width:-webkit-fill-available;
+    }
+    
+    .ls .ad .widget {
+        border-radius: 4px;
+    }
+    
+    .ls .ad .image {
+        height: 205px;
+        max-height: 205px;
+    }
 }

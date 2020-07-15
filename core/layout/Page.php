@@ -1665,7 +1665,8 @@ class Page extends Site {
 
         //\error_log('page uri ' .$this->getPageUri() . '  vs  ' . $this->router->getLanguagePath('/'. $this->router->countryId>0?$this->router->countries[$this->router->countryId]['uri']:''));
         
-        ?><section class="pc search-box"><div class="viewable ha-center"><div class=search><?php
+        ?><section class="search-box pc"><div class="viewable ha-center"><?php
+        ?><div class=search><?php
         ?><form onsubmit="if(document.getElementById('q').value)return true;return false;" action="<?=$this->getPageUri()?>"><?php
         ?><div class=sbw><div class=sbe><?php
         ?><div class=strg><?php 
@@ -1703,8 +1704,13 @@ class Page extends Site {
         ?><input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what'];?>"><?php
         ?><input id=ro name=ro type=hidden value="0"><?php
         ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button><?php
-        ?></form><?php
+        ?></form><?php        
+        ?></div><?php
+        ?></div></section><?php
+        
+        
         if ($this->router->module!=='index') {
+            ?><section class="search-box shortcut"><div class="viewable ha-center"><?php
             ?><div class=roots><?php
             foreach ($this->router->roots as $root) {                
                 ?><a href="#"><img src="<?=$this->router->config->cssURL.'/1.0/assets/'.$root[\Core\Data\Schema::BIN_ID].'.svg'?>"></a><?php
@@ -1713,10 +1719,9 @@ class Page extends Site {
                  */
             }
             ?></div><?php
+            ?></div></section><?php
         }
-        ?></div><?php
         //echo $this->router->module;
-        ?></div></section><?php
         
         if ($this->router->module!=='index') {
             echo '<main>';
@@ -2799,10 +2804,10 @@ class Page extends Site {
         ?><footer class=ha-center><?php
         ?><nav><?php
         ?><a href="#"><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
-        ?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php            
+        /*?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php */           
         ?><a href="#"><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
         ?><a href="#"><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            
-        ?><a href="#"><div><img src="/css/2020/1.0/assets/msettings.svg" />Settings</div></a><?php            
+        /*?><a href="#"><div><img src="/css/2020/1.0/assets/msettings.svg" />Settings</div></a><?php */           
         ?></nav><?php
         ?><div class="viewable ff-rows"><div class=row><?php
         ?><div class="col-4 ff-cols"><?php

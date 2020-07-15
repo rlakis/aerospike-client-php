@@ -52,7 +52,7 @@ class Home extends Page {
 
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
-        ?><section class="search-box flex" style="margin-bottom:8px;box-shadow:0 1px 4px aliceblue;"><div class="viewable va-center ff-cols"><?php
+        ?><section class="search-box main"><div class="viewable va-center ff-cols"><?php
         $labels=[];
         $kr=\array_keys($this->router->pageRoots);
         foreach ($kr as $id) {
@@ -256,7 +256,7 @@ class Home extends Page {
             $label='top-'.($this->router->cityId>0?'city-'.$this->router->cityId:$this->router->countryId);
             if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
                 $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
-                ?><div class="row viewable"><div class=col-12><div class="card format2"><?php
+                ?><div class="row viewable"><div class=col-12><div class=hscard><?php
                 ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4></header><?php
                 /* <a href="#"><?=$this->lang['more']?></a> */
                 $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 ';
@@ -290,12 +290,13 @@ class Home extends Page {
                 }
                 */
                 $i=0;
-                ?><div class="col-12 wse"><?php
+                ?><div class="col-12 wad wse"><?php
                 foreach ($record as $f) {
                     $this->sectionWidget($f['se'], $f['pu']);
                     $i++;
-                    if ($i>3) { break; }
+                    //if ($i>3) { break; }
                 }
+                ?><div class=space></div><?php
                 ?></div></div></div></div><?php
             }
         }
@@ -303,7 +304,7 @@ class Home extends Page {
     
     
     public function recommendedForYou() : void {
-        ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
+        ?><div class="row viewable"><div class=col-12><div class=hscard><header class=plain><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
         $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
          if ($this->router->cityId>0) {
              $q.=' and city_id='.$this->router->cityId;
@@ -315,6 +316,7 @@ class Home extends Page {
             foreach ($rs['matches'] as $row) {
                 $this->adWidget($row['id']);
             }
+            ?><div class=space></div><?php
             ?></div><?php
          }
         ?></div></div></div><?php
@@ -322,7 +324,7 @@ class Home extends Page {
 
     
     public function recentUploads() : void {
-         ?><div class="row viewable"><div class=col-12><div class="card format2"><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
+         ?><div class="row viewable mb-64"><div class=col-12><div class=hscard><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
          $q='select id from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
          if ($this->router->cityId>0) {
              $q.=' and city_id='.$this->router->cityId;
@@ -334,6 +336,7 @@ class Home extends Page {
             foreach ($rs['matches'] as $row) {
                 $this->adWidget($row['id']);
             }
+            ?><div class=space></div><?php
             ?></div><?php
          }
          ?></div></div></div><?php
@@ -344,10 +347,11 @@ class Home extends Page {
     private function sectionWidget(int $section_id, int $purpose_id) : void {
         //style="background-color:var(--mpc<?=$purpose_id)"
         $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);        
-        ?><div class=ad><?php
-        ?><a style="flex: 1 auto" href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
-        ?><div class=widget><div class="image seclogo"><?php
-        ?><div class=icon><img class=fill-<?=$this->router->sections[$section_id]['root_id']?> src="<?=$this->router->config->imgURL?>/se/<?=$section_id?>.svg" /></div><?php
+        /*?><div class=ad><div class=widget><?php*/
+        ?><div class=ad><a class=widget href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
+        /*?><a class=ff-cols href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php*/
+        ?><div class="image seclogo"><?php
+        ?><div class=icon><img src="<?=$this->router->config->imgURL?>/se/<?=$section_id?>.svg" /></div><?php
         /*
         ?><i><img class="fpu<?=$purpose_id?>" src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
          * 
@@ -358,13 +362,14 @@ class Home extends Page {
             ?><div><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
             ?><div><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
         }
-        ?></div></div><div class=content><?php
+        ?></div></div><?php
+        ?><div class="content section"><?php
         
         if ($status===\Aerospike::OK) {
-            ?><i><img style="width:24px;filter: var(--mseFilter);" src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
-            echo '<div>', $this->sectionLabel($section_id, $purpose_id), '</div>'; 
+            ?><img src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /><?php
+            echo $this->sectionLabel($section_id, $purpose_id); 
         }
-        ?></div></div></a></div><?php
+        ?></div></a></div><?php
     }
     
     
@@ -410,7 +415,7 @@ class Home extends Page {
             
         $pix_count = $ad->picturesCount();
         if ($pix_count) {
-            $pic = '<div class=card-image>'; //<div class="cbox footer"></div>';                   
+            $pic = '<div class=image>'; //<div class="cbox footer"></div>';                   
             $pix = $ad->picturePath();
             if ($this->router->isAcceptWebP) { $pix = preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }                
             $pic.= '<img src="'.$this->router->config->adImgURL.'/repos/m/'.$pix.'" />';                

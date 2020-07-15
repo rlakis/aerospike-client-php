@@ -1,3 +1,9 @@
+.space {
+    content: '\0020';
+    width: 16px;
+    min-width: 16px;
+    height: 16px;
+}
 .icn.ro {
     width: 60px;
     height: 45px;
@@ -8,11 +14,11 @@
   box-shadow: 0 -8px #7abaff inset
 }
 
-.card header.plain {
+header.plain {
     margin: 0 16px;
 }
 
-.card header.plain h4 {
+header.plain h4 {
   color: var(--mlc);
   width: 100%;
   text-align: center;
@@ -23,6 +29,7 @@
 .card.format1 {
   padding: 0 50px
 }
+
 .card.format1 header {
   padding: 0
 }
@@ -84,69 +91,105 @@
   overflow: hidden
 }
 
-.card.format2 {
-  box-shadow: none;
-  background-color: inherit
+.hscard {
+    width:100%;
+    margin: 0;
+    box-shadow: none;
+    background-color: inherit
 }
 
-.card.format2 header {
-  padding: 0;
-  background-color: inherit;
-  min-height: 36px;
-  height: 38px
+.hscard header {
+    border-bottom: 0.5px solid var(--mbc);
+    padding: 0;
+    background-color: inherit;
+    min-height: 36px;
+    height: 38px
 }
 
-.card.format2 header h4 {
-  color: var(--mdc70);
-  margin-left: 0
+.hscard header h4 {
+    color: var(--mdc70);
+    margin: 1.33em 0 0;
 }
-.card.format2 header a {
+
+.hscard header a {
   white-space: nowrap;
   font-size: 12pt;
   font-weight: 700
 }
 
-.card.format2 .col-12 {
+.hscard .col-12 {
   display: flex;
-  flex-flow: column;
+  max-width: 100vw;
+  flex-flow: row;
   justify-content: space-between;
+  overflow: auto;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
-.card.format2 .card-image {
-  height: 240px;
+.hscard .col-12.wad {
+    padding: 16px 0;
+    align-items: flex-start;
+}
+
+.hscard .col-12.wse {
+    height: auto;
+}
+
+.hscard .ad .widget {
+    margin: 0;
+}
+
+.hscard .card-image {
+  height: 208px;
   position: relative;
   overflow: hidden;
   margin: -10px 16px 0;
-  border-radius: 6px;
+  border-radius: 6px 6px 0 0;
   z-index: 3;
   border: 1px solid #afafaf;
-  box-shadow: 0 10px 30px -12px rgba(0,0,0,.26),0 4px 25px 0 rgba(0,0,0,.08),0 8px 10px -5px rgba(0,0,0,.12)
 }
-.card.format2 .card-footer {
+
+.hscard .card-footer {
   padding-top: 4px
 }
-.card.format2 .card-footer a {
+
+.hscard .card-footer a {
   font-size: .9em;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   display: block
 }
-.card.format2 .card-footer ul {
+
+.hscard .card-footer ul {
   width: 100%
 }
-.card.format2 .card-footer li {
+
+.hscard .card-footer li {
   line-height: 1.5em;
   border: 0
 }
-/*
-.card.format2 .premium {
-  box-shadow: 0 1px 4px 0 rgba(227,183,136,.5)!important
+
+.hscard .ad {
+    margin-inline-start: 4px;
+    margin-inline-end: 2px;
 }
-*/
-.card.format2 .ad .widget {
-  height: auto;
-  padding-bottom: 2px
+
+.hscard .ad .widget > a {
+    min-width: -webkit-fill-available;
+    min-width: -moz-available;
+    max-width: -webkit-fill-available;
+    max-width: -moz-available;
+}
+
+.hscard .ad + .ad {
+    margin-inline-start: 8px;
+}
+
+.hscard .ad .icon {
+    justify-content: center;
+    align-items: center;
 }
 
 .search-box .roots {
@@ -512,20 +555,36 @@
     }
     .search-box .roots .large.open:hover {
         box-shadow: none;
+        
     }
     
-    .card.format2 .col-12.wad {
-        overflow: hidden;
-        flex-flow: row wrap;
+    
+    .hscard .ad {
+        margin-inline-start: 1px;
+    }
+    
+    
+    .hscard .col-12.wad {
+        overflow: auto;
+        flex-flow: row nowrap;
         height: 400px;
+        padding-top: 20px;
     }
     
-    .card.format2 .col-12.wse {
-        overflow: hidden;
-        flex-flow: row wrap;
+    
+    .hscard .col-12.wse {
         height: 310px;
     }
 
+    .hscard .col-12.wse .ad .widget {
+        height: 268px;
+    }
+    
+   
+    .hscard .card-image {
+        border-radius: 6px;
+        box-shadow: 0 10px 30px -12px rgba(0,0,0,.26),0 4px 25px 0 rgba(0,0,0,.08),0 8px 10px -5px rgba(0,0,0,.12)
+    }
     
     .lrs {
         top:0;
@@ -567,18 +626,19 @@
         border-bottom: 1px solid var(--mdc10);
     }
 
-    .card header.plain {
+    header.plain {
         margin: 0;
         text-align: start
     }
 
-    .card header.plain h4 {
+    header.plain h4 {
         text-align: start;
         font-size: x-large;
         padding: 16px 0
     }
     
-    .card.format2 header {
+    .hscard header {
+       
         min-height: 70px;
         height: 72px
     }

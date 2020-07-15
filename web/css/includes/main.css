@@ -558,6 +558,7 @@ dt > a > span {
   border-radius: inherit;
   pointer-events: none
 }
+
 .ar {
   direction: rtl;
   text-align: right
@@ -567,48 +568,51 @@ dt > a > span {
   text-align: left
 }
 
-.ad {
-  display: inherit;
-  position: relative;
-  /*
-  min-width: 300px;
-  max-width: 360px;
-  */
-  width: calc( 100% / var(--apr) - 16px );
-  margin: auto
-}
-/*
-.ad a {
-  display: inline-block
-}
-*/
 .ad a > i {
   margin: 0
 }
 
+/*
 .ad .widget {
-  display: inline-block;
-  width: 100%;
-  height: 360px;
-  margin: 25px 0;
+  display: inherit;
+  flex: 1 auto;
+  flex-flow: column;
+  height: 200px;
+  max-width: -webkit-fill-available;
+  max-width: -moz-available;
+  margin: 0;
   box-shadow: 0 1px 4px 0 rgba(0,0,0,.14);
   border-radius: 6px;
   color: rgba(0,0,0,.87);
   background: #fff
 }
+*/
+/*
 .ad .widget .content{
-    display: inline-flex;
-    width: 100%;
     align-items: center;
     overflow: hidden;
-}
-.ad .widget .content i{
-    margin-inline-start: 1px;
-    margin-inline-end: 6px;
+    align-self: flex-start;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    font-size: 0.9em;
+    padding: 16px 0 12px;
 }
 
+.ad .widget .content i{
+    display: inline;
+    margin-inline-start: 1px;
+    margin-inline-end: 6px;
+    height: 24px;
+    max-width: 28px;
+    min-width: 28px;
+}
+*/
+
+/*
 .ad .image {
   position: relative;
+  width: -webkit-fill-available;
+  width: -moz-available;
   height: 220px;
   overflow: hidden;
   margin-left: 15px;
@@ -618,13 +622,8 @@ dt > a > span {
   z-index: 3;
   box-shadow: 0 6px 15px -10px rgba(0,0,0,.42),0 4px 25px 0 rgba(0,0,0,.12),0 8px 10px -5px rgba(0,0,0,.2)
 }
-.ad .image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  pointer-events: none
-}
+*/
+
 .ad .image.seclogo *{
     opacity: 1 !important;
 }
@@ -639,7 +638,7 @@ dt > a > span {
   display: flex;
   position: absolute;
   bottom: 0;
-  background-color: #2d3e4f;
+  background-color: var(--mdc);
   opacity: .65;
   height: 24px;
   width: 100%;
@@ -647,6 +646,9 @@ dt > a > span {
   justify-content: space-between;
   padding-inline-start: 4px;
   padding-inline-end: 4px
+}
+.ad .image .box.hint * {
+    flex: initial;
 }
 .ad .image .box.new {
   position: absolute;
@@ -676,38 +678,41 @@ dt > a > span {
 .ad .icn-camera:before {
   content: ""
 }
+/*
 .ad .content {
   display: inherit;
   position: relative;
   color: var(--mdc90);
-  padding: 15px 15px 8px
-}
+  padding: 12px 6px 8px
+}*/
 .ad .tail {
-  margin: 0 10px 10px;
+  margin: 0 6px 4px;
   position: relative;
-  display: inline-flex;
   width: -webkit-fill-available;
   width: -moz-available
 }
+
 .ad .tail ul {
-  display: inline-flex;
   padding: 0;
-  margin: 0 5px;
+  margin: 0;
   flex-flow: column;
-  width: 100%;
   white-space: nowrap;
   overflow: hidden
 }
+
 .ad .tail li {
   overflow: hidden;
   line-height: 1.5em;
   width: -webkit-fill-available;
   width: -moz-available;
   border-top: 1px solid var(--mdc12);
-  line-height: 26px
+  height: 2em;
+}
+
+.ad .tail span {
+    display: inline;
 }
 .ad .tail a {
-  display: flex;
   justify-content: space-between;
   align-items: center;
   font-weight: 700;
@@ -717,6 +722,7 @@ dt > a > span {
 .ad .tail a > :nth-child(2) {
   font-size: 22px;
   margin-top: -1px;
+  flex:0;
   color: #5a99ff
 }
 .ad .premium .tail a {
@@ -726,10 +732,15 @@ dt > a > span {
   color: #b59279
 }
 .ad.full {
+    max-height: 360px;
   width: -webkit-fill-available;
   width: -moz-available;
   max-width: -webkit-fill-available;
   max-width: -moz-available
+}
+
+.ad.full .block-with-text {
+    height: auto;
 }
 .ad .abuse {
   position: absolute;
@@ -744,13 +755,15 @@ dt > a > span {
 .ad:hover .abuse {
   display: block
 }
+/*
 .ad .seclogo img {
-  filter: var(--mseImgFilter);
+  filter: invert(81%) sepia(49%) saturate(653%) hue-rotate(172deg) brightness(90%) contrast(87%);
   max-width: 90px!important;
   max-height: 90px;
   position: relative;
   object-fit: contain
-}
+}*/
+
 .ad .image.seclogo i {
     display: inherit;
     position: absolute;
@@ -811,28 +824,30 @@ body[dir=rtl] .image.seclogo i {
     display: inline-block;
     position: relative;
     overflow: hidden;
+    white-space: initial;
     line-height: 1.4em;
-    width:100%;
+    width: 100%;
     height: 4.2em;
-    font-size: 16px;
+    font-size: 0.85em;
     font-weight: 400;
     color: #5c696d
 }
+
 .ad .widget .block-with-text i{
     margin-inline-end: 2px;
 }
 
-.seclogo {
-  background-color: var(--mdc);
-  display: inline-flex;
+.ad .seclogo {
+  background-color: var(--mlc);
   align-items: center;
   justify-content: center;
-  width: calc(100% - 32px)
+    /*width: calc(100% - 32px);*/
+    width: -webkit-fill-available;
+    width: -moz-available;
+    margin: 0;
+    border-radius: 6px 6px 0 0;
 }
-.seclogo img {
-  width: 160px!important;
-  height: auto!important
-}
+
 .card .cbox {
   display: flex;
   color: #fff;
@@ -1180,16 +1195,17 @@ body[dir=rtl] .slogan {
 }
 
 @media screen and (max-width:768px) {
-  .ad {
-    float: left;
-    margin: 0;
-    min-width: 320px
+  .hscard .card-image {
+      margin: -10px 0 0 0;
+      min-height: 100px;
+      height: 100px;
   }
   .ls {
     columns: 1;
     -webkit-columns: 1;
     -moz-columns: 1
   }
+  
   aside {
     width: 0;
     overflow-x: hidden;
@@ -1198,6 +1214,10 @@ body[dir=rtl] .slogan {
     transition: all .5s ease .15s;
     -webkit-transition: opacity 1s,min-width .5s
   }
+  aside.col-3{
+      display: none;
+  }
+  
   .mibtn {
     display: inline
   }
@@ -1221,8 +1241,40 @@ body[dir=rtl] .slogan {
     width: 292px;
     height: 68px
   }
-    
   
+    .ad .widget {
+        height: 348px;
+    }
+    
+    
+    .ad .content {
+        padding: 12px 8px 8px
+    }
+    
+    .ad .tail {
+        margin: 0 10px 4px;
+    }
+    
+    .ad .tail ul {
+        margin: 0;
+    }
+    
+    .ls .ad .widget {
+        height: auto;
+        margin: 0;
+    }
+    
+    
+    .block-with-text {
+        line-height: 1.5em;
+        font-size: 1em;
+        height: 72px;
+        max-height: 72px;
+    }
+    
+    .ls ins {
+        margin: initial !important;
+    }
 }
 
 @media only screen and (min-width:1920px) {

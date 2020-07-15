@@ -1264,14 +1264,15 @@ class Search extends Page {
                 }
             }
             // onclick=oad(this)
-            ?><div class="ad<?=$end_user?'':' full'?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><a class=block href=<?=$ad->url()?>><?php
-            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id(). ' itemprop=itemListElement'.$itemScope?>><?php
+            ?><div class=<?=($end_user?'ad':'"ad full"').' '.$ad->htmlDataAttributes($this->formatNumbers)?>><?php
+            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id().' itemprop=itemListElement'.$itemScope?>><?php
+            ?><a class=link href=<?=$ad->url()?>><?php
             if ($ad->isFeatured()) {
                 echo '<img class=tag src="', $this->router->config->imgURL, '/prtag-en.svg" />';
             }
             
-            if ($pix_count) {
-                ?><div class=image><?php
+            ?><div class="<?=($pix_count>0?'image':'image seclogo')?>"><?php
+            if ($pix_count>0) {
                 $pix=$ad->picturePath();
                 if ($this->router->isAcceptWebP) { $pix=\preg_replace('/\.(?:png|jpg|jpeg)/', '.webp', $pix); }
                 ?><img src="<?=$this->router->config->adImgURL.'/repos/m/'.$pix?>" /><?php
@@ -1280,17 +1281,11 @@ class Search extends Page {
                 }
             }
             else {
-                ?><div class="image seclogo"><?php
-                //if ($this->router->rootId<4) {
-                ?><img src="<?=$this->router->config->imgURL?>/se/<?=$ad->sectionId()?>.svg" /><?php
-                /*}
-                else {
-                    ?><img src="<?=$this->router->config->imgURL.'/200/'.$ad->sectionId().$this->router->_png?>" /><?php
-                }*/
+                ?><img src="<?=$this->router->config->imgURL?>/se/<?=$ad->sectionId()?>.svg" /><?php             
             }
             
             if ($isNewToUser) { 
-                echo '<div class="box new">NEW</div>';
+                ?><div class="box new">NEW</div><?php
             }
             
             ?><div class="box hint"><?php
@@ -1298,7 +1293,7 @@ class Search extends Page {
                 switch ($ad->publisherType()) {
                     case 2:
                     case 3:
-                        echo '<div value=a', $ad->rootId(), '>', $this->lang['pub_3_'.$ad->rootId()], '</div>';
+                        ?><div value=a<?=$ad->rootId()?>><?=$this->lang['pub_3_'.$ad->rootId()]?></div><?php
                         break;
                     case 1:
                         echo '<div value=p';
@@ -1316,28 +1311,38 @@ class Search extends Page {
             }
             else {
                 ?><div></div><?php
-            }
+            }  
+            ?><div><?=$ad->formattedSinceDate($this->lang, $this->router->isArabic())?></div><?php
+            ?></div><?php
             
-            
-            ?><div><?=$ad->formattedSinceDate($this->lang, $this->router->isArabic())?></div></div></div><?php
+            ?></div><?php // end of image
             
             ?><div class=content><div class="block-with-text <?=$textClass?>" <?=$itemDesc?>><?php
-            
             if ($ad->latitude()||$ad->longitude()) {
-                ?><a class=inline href="#" title="<?=$ad->location()?>"><i class="icn icnsmall icn-map-marker"></i></a><?php
+                ?><span class=inline onclick="#" title="<?=$ad->location()?>"><i class="icn icnsmall icn-map-marker"></i></span><?php
             }
             echo $ad->text();
             ?></div></div><?php
+            
             if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
                 ?><span style="direction:ltr;display:block;padding-left:20px"><?=$this->searchResults['body']['scores'][$ad->id()]?></span><?php
             }
+            
+            ?></a><?php
+            
             ?><div class=tail><?php
             if ($this->hasLinkSection($ad->data())) {
                 echo $this->getAdSection($ad, $hasSchema);
             }
-            ?><div title="<?=$this->lang['reportAbuse']?>" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div><?php
-            ?><?=$favLink?></div></div><?php
-            ?></a></div><?php
+            ?><div title="<?=$this->lang['reportAbuse']?>" class=abuse onclick="event.stopPropagation();report(this);"><?php
+            ?><i class="icn icn-ban"></i><?php
+            ?></div><?php
+            echo $favLink;
+            ?></div><?php
+            
+            
+            ?></div><?php
+            ?></div><?php
         }              
     }
     
@@ -1379,7 +1384,7 @@ class Search extends Page {
                          
             $section_name=$this->advSectionId>0?$this->router->sections[$this->advSectionId][$this->name]:$this->lang['any1'];
             $purpose_name=$this->advPurposeId>0?$this->router->purposes[$this->advPurposeId][$this->name]:$this->lang['any1'];
-            ?><div class=row><aside class="col-3 side"><?php
+            ?><div class=row><aside class=col-3><?php
             ?><div class=asrch><header><?= $this->lang['advanced_search']?></header><?php
             ?><label><?=$this->lang['searching_in']?></label><div class=sbw><div class=sbe><div class=strg><?php
             ?><span><?=$section_name?></span><div class=arrow></div><?php
@@ -1984,7 +1989,7 @@ class Search extends Page {
                                 $res.='<li><a href="'.$uri . '"><span itemprop="name">'.$tempSection.'</span><span>›</span></a></li>';
                             }
                             else {
-                                $res.='<li><a href="'.$uri . '"><span>'.$tempSection.'</span><span>›</span></a></li>';
+                                $res.='<li><a href='.$uri.'><span>'.$tempSection.'</span><span>›</span></a></li>';
                             }
                         }
                         else {
