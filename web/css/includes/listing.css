@@ -1,29 +1,62 @@
-div.breadcrumb{
+div.breadcrumb {   
+    display: flex;
     flex-flow: column;
-    padding:0 8px;
+    padding: 12px;
     justify-content:space-between;
-    align-items: center;
+    align-items: flex-start;
     color:var(--mColor70);
     font-size:15px
 }
+
+section.breadcrumb {
+    display: flex;
+    max-width: inherit;
+    padding: 0 16px 14px;
+}
+
+div.breadcrumb span {
+    line-height: 32px;
+    font-size: .92em;
+    white-space: nowrap;
+}
+section.breadcrumb a {
+    color: var(--mdc70);
+    font-weight: 500;
+}
+
+section.breadcrumb div.sep {
+    width:2px;
+    background: var(--mdc70);
+}
+
 ul.breadcrumb {
-    display:flex;
-    flex-flow: column;
-    padding: 0;
-    margin-inline-start:0;
+    display:inline-flex;
+    flex-flow: row nowrap;
+    justify-content: flex-start;
+    overflow-y: scroll;
+    max-width: 100%;
+    white-space: nowrap;
     list-style:none;
 }
 
 /* Display list items side by side */
-ul.breadcrumb li{display:inline-flex;color:var(--mColor80);line-height:28px;align-items: center}
-ul.breadcrumb img{height:28px;margin-inline-start:12px;filter:var(--mseFilter)}
-ul.breadcrumb li+li:before{padding:0 12px;color:var(--mlc);content:"›";font-weight:bold;font-size: 1.5em;margin-top:-4px;}
+ul.breadcrumb li{display:inline-flex;color:var(--mColor80);line-height:32px;align-items: center}
+ul.breadcrumb img{display:none;height:28px;margin-inline-start:12px;filter:var(--mseFilter)}
 
-/* Add a color to all links inside the list */
+ul.breadcrumb li+li:before{
+    content:"›";
+    padding:0 8px;
+    color:var(--mlc);
+    font-weight:700;
+    font-size:1.5em;
+    margin-top:-4px
+}
+
 ul.breadcrumb li a {
     color: var(--mdc80);
-    text-decoration: none;
+    text-decoration: none
 }
+
 ul.breadcrumb li span {
     white-space: nowrap;
 }
@@ -77,9 +110,17 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   align-content: flex-start
 }
 
+.ls {
+    background: #eff2f4;
+}
+
 .ls li {
   line-height: 1.5em;
   overflow: hidden
+}
+
+.ls .adsbygoogle {
+    margin-block-end:4px;
 }
 
 .ls .ad {
@@ -88,23 +129,27 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
     width: -webkit-fill-available;
     max-width: -moz-available;
     max-width: -webkit-fill-available;
+    margin-block-end:4px;
 }
 
 .ls .ad.full {
     height: auto;
 }
+
 .ls .card {
   height: 320px
 }
 
 
 .ls .ad .widget {
+    height: auto;
     border-radius: 0;
+    margin: 0;
 }
 
 .ls .ad .image {
-    height: 162px;
-    max-height: 162px;
+    height: 196px;
+    max-height: 196px;
 }
 
 .ls .ad .image.seclogo {
@@ -440,11 +485,20 @@ aside .sbe.open .options {
 @media only screen and (min-width:769px) {
     div.breadcrumb {
         flex-flow: row;
+        padding:0 8px;
+    }
+        
+    section.breadcrumb {
+        display: none;
     }
     
     ul.breadcrumb {
         flex-flow: row;
         margin-inline-start: calc(25% + 32px);
+    }
+    ul.breadcrumb img{display:inherit}
+    .ls {
+        background: inherit;
     }
     
     .ls .ad {

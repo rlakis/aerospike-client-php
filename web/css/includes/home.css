@@ -4,6 +4,7 @@
     min-width: 16px;
     height: 16px;
 }
+
 .icn.ro {
     width: 60px;
     height: 45px;
@@ -136,8 +137,44 @@ header.plain h4 {
     height: auto;
 }
 
+.hscard .ad {
+    border: .5px solid var(--mdc30);
+    border-radius: 4px 4px 0 0;
+}
+
+.hscard .ad.p {
+    border: 1px solid var(--premium);
+}
+
+.hscard .ad .image {
+    height: 162px;
+    max-height: 162px;
+}
+
 .hscard .ad .widget {
+    height: auto;
     margin: 0;
+}
+
+.hscard .ad .content {
+    padding: 8px 4px;
+}
+
+.hscard .ad .content p {
+    font-size: 0.9em;
+}
+
+.hscard .ad .tail {
+    margin: 0 4px;
+    padding-bottom: 0;
+}
+
+.hscard .ad .tail li {
+    border-top-color: var(--mdc30)
+}
+
+.hscard .ad.p .tail li {
+    border-top-color: var(--premium)
 }
 
 .hscard .card-image {
@@ -188,6 +225,8 @@ header.plain h4 {
 }
 
 .hscard .ad .icon {
+    height: 60px;
+    width: auto;
     justify-content: center;
     align-items: center;
 }
@@ -567,11 +606,11 @@ header.plain h4 {
     .hscard .col-12.wad {
         overflow: auto;
         flex-flow: row nowrap;
-        height: 400px;
+        height: auto;
         padding-top: 20px;
     }
     
-    
+    /*
     .hscard .col-12.wse {
         height: 310px;
     }
@@ -579,7 +618,7 @@ header.plain h4 {
     .hscard .col-12.wse .ad .widget {
         height: 268px;
     }
-    
+   */
    
     .hscard .card-image {
         border-radius: 6px;

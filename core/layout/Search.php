@@ -1264,11 +1264,15 @@ class Search extends Page {
                 }
             }
             // onclick=oad(this)
-            ?><div class=<?=($end_user?'ad':'"ad full"').' '.$ad->htmlDataAttributes($this->formatNumbers)?>><?php
-            ?><div class="widget<?=($ad->isFeatured()?' premium':'')?>" id=<?=$ad->id().' itemprop=itemListElement'.$itemScope?>><?php
+            $c=['ad'];
+            //if ($end_user)
+            if ($ad->isFeatured()) {  $c[]='p';  }
+            if (!$end_user) {  $c[]='full';  }
+            ?><div class="<?=\implode(' ', $c).'" '.$ad->htmlDataAttributes($this->formatNumbers)?>><?php
+            ?><div class=widget id=<?=$ad->id().' itemprop=itemListElement'.$itemScope?>><?php
             ?><a class=link href=<?=$ad->url()?>><?php
             if ($ad->isFeatured()) {
-                echo '<img class=tag src="', $this->router->config->imgURL, '/prtag-en.svg" />';
+                echo '<img class=mark src="', $this->router->config->imgURL, '/prtag-en.svg" />';
             }
             
             ?><div class="<?=($pix_count>0?'image':'image seclogo')?>"><?php
@@ -1317,12 +1321,12 @@ class Search extends Page {
             
             ?></div><?php // end of image
             
-            ?><div class=content><div class="block-with-text <?=$textClass?>" <?=$itemDesc?>><?php
+            ?><div class=content><p class="<?=$textClass?>" <?=$itemDesc?>><?php
             if ($ad->latitude()||$ad->longitude()) {
                 ?><span class=inline onclick="#" title="<?=$ad->location()?>"><i class="icn icnsmall icn-map-marker"></i></span><?php
             }
             echo $ad->text();
-            ?></div></div><?php
+            ?></p></div><?php
             
             if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
                 ?><span style="direction:ltr;display:block;padding-left:20px"><?=$this->searchResults['body']['scores'][$ad->id()]?></span><?php
@@ -1479,7 +1483,7 @@ class Search extends Page {
             //echo $this->renderExtendedLinks();
             ?></aside><?php
             
-            ?><div class="row col-9 ff-cols"><div id=cards class="ls col-12" <?php
+            ?><div class="row col-9 ff-cols"><div id=cards class=ls <?php
                 
             if ($this->router->module==='detail' && !$this->detailAdExpired) {
                 echo '/>';
@@ -3371,7 +3375,7 @@ class Search extends Page {
     
     function getBreadCrumb(bool $forceSetting=false, int $count=0) : string {        
         if ($this->crumbString && !$forceSetting) { return $this->crumbString; }
-        if (!$forceSetting || $this->router->module=='detail') {
+        if (!$forceSetting || $this->router->module==='detail') {
             if (isset($this->router->params['tag_id']) && isset($this->extended[$this->router->params['tag_id']])) {
                 $this->extendedId = $this->router->params['tag_id'];
             }
@@ -3515,17 +3519,20 @@ class Search extends Page {
             $pos = strrpos($this->title, ' ' . $this->lang['in'] . ' ');
             $sub_title = (empty($pos) ? $this->title : substr($this->title, 0, $pos));
         }
-        $bc = array();
+        
+        $bc=[];
 
-        $countryId = $this->router->countryId;
-        $countryName = $this->countryName;
-        if (!$countryId) { $countryName=$this->lang['mourjan']; }
+        $countryId=$this->router->countryId;
+        $countryName=$this->countryName;
+        if ($countryId<=0) { $countryName=$this->lang['mourjan']; }
         if ($this->userFavorites && $this->user->params["country"]) {
             $countryId = $this->user->params["country"];
             $countryName = $this->router->countries[$this->user->params["country"]]['name'];
         }
         
-        $bc[]="<ul itemprop='breadcrumb' class=breadcrumb><li><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a></li>";
+        $bc[]='<ul itemprop=breadcrumb class=breadcrumb>';
+        
+        //        . "<li><a href='" . $this->router->getURL($countryId) . "'>{$countryName}</a></li>";
 
         if ($this->hasCities && $this->router->cityId) {
             $bc[]="<li><a href='" . $this->router->getURL($this->router->countryId, $this->router->cityId) . "'>{$this->cityName}</a></li>";
@@ -3710,7 +3717,18 @@ class Search extends Page {
         $this->crumbTitle=\preg_replace("/{$q}|General Search/", '', $this->title);       
         
         if ($this->router->module==='search') {
-            $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>'.$this->getResulstHint($forceSetting).'</span></div></div>';
+            $mobile_tools ='<section class="breadcrumb sp-between mw">';
+            $mobile_tools.='<a href="#"><img style="width:28px" src='.$this->router->config->cssURL.'/1.0/assets/filter.svg>ADVANCED FILTER</a>';
+            $mobile_tools.='<div class=sep></div>';
+            $mobile_tools.='<a href="#"><img style="width:28px" src='.$this->router->config->cssURL.'/1.0/assets/sort.svg>SORT BY</a>';
+            $mobile_tools.='</section>';
+            
+            $this->crumbString='<div class="breadcrumb mw">'
+                    .$mobile_tools
+                    .\implode('', $bc)
+                    .'</ul><span>'
+                    .$this->getResulstHint($forceSetting)
+                    .'</span></div>';
         }
         else {
             $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>';

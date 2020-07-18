@@ -1719,7 +1719,7 @@ class Page extends Site {
                  */
             }
             ?></div><?php
-            ?></div></section><?php
+            ?></div></section><?php                      
         }
         //echo $this->router->module;
         
@@ -2803,7 +2803,17 @@ class Page extends Site {
         
         ?><footer class=ha-center><?php
         ?><nav><?php
-        ?><a href="#"><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
+        $cityId=$this->router->cityId;
+        if ($this->router->cityId) {
+            if ($this->router->countryId===0) {
+                $cityId=0;
+            }
+            elseif (empty($this->router->countries[$this->router->countryId]['cities'])) {
+                $cityId=0;
+            }
+        }
+        
+        ?><a href=<?=$this->router->getURL($this->router->countryId, $cityId)?>><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php */           
         ?><a href="#"><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
         ?><a href="#"><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            

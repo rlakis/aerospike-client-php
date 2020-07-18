@@ -332,7 +332,7 @@ class Home extends Page {
          $q.=' order by date_added desc limit 5';
          $rs=$this->router->db->ql->search($q);
          if ($rs['total_found']>0) {
-            ?><div class="col-12 wad mb-32"><?php
+            ?><div class="col-12 wad"><?php
             foreach ($rs['matches'] as $row) {
                 $this->adWidget($row['id']);
             }
@@ -484,32 +484,31 @@ class Home extends Page {
             }
         }
         
-        echo '<div class=ad ', $ad->htmlDataAttributes($this->formatNumbers), '>';
-        echo '<div class="widget', ($ad->isFeatured()?' premium':''),'" id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>', "\n";
+        echo '<div class=', $ad->isFeatured()?'"ad p" ':'ad ';
+        echo $ad->htmlDataAttributes($this->formatNumbers), '>';
+        echo '<div class=widget id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>';
         if ($ad->isFeatured()) {
-            ?><img class="tag" src="<?=$this->router->config->imgURL?>/prtag-en.svg" /><?php
+            ?><img class=mark src="<?=$this->router->config->imgURL?>/prtag-en.svg" /><?php
         }
-        echo $pic, "\n";
+        echo $pic;
             
-        echo '<div class=content>', "\n";
-        echo '<div class="block-with-text ', $textClass, '" ';
-            
-        echo $itemDesc, '>', "\n";
+        ?><div class=content><p class=<?=$textClass?> <?=$itemDesc?>><?php
         if ($ad->latitude()||$ad->longitude()) {
-            echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a><div style="display:contents">', $ad->text(), '</div></div>'; 
+            echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a>';
+            echo $ad->text(); 
         }
         else {
-            echo $ad->text(), '</div>', "\n";
+            echo $ad->text();
         }
 
-        echo '</div>', "\n";
+        ?></p></div><?php
         //if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
         //        echo '<span style="direction:ltr;display:block;padding-left:20px">', $this->searchResults['body']['scores'][$ad->id()], '</span>';
         //    }
-        echo '<div class=tail>', "\n";    
+        echo '<div class=tail>';    
         echo $this->getAdSection($ad->data(), $hasSchema);
         //echo '<div title="', $this->lang['reportAbuse'], '" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div>';
-        echo $favLink, '</div>', "\n", '</div>', "\n";
+        echo $favLink, '</div></div>';
         echo '</div>', "\n";
     }
     

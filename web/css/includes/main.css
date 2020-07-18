@@ -6,22 +6,6 @@
   src: local(".SFNSText-Light"),local(".HelveticaNeueDeskInterface-Light"),local(".LucidaGrandeUI"),local("Ubuntu Light"),local("Segoe UI Light"),local("Roboto-Light"),local("Roboto"),local("DroidSans"),local("Tahoma")
 }
 
-:root {
-  --mourjanC: rgba(10,122,255,1);
-  --midnight: rgba(44,62,80,1);
-  
-  --color-1: #fd8a6f;
-  --color-2: #ff5f67;
-  --color-3: #2ad392;
-  --color-4: #00c1c1;
-  --color-99: #5a9dff;
-  --linkC: #007AFF;
-  --mcOnColor: rgba(0,58,93,1);
-  --mColor00: rgba(135,135,135,1);
-  --mColor01: rgba(179,179,179,1);
-  --mlColor50: rgba(1,122,255,0.5);
-}
-
 a {
   color: #007bff;
   text-decoration: none;
@@ -314,10 +298,14 @@ body[dir=rtl] .icntop {
 }
 
 .premium {
+    /*
   border: 1px solid var(--premium);
   background-color: #fff!important;
   box-shadow: 0 1px 4px 0 rgba(227,183,136,.5)!important
+    */
 }
+
+/*
 .premium .tail {
   border-top-color: var(--premium)!important
 }
@@ -328,12 +316,13 @@ body[dir=rtl] .icntop {
   top: 58px;
   right: 0
 }
-/*
+
 .active {
   background-color: #4caf50;
   color: #fff
 }
 */
+
 .card {
   display: inline-flex;
   flex: 1 auto;
@@ -638,15 +627,20 @@ dt > a > span {
   display: flex;
   position: absolute;
   bottom: 0;
-  background-color: var(--mdc);
-  opacity: .65;
+  /*background-color: var(--mdc);
+  opacity: .65;*/
   height: 24px;
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  padding-inline-start: 4px;
-  padding-inline-end: 4px
+  padding-inline-start: 8px;
+  padding-inline-end: 8px
 }
+
+.ad .image.seclogo .box.hint {
+    background-color: var(--mdc)
+}
+
 .ad .image .box.hint * {
     flex: initial;
 }
@@ -685,29 +679,8 @@ dt > a > span {
   color: var(--mdc90);
   padding: 12px 6px 8px
 }*/
-.ad .tail {
-  margin: 0 6px 4px;
-  position: relative;
-  width: -webkit-fill-available;
-  width: -moz-available
-}
 
-.ad .tail ul {
-  padding: 0;
-  margin: 0;
-  flex-flow: column;
-  white-space: nowrap;
-  overflow: hidden
-}
 
-.ad .tail li {
-  overflow: hidden;
-  line-height: 1.5em;
-  width: -webkit-fill-available;
-  width: -moz-available;
-  border-top: 1px solid var(--mdc12);
-  height: 2em;
-}
 
 .ad .tail span {
     display: inline;
@@ -837,16 +810,7 @@ body[dir=rtl] .image.seclogo i {
     margin-inline-end: 2px;
 }
 
-.ad .seclogo {
-  background-color: var(--mlc);
-  align-items: center;
-  justify-content: center;
-    /*width: calc(100% - 32px);*/
-    width: -webkit-fill-available;
-    width: -moz-available;
-    margin: 0;
-    border-radius: 6px 6px 0 0;
-}
+
 
 .card .cbox {
   display: flex;
@@ -1232,15 +1196,15 @@ body[dir=rtl] .slogan {
 
 @media only screen and (min-width:769px) {
   
-  header {
-    min-height: 120px
-  }
+    header {
+        min-height: 120px
+    }
   
-  .ilogo {
-    margin: 0;
-    width: 292px;
-    height: 68px
-  }
+    .ilogo {
+        margin: 0;
+        width: 292px;
+        height: 68px
+    }
   
     .ad .widget {
         height: 348px;
@@ -1264,13 +1228,20 @@ body[dir=rtl] .slogan {
         margin: 0;
     }
     
-    
+    .ls .ad .image .box.hint {
+        padding-inline-start: 4px;
+        padding-inline-end: 4px
+    }
+
+   
+    /*
     .block-with-text {
         line-height: 1.5em;
         font-size: 1em;
         height: 72px;
         max-height: 72px;
     }
+    */
     
     .ls ins {
         margin: initial !important;
