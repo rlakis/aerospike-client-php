@@ -334,6 +334,7 @@ body[dir=rtl] .icntop {
   color: rgba(0,0,0,.87);
   background: #fff
 }
+
 .card-header {
   display: inline-block;
   position: absolute;
@@ -715,11 +716,12 @@ dt > a > span {
 .ad.full .block-with-text {
     height: auto;
 }
+
 .ad .abuse {
   position: absolute;
   display: none;
   background-color: transparent;
-  top: 10px;
+  top: 4px;
   left: 0;
   width: 32px;
   height: 32px;

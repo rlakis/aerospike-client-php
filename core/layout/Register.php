@@ -1,30 +1,31 @@
 <?php
 \Config::instance()->incLayoutFile('Page');
 
-class Register extends Page{
+class Register extends Page {
     
     var $include_password_js = false;
 
     function __construct(){
         parent::__construct();
-        if ($this->router()->config()->isMaintenanceMode()) {
-            $this->user->redirectTo($this->router()->getLanguagePath('/maintenance/'));
+        
+        if ($this->router->config->isMaintenanceMode()) {
+            $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
         }
         $title = $this->lang['create_account'];
-        if ($this->user->info['id'] && $this->router()->module=='welcome' && (isset($this->user->pending['password_new']) || isset($this->user->pending['social_new']))) {
+        if ($this->user->info['id'] && $this->router->module==='welcome' && (isset($this->user->pending['password_new']) || isset($this->user->pending['social_new']))) {
             $title = $this->lang['welcome_mourjan'];
         }
         elseif ($this->user->info['id'] && !isset($this->user->pending['password_reset']) && !isset($this->user->pending['password_new'])) {
-            $this->user->redirectTo($this->router()->getURL($this->router()->countryId, $this->router()->cityId));
+            $this->user->redirectTo($this->router->getURL($this->router->countryId, $this->router->cityId));
         }
         else {
-            if ($this->router()->module=='password' && !isset($this->user->pending['password_new'])) {
-                $title = $this->lang['title_pass_reset'];
+            if ($this->router->module==='password' && !isset($this->user->pending['password_new'])) {
+                $title=$this->lang['title_pass_reset'];
             }
         }
         $this->forceNoIndex=true;
         $this->title=$title;
-        $this->router()->config()->disableAds();                    
+        $this->router->config->disableAds();                    
         $this->render();
     }
     
@@ -346,7 +347,7 @@ class Register extends Page{
             if(isset($this->user->pending['social_new']))unset($this->user->pending['social_new']);
             $this->user->update();
         }
-        elseif ($this->router()->module==='signup') {
+        elseif ($this->router->module==='signup') {
             ?><div class=row><div class=col-12><div class="card card-doc"><?php
             ?><div class='card-title'><?= $this->lang['hint_reg_1'] ?></div><?php
             ?><div class=card-content><p><?= $this->lang['account_email'] ?></p><br><?php
@@ -362,7 +363,7 @@ class Register extends Page{
             ?></div><?php
             ?></div><div class="card-footer" style="padding:10px">&nbsp;</div></div></div></div>'<?php                        
         }
-        elseif ($this->router()->module==='password') {
+        elseif ($this->router->module==='password') {
             
             if (isset($this->user->pending['password_new'])||isset($this->user->pending['password_reset'])) {
                 ?><style>

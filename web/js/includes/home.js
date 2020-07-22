@@ -1,7 +1,7 @@
 rootWidget=function(e){
     console.log('rootWidget', e);
     let ses=JSON.parse(e.dataset.sections), assetsURL="https://dev.mourjan.com/css/2020/1.0/assets";
-    let h=document.querySelector('div#rs.lrs');
+    let h=$$.query('div#rs.lrs');
     if (!e.classList.contains('open')) {       
         for (const i of e.closest('div.roots').querySelectorAll('div.large')) {
             i.classList.remove('open'); 
@@ -28,9 +28,9 @@ rootWidget=function(e){
         sb.push("</ul></div>");
         
         sb.push("<div class='col-4 ff-cols'>");
-        if (rootId===1) {
-            
-        }
+        //if (rootId===1) {
+        //    
+        //}
         sb.push('<a class=btn href="#"><img src="'+assetsURL+'/action-2.svg" />Sell your car</a>');
         sb.push('<span class="m0 m1">FIND EVERYTHING</span>');
         sb.push('<span class="m0 m2">YOU\'RE LOOKING FOR</span>');
@@ -53,3 +53,45 @@ rootWidget=function(e){
 }
 
 
+let mainMenu=null, bodyPadding=null;
+menu=function() {    
+    let footer=$$.query('footer'), header=$$.query('header'), html=$.documentElement, i=$$.query('i#burger');
+    if (mainMenu==null) {
+        let apps=footer.query('#mcapps'), info=footer.query('#mcinfo');
+        mainMenu=info.cloneNode(true);
+        mainMenu.id='mmenu';
+        aw=apps.query('ul').cloneNode(true);
+        aw.removeAttribute('id');
+        aw.removeChild(aw.query('li#rwdgt')); 
+        mainMenu.classList.add('menu');        
+        window.scrollTo(0,0);
+        mainMenu.appendChild(aw);
+        header.after(mainMenu);    
+    }
+
+    if (footer.style.display=='none') {
+        mainMenu.style.display='none';
+        footer.style.display='flex';
+        html.style.setProperty('overflow', 'auto');
+        $$.style.padding=bodyPadding;
+    }
+    else {
+        bodyPadding=$$.style.padding;
+        footer.style.display='none';
+        html.style.setProperty('overflow', 'hidden');
+        mainMenu.style.display='flex';
+        $$.style.padding='0px';        
+        
+        $$.querySelectorAll('ins.adsbygoogle').forEach(gad=>{
+            if (gad.dataset.anchorStatus=='displayed') {
+                //console.log(gad, gad.querySelectorAll('span'));
+                let ctrl=gad.query('span');
+                if (ctrl) {
+                    $$.style.padding='30px 0 0'; 
+                }
+            }
+        });
+    }
+    i.classList.toggle('burger');
+    i.classList.toggle('close2');
+}

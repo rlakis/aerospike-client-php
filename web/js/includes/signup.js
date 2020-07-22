@@ -1,6 +1,8 @@
 var strongRegex=new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})");
 var mediumRegex=new RegExp("^(((?=.*[a-z])(?=.*[A-Z]))|((?=.*[a-z])(?=.*[0-9]))|((?=.*[A-Z])(?=.*[0-9])))(?=.{6,})");
-var ar=($$.dir==='rtl');
+$.addEventListener("DOMContentLoaded",function(e){
+    var ar=($$.dir==='rtl');    
+});
 register=function(){
     let e=$.querySelector('#email'), f=$.querySelector('div.card-footer');
     f.innerHTML='';

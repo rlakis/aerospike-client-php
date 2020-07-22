@@ -12,13 +12,15 @@
 }
 
 /* Styles for the container of the tree (e.g. fonts, margins etc.) */
-.jsontree_tree{margin-left:30px;font-family: 'PT Mono',monospace;font-size:14px;}
+.jsontree_tree{
+    font-family: 'PT Mono',monospace;font-size:14px;
+}
 
 /* Styles for a list of child nodes */
 .jsontree_child-nodes {
     display: none;
-    /*margin-left: 24px; 
-    margin-bottom: 5px;*/
+    margin-left: 24px !important; 
+    margin-bottom: 5px;
     line-height: 2;
 }
 
@@ -80,7 +82,7 @@
     display: block;
     width: 11px;
     height: 11px;
-    background-image: url('icons.svg');
+    background-image: url('/css/2020/1.0/icons.svg');
 }
 
 .jsontree_node_expanded > .jsontree_label-wrapper > .jsontree_label > .jsontree_expand-button {

@@ -109,7 +109,6 @@ class Admin extends Page {
 
             $date=new DateTime();
 
-            //$len=\strlen($parameter);
             if (!$isEmail && preg_match('/[^0-9]/', $parameter)) {
                 $record=[];
                 $status=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUserByUUID($parameter, $record))];
@@ -149,13 +148,14 @@ class Admin extends Page {
                         }
                     }
                 }*/
-            } else {
-                $this->uid = intval($parameter);
+            } 
+            else {
+                $this->uid=\intval($parameter);
             }
 
             
             $this->userdata=[$this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($this->uid))];
-
+            
             //if ($uuid) { $this->uid=$uuid; }
             //if ($isEmail) { $this->uid=$email; }
         } 
@@ -1557,6 +1557,6 @@ $.ajax({
         ?><input type="button" class="cl" value="<?= $this->lang['cancel'] ?>" /><input type="button" value="<?= $this->lang['suspend'] ?>" /><?php
         ?></div></div><?php
             
-        ?><script>var userRaw='<?= json_encode($record, JSON_FORCE_OBJECT) ?>';</script><?php
+        ?><script>var userRaw='<?=json_encode($record, JSON_FORCE_OBJECT)?>';</script><?php
     }
 }

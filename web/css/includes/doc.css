@@ -7,9 +7,50 @@ button{outline:none}
     padding:86px 70px 0;
     line-height: 1.5em;
 }
+
+.card.barcode {
+    display: none;
+}
+
+.card.notice {
+    color: var(--mdc70);
+    box-shadow: none;
+    margin-bottom: 64px;
+}
+
+.card.notice .title {
+    display: flex;
+    font-size: 2em;
+    margin:0;
+    margin-block-start:12px;
+    align-items: center
+}
+
+.card.notice .title img {
+    width:72px;
+    margin:16px
+}
+
+.card.notice > div {
+    position:relative;
+    top:0;
+    margin-inline-start:16px;
+    margin-inline-end:16px;
+    line-height: 1.5em;
+    font-weight:300;
+    font-size:1.15em
+}
+.card.notice > div a {
+    display: inline;
+}
+.card.notice p+p {
+    margin-top: 8px;
+}
+
 .card.doc > * {
     display: inherit;
 }
+
 .card.doc .title{
     display: inherit;
     flex-flow: column;
@@ -50,7 +91,6 @@ button{outline:none}
     color:var(--mdc70)
 }
 
-
 .card.doc .page-footer{
     display: inherit;
     margin-top: 24px;
@@ -63,6 +103,7 @@ button{outline:none}
     width: 50%;
     border-top:1px solid var(--mdc30);
 }
+
 .card.doc .page-footer .sep:before {
     content: "";
     position: absolute;
@@ -136,28 +177,23 @@ body[dir=rtl] .side li.on b:after {
 .card-doc h4{color:#3C4858;margin:32px 0 4px}
 
 .sign {
-    display: inherit;
+    display: flex;
     justify-content:space-evenly;
     flex-flow:row wrap;
     align-content:flex-start;    
-    padding-bottom:36px;
+    padding:32px 0 0;
 }
 
 .sign .card.doc {
-    display: inherit;
-    height: 480px;
-    max-width: 320px;
+    height: auto;
     margin: 0;
     padding: 0;
-    border:1px solid var(--mdc12);
-    border-radius: 6px 6px 0 0;
+    border-radius: 4px 4px 0 0;
 }
 
 .sign .card.doc .title {
     margin: 0 0 16px;
-    border-radius:0;   
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
+    border-radius:4px 4px 0 0;   
     min-height:60px;
     background-color:var(--mdc60);
     color:white;
@@ -190,7 +226,7 @@ body[dir=rtl] .side li.on b:after {
     width: 100%;
     height: 44px;
 }
-.sign .icn {
+.sign i {
     margin-inline-end:8px;
 }
 /*
@@ -209,12 +245,14 @@ body[dir=rtl] .side li.on b:after {
 
 .icn-sign-in{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/solid/sign-in.svg) no-repeat 50% 50%;}
 .icn-sign-up{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/solid/user-plus.svg) no-repeat 50% 50%;}
-.icn-facebook{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/facebook-f.svg) no-repeat 50% 50%;}
-.icn-google{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/google.svg) no-repeat 50% 50%;}
-.icn-twitter{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/twitter.svg) no-repeat 50% 50%;}
-.icn-yahoo{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/yahoo.svg) no-repeat 50% 50%;}
-.icn-linkedin{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/linkedin.svg) no-repeat 50% 50%;}
-.icn-microsoft{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/microsoft.svg) no-repeat 50% 50%;}
+
+.i.mourjan{background-color:white !important;-webkit-mask:url(/css/2020/1.0/assets/emblem.svg) no-repeat 50% 50%;}
+.i.facebook{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/facebook-f.svg) no-repeat 50% 50%;}
+.i.google{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/google.svg) no-repeat 50% 50%;}
+.i.twitter{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/twitter.svg) no-repeat 50% 50%;}
+.i.yahoo{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/yahoo.svg) no-repeat 50% 50%;}
+.i.linkedin{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/linkedin.svg) no-repeat 50% 50%;}
+.i.microsoft{background-color:white !important;-webkit-mask:url(/css/2020/1.0/fa/brands/microsoft.svg) no-repeat 50% 50%;}
 
 .group{position:relative;margin-bottom:32px}
 .group>input,.group>textarea{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none}
@@ -525,4 +563,48 @@ body[dir=rtl] .side li.on b:after {
 .btn.buy + span {
     margin-inline-start: 32px;
     font-size: 20px;
+}
+
+
+@media only screen and (min-width:769px) {
+
+    .sign {
+        padding:8px 0 36px;
+    }
+    
+    .sign .card.doc {
+        height: 490px;
+        max-width: 320px;
+        border:1px solid var(--mdc12);
+    }
+    
+    .card.barcode {
+        display: inline-flex;
+    }
+    
+    
+    .card.notice {
+        box-shadow: 0 1px 4px 0 rgba(0,0,0,.14);
+        margin-bottom: 24px;        
+    }
+
+    .card.notice .title {
+        font-size: 2.25em;
+        margin-inline-start:24px;
+    }
+
+    .card.notice .title img {
+        width:96px;
+        margin:24px
+    }
+
+    .card.notice > div {
+        top:-42px;
+        margin-inline-start:172px;
+        margin-inline-end:64px;
+        line-height: 1.5em;
+        font-size:1.25em
+    }
+
+    
 }

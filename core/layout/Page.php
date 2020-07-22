@@ -56,8 +56,8 @@ class Page extends Site {
         //$this->user()->sysAuthById(1932896);
                 
         $cdn = $this->router->config->assetsURL;        
-        if ($this->router->module=='myads' || $this->router->module=='post') {
-            $this->router->config->adImgURL = 'https://www.mourjan.com';
+        if ($this->router->module==='myads' || $this->router->module==='post') {
+            $this->router->config->adImgURL='https://www.mourjan.com';
         }
         
         if (strpos($this->router->config->imgURL, 'http')===false) {            
@@ -154,7 +154,7 @@ class Page extends Site {
                 $width = $this->user->params['screen'][0];
             }
             
-            if ($this->router->module!='myads' && $this->router->module!='post'){                 
+            if ($this->router->module!=='myads' && $this->router->module!=='post'){                 
                 if ($width >= 1250) {
                     $this->inlineCss.='@media all and (max-width:1249px){.w970{display:none}}';
                     $this->set_ad(array('zone_0'=>array('/1006833/Leaderboard-970', 970, 90, 'div-gpt-ad-1497965856593-0-'.$this->router->config->serverId)));
@@ -486,7 +486,7 @@ class Page extends Site {
             echo '</style>';
         }
         
-        ?><div class="row viewable"><div class="col-12 sign"><?php
+        ?><div class="row viewable"><div class="sign mw"><?php
         $keepme_in = (isset($this->user->params['keepme_in']) && $this->user->params['keepme_in']==0)?0:1;
         
         if (isset($this->user->pending['login_attempt'])) {
@@ -514,7 +514,7 @@ class Page extends Site {
         $type=\pathinfo($qrfile, PATHINFO_EXTENSION);
         $base64='data:image/' . $type . ';base64,' . base64_encode($data);                
         
-        ?><div class="card doc"><?php
+        ?><div id=msi class="card doc barcode"><?php
         ?><div class=title><h5><?=$this->lang['signin_mourjan']?></h5></div><?php
         ?><div class=content><?php
         ?><form style="width:100%;" method=post action="<?=$this->router->getLanguagePath('/a/')?>"><?php 
@@ -537,16 +537,17 @@ class Page extends Site {
         
         ?><div class="card doc"><div class=title><h5><?= $this->lang['signin_m'] ?></h5></div><?php
         ?><div class=content><?php            
-        ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook"><i class="icn icn-facebook"></i>Facebook</a><?php
-        ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google"><i class="icn icn-google"></i>Google</a><?php
-        ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter"><i class="icn icn-twitter"></i>Twitter</a><?php
-        ?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo"><i class="icn icn-yahoo"></i>Yahoo</a><?php
-        ?><a class=btn style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin"><i class="icn icn-linkedin"></i>LinkedIn</a><?php
-        ?><a class=btn style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live"><i class="icn icn-microsoft"></i>Windows Live</a><?php
+        ?><a class="btn mob" style="background-color:var(--mlc)" href="javascript:signInWidget()"><i class="i mourjan"></i>Mourjan Classifieds</a><?php
+        ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook"><i class="i facebook"></i>Facebook</a><?php
+        ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google"><i class="i google"></i>Google</a><?php
+        ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter"><i class="i twitter"></i>Twitter</a><?php
+        ?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo"><i class="i yahoo"></i>Yahoo</a><?php
+        ?><a class=btn style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin"><i class="i linkedin"></i>LinkedIn</a><?php
+        ?><a class=btn style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live"><i class="i microsoft"></i>Windows Live</a><?php
         ?></div></div><?php
         
         
-        ?><div class="card doc"><div class=title><h5>Mourjan Mobile App</h5></div><?php
+        ?><div class="card doc barcode"><div class=title><h5>Mourjan Mobile App</h5></div><?php
         ?><div class="content ha-center"><img width=200 height=200 src="<?=$base64?>" /></div><?php
         ?><div class="card-footer" style="color:var(--mdc70);font-weight:500"><span class="bt scan"><span class=apple></span><span class="apple up"></span><?=$this->lang['hint_login_signin']?><?php
         ?><span class="apple up"></span><span class=apple></span></span></div><?php
@@ -555,9 +556,9 @@ class Page extends Site {
         ?></div></div><?php
         // close signin div
         
-        ?><div class="row viewable"><div class=col-12><div class="card" style="color:var(--mdc70)"><h4 style="display:flex;align-items:center;font-size:36px;margin:0; margin-inline-start:24px;margin-block-start:12px"><img style="width:100px;margin:24px" src="<?= $this->router->config->cssURL?>/1.0/assets/notice.svg" /><?=$this->lang['NB']?></h4><?php 
-        ?><div style="position:relative;top:-42px;margin-inline-start:172px;margin-inline-end:64px;line-height: 1.5em;font-weight:300;font-size:20px"><p><?=$this->lang['disclaimer']?></p><p><?= $this->lang['disclaimer_social'] ?></p></div><?php
-        ?></div></div></div><?php                         
+        ?><div class="row viewable"><div class="card notice"><h4 class=title><img src=<?=$this->router->config->cssURL?>/1.0/assets/notice.svg /><?=$this->lang['NB']?></h4><?php 
+        ?><div><p><?=$this->lang['disclaimer']?></p><p><?=$this->lang['disclaimer_social']?></p></div><?php
+        ?></div></div><?php                         
                                
         $this->requireLogin=true;
            
@@ -1656,10 +1657,14 @@ class Page extends Site {
         ?></ul><div id=rgns></div></div></div><?php
         
         ?><header><div class="viewable ff-rows full-height sp-between"><?php  
-        ?><div><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i></a></div><?php
+        ?><div><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i><?php
+        if ($this->router->config->serverId===99) {
+            echo '<div style="font-size:0.75em;color:white;margin:6px 8px 0;">', $this->router->module, '</div>';
+        }
+        ?></a></div><?php
         ?><div><?php
-        ?><a href="#"><i class="icn magnifier i20 invert"></i></a><?php
-        ?><a href="#"><i class="icn burger i20 invert"></i></a><?php
+        ?><a href="#"><i class="i magnifier i20 invert"></i></a><?php
+        ?><a href="javascript:menu()"><i id=burger class="i burger i20 invert"></i></a><?php
         ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div><?php
         ?></div></header><?php
 
@@ -2199,7 +2204,7 @@ class Page extends Site {
             ?></ul><?php
             
             ?><ul class="ls us br"><?php 
-                if($this->router->module != 'account') {
+                if($this->router->module !== 'account') {
                     ?><li><a href="/account/<?= $lang ?>"><?= $this->lang['myAccount'] ?><span class="et"></span></a></li><?php            
                 }else{
                     ?><li class="on"><b><?= $this->lang['myAccount'] ?></b></li><?php
@@ -2816,11 +2821,11 @@ class Page extends Site {
         ?><a href=<?=$this->router->getURL($this->router->countryId, $cityId)?>><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php */           
         ?><a href="#"><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
-        ?><a href="#"><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            
+        ?><a href=<?=$this->router->getLanguagePath('/myads/')?>><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msettings.svg" />Settings</div></a><?php */           
         ?></nav><?php
         ?><div class="viewable ff-rows"><div class=row><?php
-        ?><div class="col-4 ff-cols"><?php
+        ?><div id=mcaddr class="col-4 ff-cols"><?php
         ?><img class=invert src="<?=$this->router->config->imgURL?>/mc-<?=$this->router->language?>.svg" width=200 /><?php
         //<!--<div class="apps bold" style="margin-inline-start:40px;">24/7 Customer Service<br/>+961-70-424-018</div>-->
         ?><div class=addr><?php
@@ -2837,7 +2842,7 @@ class Page extends Site {
         ?><p class=ha-start style="margin-top:8px">© 2010-<?=$year?> <?=$this->lang['mc']?><br/><?=$this->lang['all_rights']?>.</p><?php
         ?></div></div><?php
         
-        ?><div class="col-4 ff-cols"><ul><?php
+        ?><div id=mcinfo class="col-4 ff-cols"><ul><?php
         //if ($this->user()->id()) {
         //    $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
         //    echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
@@ -2857,13 +2862,13 @@ class Page extends Site {
         ?><li><a href="<?=$link?>"><span><?=$look?></span></a></li><?php
         ?></ul></div><?php
         
-        ?><div class="col-4 ff-cols"><ul><?php
+        ?><div id=mcapps class="col-4 ff-cols"><ul><?php
         ?><li class=bold><?=$this->lang['ex_deals_app']?>:</li><?php
         ?><li class="no-border"><div class=apps><?php
-            ?><a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
+            ?><a class="mios" rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
             ?><a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
         ?></div></li><?php
-        ?><li class=bold><a href="javascript:regionWidget()" class="inline-flex va-center"><i class="icn icn-region invert i20"></i><span style="padding-top:3px;color:#fff"><span style="font-size:30px;margin:0 6px"><?=$this->lang['mourjan']?></span><?=$this->lang['around_mst']?></span></a></li><?php
+        ?><li id=rwdgt class=bold><a href="javascript:regionWidget()" class="inline-flex va-center"><i class="icn icn-region invert i20"></i><span style="padding-top:3px;color:#fff"><span style="font-size:30px;margin:0 6px"><?=$this->lang['mourjan']?></span><?=$this->lang['around_mst']?></span></a></li><?php
         /*
             <li class="bold" style="border-bottom:none"><?=$this->lang['followUs']?> @mourjan&nbsp;&nbsp;&nbsp;
                 <img class="invert" src="<?=$this->router->config->imgURL?>/../fa/brands/facebook.svg" style="margin: 0 6px; width:30px"/>
@@ -2887,7 +2892,7 @@ class Page extends Site {
             ?></div></div></div></div></div><?php
         }
         */
-        
+       
         ?></footer><?php                               
     }
 
@@ -4998,7 +5003,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         
         //echo PHP_EOL;
         
-        $this->inlineJS('util.js')->inlineJS('search-box.js');        
+        $this->inlineJS('util.js')->inlineJS('search-box.js')->inlineJS($this->router->module.'.js'); 
         
         echo '</head>', "\n";
         flush();
@@ -5020,367 +5025,6 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
 
         //error_log('key '.$this->user->info['idKey']. ' decoded ' . $this->user()->decodeId($this->user->info['idKey']) . ' uid '.$this->user()->id());
         return;
-        
-        
-        
-        
-        
-        /*-------------- OLD code --------------------------*/
-        
-        $this->prepare_css();
-        $this->prepare_js();
-        
-        foreach($this->requires['css'] as $css){
-            header("Link: <{$css}>; rel=preload; as=style;", false);
-        }
-        
-        if ($this->router->isMobile) {     
-            header("Link: <{$this->router->config->get('url_css_mobile')}/i/main_m{$this->router->_png}>; rel=preload; as=image;", false);
-            
-            switch($this->router->module){
-                case 'search':
-                    if($this->router->sectionId){
-                        header("Link: <{$this->router->cfg['url_img']}/90/{$this->router->sectionId}{$this->router->_png}>; rel=preload; as=image;", false);
-                    }
-                    break;
-                case 'detail':
-                    header("Link: <{$this->router->cfg['url_css_mobile']}/i/share{$this->router->_png}>; rel=preload; as=image;", false);
-                    break;
-                case 'index':
-                    switch($this->router->rootId){
-                        case 1:
-                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/realestate{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 2:
-                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/cars{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 3:
-                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/jobs{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 4:
-                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/service{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 99:
-                            header("Link: <{$this->router->cfg['url_css_mobile']}/i/misc{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
-            }
-            foreach($this->requires['js'] as $js){
-                header("Link: <{$js}>; rel=preload; as=script;", false);
-            }
-            
-        } 
-        else {
-            //logos
-            header("Link: <{$this->router->config->cssURL}/i/logo{$this->router->_jpg}>; rel=preload; as=image;", false);
-            header("Link: <{$this->router->config->cssURL}/i/gen{$this->router->_png}>; rel=preload; as=image;", false);
-            header("Link: <{$this->router->config->cssURL}/i/f/all{$this->router->_png}>; rel=preload; as=image;", false);
-            if($this->user->info['id']) {
-                header("Link: <{$this->router->cfg['url_css']}/i/geni{$this->router->_png}>; rel=preload; as=image;", false);
-            }
-            
-            switch ($this->router->module) {
-                case 'search':
-                    if ($this->router->sectionId) {
-                        header("Link: <{$this->router->cfg['url_img']}/90/{$this->router->sectionId}{$this->router->_png}>; rel=preload; as=image;", false);
-                    }
-                case 'detail':
-                    switch($this->router->rootId){
-                        case 1:
-                            header("Link: <{$this->router->cfg['url_css']}/i/realestate{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 2:
-                            header("Link: <{$this->router->cfg['url_css']}/i/cars{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 3:
-                            header("Link: <{$this->router->cfg['url_css']}/i/jobs{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 4:
-                            header("Link: <{$this->router->cfg['url_css']}/i/service{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        case 99:
-                            header("Link: <{$this->router->cfg['url_css']}/i/misc{$this->router->_png}>; rel=preload; as=image;", false);
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                
-                case 'index':
-                    header("Link: <{$this->router->config->cssURL}/i/realestate{$this->router->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router->config->cssURL}/i/jobs{$this->router->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router->config->cssURL}/i/service{$this->router->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router->config->cssURL}/i/cars{$this->router->_png}>; rel=preload; as=image;", false);
-                    header("Link: <{$this->router->config->cssURL}/i/misc{$this->router->_png}>; rel=preload; as=image;", false);
-                    
-                    if (isset($this->user->params['screen'][0])) {
-                        if ($this->user->params['screen'][0] > 1249) {
-                            header("Link: <{$this->router->config->cssURL}/i/wbl{$this->router->_jpg}>; rel=preload; as=image;", false);
-                        }
-                        else {
-                            header("Link: <{$this->router->config->cssURL}/i/bl{$this->router->_jpg}>; rel=preload; as=image;", false);
-                        }
-                    }
-                    break;
-                    
-                default:
-                    header("Link: <{$this->router->config->imgURL}/msl{$this->router->_png}>; rel=preload; as=image;", false);
-                    break;
-            }
-            
-            header("Link: <{$this->router->config->jQueryURL}jquery.min.js>; rel=preload; as=script;", false);
-            foreach($this->requires['js'] as $js){
-                header("Link: <{$js}>; rel=preload; as=script;", false);
-            }
-        }
-        echo '<!doctype html>';
-        //if ($this->ampEnabled)
-        //{
-        //    echo '<html amp lang="', $this->router->language, '"><head>';
-        //    echo '<meta charset="utf-8"><script async src="https://cdn.ampproject.org/v0.js"></script>'; 
-        //    echo '<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>';
-        //}
-        //else
-        //{
-        echo '<html lang="', $this->router->language, $country_code,'" xmlns:fb="http://ogp.me/ns/fb#" xmlns:og="http://ogp.me/ns#"';
-        if (isset($this->detailAd[Classifieds::VIDEO]) && $this->detailAd[Classifieds::VIDEO]) {
-            echo ' xmlns:video="http://ogp.me/ns/video#"';
-        }
-        echo '><head><meta charset="utf-8">';
-        //}
-        $this->load_css();
-        $this->header();
-
-        echo '<title>', $this->title, '</title>';
-        
-        if ($this->isMobile) {            
-            ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
-            
-            ?><link rel="apple-touch-startup-image" href="<?= $this->router->cfg["url_img"]."/mourjan-splash.png"?>" /><?php
-            ?><meta name="format-detection" content="telephone=no"><?php
-            ?><link rel="manifest" href="/manifest.json"><?php
-        }
-
-        if ($country_code && isset($this->router->cities)) {
-            echo '<meta http-equiv="content-language" content="', $this->router->language, $country_code, '">';
-        } 
-        else {
-            echo '<meta http-equiv="content-language" content="', $this->router->language, $country_code,'" />';
-        }
-        
-        if ($this->forceNoIndex) {
-            echo '<meta name="robots" content="noindex,nofollow,noarchive" />';
-        }
-        else {
-            switch ($this->router->module) {
-                case "detail":
-                    echo '<meta name="robots" content="noindex" />';
-                break;
-
-            case 'search':
-                if ($this->userFavorites) {
-                    echo '<meta name="robots" content="noindex, nofollow" />';
-                } 
-                else {
-                    if ($this->searchResults && 
-                        !empty($this->searchResults['body']['matches']) && 
-                        !(isset($this->router->params['tag_id']) && !$this->extendedId) && 
-                        (!(isset ($this->router->params['loc_id']) && !$this->localityId) || ($this->localityId && in_array($this->router->countryId, [1,2,3,7,8,9]))) ) 
-                    {
-                        $qTotal = $this->searchResults['body']['total_found'];
-                        $__fpages=$qTotal/$this->num;
-                        $qPages = ($__fpages<1) ? 0 : ceil($__fpages);
-                        $qTmp=ceil($this->router->cfg['search_results_max']/$this->num);
-                        if ($qPages>$qTmp) $qPages=(int)$qTmp;
-                        
-                        if (array_key_exists('q', $_GET)) {
-                            echo '<meta name="robots" content="noindex, follow" />';
-                            $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);                                                        
-                            
-                            if ($this->router->params['start']<$qPages && !$this->isMobile) {
-                                $next = $this->router->params['start']==0 ? 2 : $this->router->params['start']+1;
-                                //echo '<link rel="prerender" href="', $this->router->config->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router->params['q']), '" />';
-                                //echo '<link rel="prefetch" href="', $this->router->config->baseURL, $currentUrl, $next,'/?q=',urlencode($this->router->params['q']), '" />';
-                            }                            
-                        }
-                        else {
-                            
-                            $this->includeMetaKeywords();
-                            
-                            $startLink='';
-                            if ($this->extendedId || $this->localityId) {
-                                $currentUrl=$this->extended_uri;
-                            } 
-                            else {
-                                $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId,$this->router->rootId,$this->router->sectionId,$this->router->purposeId);
-                            }
-                            
-                            if ($this->router->params['start']>1) {
-                                $startLink=$this->router->params['start'].'/';
-                            }
-                            
-                            $link = 'https://www.mourjan.com'.$currentUrl.$startLink;
-                            $canonical_link=$link;
-                            
-                            // page is not qualified to be multi language indexable
-                            if ($qTotal<static::SearchEngineLegitimateEntries && !$this->router->isArabic()) {
-                                if ($this->extendedId || $this->localityId) {
-                                    $canonicalCurrentUrl= preg_replace("/\/{$this->router->language}\//", "/", $this->extended_uri);
-                                    
-                                    if ($this->localityId) {
-                                        $alter = $this->router->db->index()
-                                                ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router->sectionId} and lang='ar'");
-                                        
-                                        if ($alter && count($alter)==1) {
-                                            foreach ($alter as $value) {
-                                                $canonicalCurrentUrl= preg_replace("/\/c\-{$this->localityId}\-/", "/c-{$value[1]}-", $canonicalCurrentUrl);
-                                            }
-                                        }
-                                    }
-                                    
-                                    if ($this->extendedId) {
-                                        $alter = $this->router->db->index()
-                                                ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router->countryId} and section_id={$this->router->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
-                                        if ($alter && count($alter)==1) {
-                                            foreach ($alter as $value) {
-                                                $canonicalCurrentUrl= preg_replace("/\/q\-{$this->extendedId}\-/", "/q-{$value[1]}-", $canonicalCurrentUrl);
-                                            }
-                                        }                                        
-                                    }                                    
-                                } 
-                                else {
-                                    $canonicalCurrentUrl=$this->router->getUrl($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, FALSE);
-                                }
-                                $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
-                            }
-                            // end of page is not qualified to be multi language indexable
-                            
-                            if ($link==$this->router->config->host.$_SERVER['REQUEST_URI']) {
-                                echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                                    
-                                if($this->router->countryId && $this->router->sectionId && $this->router->purposeId && $this->router->params['start']<=1){
-                                    echo '<link rel="alternate" href="android-app://com.mourjan.classifieds/mourjan/list/';
-                                    echo '?';
-                                    echo "cn={$this->router->countryId}&";
-                                    echo "c={$this->router->cityId}&";
-                                    echo "ro={$this->router->rootId}&";
-                                    echo "se={$this->router->sectionId}&";
-                                    echo "pu={$this->router->purposeId}&";
-                                    echo "tx={$this->extendedId}&";
-                                    echo "gx={$this->localityId}&";
-                                    echo "hl={$this->router->language}";
-                                    echo '" />';
-                                }
-                            }
-                            else {
-                                echo '<meta name="robots" content="noindex, follow" />';
-                            }
-                                    
-                            echo '<link rel="canonical" href="',$canonical_link, '" />';
-                            
-
-                            if ($this->router->params['start']>1) {
-                                $prev=$this->router->params['start']-1;
-                                echo "<link rel='prev' href='", $this->router->config->baseURL, $currentUrl;
-                                if ($prev>1) {
-                                    echo $prev, '/';
-                                }
-                                echo "' />";
-                            }
-                            
-                            if ($this->router->params['start']<$qPages && !$this->isMobile) {
-                                $next = $this->router->params['start']+1;
-                                if ($next==1) $next=2;
-                                echo "<link rel='next' href='", $this->router->config->baseURL, $currentUrl, $next, "/' />";
-                                //echo '<link rel="prerender" href="', $this->router->config->baseURL, $currentUrl, $next, '/" />';
-                                //echo '<link rel="prefetch" href="', $this->router->config->baseURL, $currentUrl, $next, '/" />';
-                            }
-                        }
-                    }
-                    else {
-                        echo '<meta name="robots" content="noindex, follow" />';
-                    }
-                }
-
-                //if (!$this->router->isMobile) {
-                //    echo '<link href="', $this->router->config->baseURL, $this->router->uri, $this->router->getLanguagePath(), '?rss=1" rel="alternate" type="application/rss+xml" title="', $this->title, '" />';
-                //}
-
-                break;
-                
-            case 'index':
-                $currentUrl=$this->router->getUrl($this->router->countryId,$this->router->cityId);
-                $link=  'https://www.mourjan.com'.$currentUrl;
-                if ($link == $this->router->config->host.$_SERVER['REQUEST_URI']) { 
-                    $this->includeMetaKeywords();
-                    echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                }
-                else {
-                    echo '<meta name="robots" content="noindex, follow" />';
-                }
-                echo '<link rel="canonical" href="', $link, '" />';
-                
-                $__cn=null;
-                $__cc=null;
-                if ($this->router->countryId && isset($this->router->countries[$this->router->countryId])) {
-                    $__cn = $this->router->countries[$this->router->countryId]['uri'];
-                }
-                $__name = $__cn ? 
-                        (
-                         ($this->router->language=='ar' ? 'مرجان ' : 'Mourjan ').
-                        
-                         ($this->router->language=='ar' ? 
-                            $this->router->countries[$this->router->countryId]['name'] : 
-                            $this->router->countries[$this->router->countryId]['name']
-                         )
-                        ) : 
-                        $this->title;   
-                
-                ?><script type="application/ld+json">
-{"@context": "https://schema.org",
- "@type": "WebSite",
- "name": "<?= $__name ?>",
- "alternateName": "mourjan",
- "url": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router->getLanguagePath() ?>",
- "potentialAction":
- {"@type": "SearchAction",
-  "target": "https://www.mourjan.com/<?= ($__cn?$__cn.'/':'').$this->router->getLanguagePath() ?>?q={search_term_string}",
-  "query-input": "required name=search_term_string"
- }
-}
-</script><?php
-        
-        
-                break;
-                
-            default:
-                if ($this->router->module=='notfound') {
-                    echo '<meta name="robots" content="noindex, nofollow" />';
-                } 
-                elseif($this->router->module=='privacy' || $this->router->module=='terms' || $this->router->module=='about' || $this->router->module=='advertise') {
-                    if ($this->router->language=='en'){
-                        echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                    }
-                    else {
-                        echo '<meta name="robots" content="noindex, nofollow" />';
-                    }
-                }
-                else {
-                    echo '<meta name="robots" content="noodp, noydir, index, follow" />';
-                }
-                break;
-        }
-        }
-
-        ?><link rel="icon" href="<?= $this->router->config->imgURL ?>/favicon.ico" type="image/x-icon" /><?php 
-            $this->set_analytics_header();
-            
-        ?></head><?php flush() ?><body<?= $this->isAdminSearch ? ' oncontextmenu="return false;"':'' ?> class="<?= ($this->router->isAcceptWebP ? 'wbp':'') ?>" <?= $this->pageItemScope ?>><meta itemprop="isFamilyFriendly" content="true" /><?php
     }
 
 

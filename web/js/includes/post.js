@@ -3,6 +3,9 @@ Element.prototype.query=function(sel){return this.querySelector(sel);};
 Element.prototype.queryAll=function(sel){return this.querySelectorAll(sel);};
 $.addEventListener("DOMContentLoaded",function(e){
     if (typeof $$==='undefined') { let $$=document.body; }
+    UI.adForm=$.body.query('form#adForm');
+    UI.adClass=$.body.query('div#ad-class');
+    UI.ar=$.body.dir==='rtl';
     UI.init();
 });
 $.onkeydown=function(e){if(e.key==='Escape'){UI.close();}};
@@ -239,9 +242,9 @@ var MAP={
 };
 
 var UI={
-    adForm:$.body.query('form#adForm'),
-    adClass:$.body.query('div#ad-class'),
-    ar:$.body.dir==='rtl',
+    adForm:null,
+    adClass:null,
+    ar:true,
     ip:null,
     dic:null,
     region:null,

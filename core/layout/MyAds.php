@@ -521,7 +521,7 @@ class MyAds extends UserPage {
         }
         echo $this->side->build();
      
-        ?><div class="col-10 ff-cols body"><?php
+        ?><div class="col-10 ff-cols body mw"><?php
         $this->welcome();
         ?><div class="adstatus mb-64"><?php
         $this->accountButton($this->router->getLanguagePath('/myads/').($uid>0?'?u='.$uid:''), $this->lang['ads_active'], $sub==='', $dbCount, 'btn state online');

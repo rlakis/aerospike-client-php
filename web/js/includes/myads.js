@@ -32,109 +32,16 @@ const wording={
     no_revert:{e:'You won\'t be able to revert this!', a:'لن تتمكن من التراجع عن هذا الامر!'}
 }
 
-const lg=$$.dir==='rtl'?'a':'e';
-Element.prototype.article=function(){ let i=this; return i.closest('article'); };
+var lg='a';
+Element.prototype.article=function(){
+    let i=this;
+    return i.closest('article'); 
+};
 
 oload=function(e) {
     let svg=e.contentDocument.querySelector('svg');
     svg.setAttributeNS(null, 'stroke-width', '2px');
 }
-
-$.addEventListener("DOMContentLoaded", function () {
-    var lazyloadImages;
-    var delImage=function(){
-        var answer = window.confirm(d.ar ? "هل انت اكيد من حذف هذه الصورة من الاعلان؟" : "Do you really want to remove this picture?");
-        if (answer) {
-            let adw=this.article();
-            fetch('/ajax-changepu/?img=1&i=' +adw.id + '&pix=' + this.parentElement.query('img').dataset.path, {method: 'GET', mode: 'same-origin', credentials: 'same-origin', headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}})
-                .then(response => { return response.json(); })
-                .then(data => {                    
-                    if (adw) {
-                        let holder = adw.query('.photos'); 
-                        if (holder && data.success===1) {
-                            this.parentElement.remove();
-                            if (holder.childNodes.length===0) {
-                                holder.remove();
-                            }
-                        }
-                    }
-                }).catch(err => { console.log(err); });
-        }        
-    };
-    
-    var initImage=function(img){
-        img.src = d.pixHost + '/repos/s/' + img.dataset.path;
-        img.classList.remove("lazy");
-        img.onclick = function () {
-            d.slideView(this);
-        };                    
-        var del = createElem('div', 'delpix', '-', 1);        
-        del.onclick = delImage;
-        img.closest('span').append(del);
-    };
-    
-    if ("IntersectionObserver" in window) {
-        lazyloadImages = document.querySelectorAll(".lazy");
-        var imageObserver = new IntersectionObserver(function (entries, observer) {
-            entries.forEach(function (entry) {
-                if (entry.isIntersecting) {
-                    var image = entry.target;
-                    initImage(image);
-                    imageObserver.unobserve(image);
-                }
-            });
-        });
-
-        lazyloadImages.forEach(function (image) {
-            imageObserver.observe(image);
-        });
-    }
-    else {
-        var lazyloadThrottleTimeout;
-        lazyloadImages = $.querySelectorAll(".lazy");
-
-        function lazyload() {
-            if (lazyloadThrottleTimeout) {
-                clearTimeout(lazyloadThrottleTimeout);
-            }
-
-            lazyloadThrottleTimeout = setTimeout(function () {                
-                var scrollTop = window.pageYOffset || $.documentElement.scrollTop;
-                lazyloadImages.forEach(function (img) {
-                    var top=img.getBoundingClientRect().top+scrollTop;
-                    if (top < (window.innerHeight + scrollTop)) {
-                        initImage(img);                        
-                    }                  
-                });
-                if (lazyloadImages.length === 0) {
-                    $.removeEventListener("scroll", lazyload);
-                    window.removeEventListener("resize", lazyload);
-                    window.removeEventListener("orientationChange", lazyload);
-                }
-                lazyloadImages = $.querySelectorAll(".lazy");
-            }, 20);
-        }
-        $.addEventListener("scroll", lazyload);
-        window.addEventListener("resize", lazyload);
-        window.addEventListener("orientationChange", lazyload);
-        lazyload();
-    }
-    
-    var script=$.createElement('script');script.type="text/javascript";
-    script.src="https://dev.mourjan.com/js/2020/1.0/socket.io.js";           
-    $.body.append(script);
-    script.onload=function(){ reqSIO(); }
-    
-    location.search.substr(1).split("&").forEach(function(part) {
-        var item=part.split("=");
-        d.queryParams[item[0]]=decodeURIComponent(item[1]);
-    });
-    
-    let canvas=document.querySelector('canvas#canvas');
-    if (canvas && window.location.pathname.startsWith('/myads/', 0)) {        
-        d.userStatistics(d.queryParams.u?d.queryParams.u:0);
-    }
-});
 
 $.onkeydown = function (e) {
     ALT = (e.which === 18);
@@ -150,34 +57,20 @@ $.onkeyup = function () {
     MULTI = false;
 };
 
-$$.onclick = function (e) {    
-    let editable=$$.queryAll("section[contenteditable=true]");
-    if (editable&&editable.length> 0) {
-        editable[0].setAttribute("contenteditable", false);        
-        d.normalize(editable[0]);
-    }
-    
-    if (e.target.closest('div.swal2-container')===null) {
-        d.setId(0);
-        let f=byId('fixForm');
-        if (f && window.getComputedStyle(f).visibility!=='hidden') {
-            f.style.display='none'; 
-        }
-    }
-};
+
 
 var d = {
     currentId: 0, n: 0, panel: null, ad: null, slides: null, roots: null,
-    KUID: $$.dataset.key,
-    pixHost: $$.dataset.repo,
-    su: $$.dataset.level==='90',
-    level: $$.dataset.level==='90' ? 9 : parseInt($$.dataset.level),
+    KUID: null,
+    pixHost: null,
+    su: false,
+    level: 0,
     items:{},
     queryParams:{},
-    nodes: $$.queryAll("article"),
+    nodes:{},
     editors: byId('editors'),
-    ar: $$.dir === 'rtl',
-    count: (typeof $$.queryAll("article")==='object') ? $$.queryAll("article").length : 0,
+    ar: true,
+    count: 0,
     isAdmin: function () { return this.level>=9; },
     setId: function (kId) {
         //console.log('setId', kId, typeof this.items[kId]);        
@@ -1356,11 +1249,11 @@ class Ad {
 
 const reqSIO = async () => {
     socket = io.connect('ws.mourjan.com:1313', {transports: ['websocket'], 'force new connection': false});
+    
     socket.on('admins', function (data) {
         active_admins = data.a;
         if (isNaN(active_admins)) {
-            let len = active_admins.length;
-            let matched = [];
+            let len = active_admins.length, matched = [];
             for (var i = 0; i < len; i++) {
                 if (d.editors) {
                     var x = d.editors.getElementsByClassName(active_admins[i]);
@@ -1553,8 +1446,133 @@ const reqSIO = async () => {
 };
 
 d.items.length=0;
-d.nodes.forEach(function(node){
-    d.items[node.id]=new Ad(node.id);
-    node.onclick=d.clickedAd.bind(d.items[node.id]); 
-});
 
+
+
+$.addEventListener("DOMContentLoaded", function () {
+    lg=$$.dir==='rtl'?'a':'e';
+    d.KUID=$$.dataset.key;
+    d.pixHost=$$.dataset.repo;
+    d.su=$$.dataset.level==='90';
+    d.level=$$.dataset.level==='90' ? 9 : parseInt($$.dataset.level);
+    d.ar=$$.dir==='rtl';
+    d.editors=byId('editors'),
+    d.nodes=$$.queryAll("article");
+    d.count=(typeof d.nodes==='object') ? d.nodes.length : 0,
+    d.nodes.forEach(function(node){
+        d.items[node.id]=new Ad(node.id);
+        node.onclick=d.clickedAd.bind(d.items[node.id]); 
+    });
+    
+
+    
+    $$.onclick = function (e) {    
+        let editable=$$.queryAll("section[contenteditable=true]");
+        if (editable&&editable.length> 0) {
+            editable[0].setAttribute("contenteditable", false);        
+            d.normalize(editable[0]);
+        }
+    
+        if (e.target.closest('div.swal2-container')===null) {
+            d.setId(0);
+            let f=byId('fixForm');
+            if (f && window.getComputedStyle(f).visibility!=='hidden') {
+                f.style.display='none'; 
+            }
+        }
+    };
+
+    var lazyloadImages;
+    var delImage=function(){
+        var answer = window.confirm(d.ar ? "هل انت اكيد من حذف هذه الصورة من الاعلان؟" : "Do you really want to remove this picture?");
+        if (answer) {
+            let adw=this.article();
+            fetch('/ajax-changepu/?img=1&i=' +adw.id + '&pix=' + this.parentElement.query('img').dataset.path, {method: 'GET', mode: 'same-origin', credentials: 'same-origin', headers: {'Accept': 'application/json', 'Content-Type': 'application/json'}})
+                .then(response => { return response.json(); })
+                .then(data => {                    
+                    if (adw) {
+                        let holder = adw.query('.photos'); 
+                        if (holder && data.success===1) {
+                            this.parentElement.remove();
+                            if (holder.childNodes.length===0) {
+                                holder.remove();
+                            }
+                        }
+                    }
+                }).catch(err => { console.log(err); });
+        }        
+    };
+    
+    var initImage=function(img){
+        img.src = d.pixHost + '/repos/s/' + img.dataset.path;
+        img.classList.remove("lazy");
+        img.onclick = function () {
+            d.slideView(this);
+        };                    
+        var del = createElem('div', 'delpix', '-', 1);        
+        del.onclick = delImage;
+        img.closest('span').append(del);
+    };
+    
+    if ("IntersectionObserver" in window) {
+        lazyloadImages = document.querySelectorAll(".lazy");
+        var imageObserver = new IntersectionObserver(function (entries, observer) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    var image = entry.target;
+                    initImage(image);
+                    imageObserver.unobserve(image);
+                }
+            });
+        });
+
+        lazyloadImages.forEach(function (image) {
+            imageObserver.observe(image);
+        });
+    }
+    else {
+        var lazyloadThrottleTimeout;
+        lazyloadImages = $.querySelectorAll(".lazy");
+
+        function lazyload() {
+            if (lazyloadThrottleTimeout) {
+                clearTimeout(lazyloadThrottleTimeout);
+            }
+
+            lazyloadThrottleTimeout = setTimeout(function () {                
+                var scrollTop = window.pageYOffset || $.documentElement.scrollTop;
+                lazyloadImages.forEach(function (img) {
+                    var top=img.getBoundingClientRect().top+scrollTop;
+                    if (top < (window.innerHeight + scrollTop)) {
+                        initImage(img);                        
+                    }                  
+                });
+                if (lazyloadImages.length === 0) {
+                    $.removeEventListener("scroll", lazyload);
+                    window.removeEventListener("resize", lazyload);
+                    window.removeEventListener("orientationChange", lazyload);
+                }
+                lazyloadImages = $.querySelectorAll(".lazy");
+            }, 20);
+        }
+        $.addEventListener("scroll", lazyload);
+        window.addEventListener("resize", lazyload);
+        window.addEventListener("orientationChange", lazyload);
+        lazyload();
+    }
+    
+    var script=$.createElement('script');script.type="text/javascript";
+    script.src="https://dev.mourjan.com/js/2020/1.0/socket.io.js";           
+    $.body.append(script);
+    script.onload=function(){ reqSIO(); }
+    
+    location.search.substr(1).split("&").forEach(function(part) {
+        var item=part.split("=");
+        d.queryParams[item[0]]=decodeURIComponent(item[1]);
+    });
+    
+    let canvas=document.querySelector('canvas#canvas');
+    if (canvas && window.location.pathname.startsWith('/myads/', 0)) {        
+        d.userStatistics(d.queryParams.u?d.queryParams.u:0);
+    }
+});

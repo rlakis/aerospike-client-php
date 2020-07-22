@@ -381,13 +381,13 @@ header.plain h4 {
 /* drop down sections */
 .lrs {
     position: absolute;
-    left:110px;
-    top:25px;
-    width: calc( 100% - 110px );
+    left:104px;
+    top:24px;
+    width: calc( 100% - 104px );
     padding: 4px 0!important;
     margin-inline-end: 10px;
-    transition: opacity 1s linear;  
-    transform:translate(0);
+    transition: opacity 0.25s linear;  
+    transform: translate(0);
     opacity: 0;
     z-index: 5;
 }
@@ -406,10 +406,10 @@ header.plain h4 {
 .lrs .card:before,.lrs .card:after{
     content:'';
     position:absolute;
-    width:24px;
+    width:28px;
     height:1px;
     background-color:var(--mdc90);
-    top:4px;
+    top:10px;
     /*box-shadow:0 0 2px 0 #ccc;*/
 }
 
@@ -430,7 +430,7 @@ header.plain h4 {
   flex-flow: column;
   flex-grow: 1;
   width: -moz-available;
-  padding-block-start:32px;
+  padding-block-start:49px;
   padding-inline-start:4px;
   padding-inline-end:12px;
   font-size: 14px;

@@ -1,6 +1,13 @@
 
 var $=document;
 var $$=$.body;
+var ar=false;
+$.addEventListener("DOMContentLoaded",function(e){
+    $$=$.body;
+    ar=($$.dir==='rtl');
+    $.documentElement.setAttribute('data-useragent', navigator.userAgent);
+});
+
 var byId=function(id){return $.getElementById(id);}
 
 createElem=function(tag, className, content, isHtml) {
