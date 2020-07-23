@@ -2,6 +2,7 @@
 var $=document;
 var $$=$.body;
 var ar=false;
+var mainMenu=null;
 $.addEventListener("DOMContentLoaded",function(e){
     $$=$.body;
     ar=($$.dir==='rtl');
@@ -84,5 +85,63 @@ regionWidget=function(e){
         window.scrollTo(0, 0);
         //d.scrollIntoView(true);
     }
-   
 };
+
+
+menu=function() {    
+    let footer=$$.query('footer'), header=$$.query('header');
+    let inses=$$.querySelectorAll('ins.adsbygoogle');
+    if (mainMenu==null) {
+        let apps=footer.query('#mcapps'), info=footer.query('#mcinfo').cloneNode(true);
+        info.classList.remove('col-4');
+        mainMenu=$.createElement('div');        
+        mainMenu.id='mmenu';
+        mainMenu.classList.add('menu');        
+        hh=header.cloneNode(true);
+        he=hh.query('#he').queryAll('a');
+        he.forEach(a=>{
+            if (a.href!='javascript:menu()') {
+                a.remove();
+            }
+            else {
+                a.style.setProperty('margin-inline-end', '18px');
+                a.query('i').classList.remove('burger');
+                a.query('i').classList.add('close2');
+            }
+        });
+        mainMenu.append(hh);
+        b=$.createElement('div');
+        b.style.padding='32px 44px 92px';        
+        b.append(info.query('ul').cloneNode(true));
+        aw=apps.query('ul').cloneNode(true);
+        aw.removeAttribute('id');
+        
+        aw.removeChild(aw.query('li#rwdgt')); 
+        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        if (isIOS) {
+            aw.query('span.mandroid').parentNode.remove();
+        }
+        else {
+            aw.query('span.mios').parentNode.remove();
+        }
+        b.appendChild(aw);
+        
+        mainMenu.append(b);
+        window.scrollTo(0,0);
+        header.after(mainMenu);    
+    }
+
+    if (footer.style.display=='none') {
+        mainMenu.style.display='none';
+        footer.style.display='flex';
+    }
+    else {
+        footer.style.display='none';
+        mainMenu.style.display='flex';
+        inses.forEach(gad=>{
+            if (gad.style.zIndex>0) {
+                gad.style.zIndex--;
+            }
+        });
+    }
+}

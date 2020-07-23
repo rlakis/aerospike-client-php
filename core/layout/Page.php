@@ -1657,12 +1657,12 @@ class Page extends Site {
         ?></ul><div id=rgns></div></div></div><?php
         
         ?><header><div class="viewable ff-rows full-height sp-between"><?php  
-        ?><div><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i><?php
+        ?><div id=hs><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i><?php
         if ($this->router->config->serverId===99) {
             echo '<div style="font-size:0.75em;color:white;margin:6px 8px 0;">', $this->router->module, '</div>';
         }
         ?></a></div><?php
-        ?><div><?php
+        ?><div id=he><?php
         ?><a href="#"><i class="i magnifier i20 invert"></i></a><?php
         ?><a href="javascript:menu()"><i id=burger class="i burger i20 invert"></i></a><?php
         ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div><?php
@@ -2865,7 +2865,7 @@ class Page extends Site {
         ?><div id=mcapps class="col-4 ff-cols"><ul><?php
         ?><li class=bold><?=$this->lang['ex_deals_app']?>:</li><?php
         ?><li class="no-border"><div class=apps><?php
-            ?><a class="mios" rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
+            ?><a rel=noopener target=_blank href="https://itunes.apple.com/app/id876330682?mt=8"><span class=mios></span></a><?php
             ?><a rel=noopener target=_blank href="https://play.google.com/store/apps/details?id=com.mourjan.classifieds"><span class=mandroid></span></a><?php
         ?></div></li><?php
         ?><li id=rwdgt class=bold><a href="javascript:regionWidget()" class="inline-flex va-center"><i class="icn icn-region invert i20"></i><span style="padding-top:3px;color:#fff"><span style="font-size:30px;margin:0 6px"><?=$this->lang['mourjan']?></span><?=$this->lang['around_mst']?></span></a></li><?php

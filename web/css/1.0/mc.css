@@ -292,19 +292,28 @@ body > * {
 }
 
 .menu {
+    position: fixed;
+    top:0;
+    left:0;
+    z-index:2147483647;
     width:100%;
     height: 100vh;
+    overflow-y: auto;
     background-color: var(--mlc);
-    padding: 32px 44px 92px;
-    border-top: 0.5px solid var(--mdc);
+}
+
+.menu header {
+    border-bottom: 0.5px solid var(--mdc);
 }
 
 .menu ul, .menu a {
     width: 100%;
 }
+
 .menu ul+ul {
     margin-top: 32px
 }
+
 .menu li {
     color: #fff;
     height: 48px;
