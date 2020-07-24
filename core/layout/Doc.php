@@ -268,7 +268,7 @@ class Doc extends Page{
         $adLang='';
         if (!$this->router->isArabic()) { $adLang=$this->router->language.'/'; }
         
-        ?><div class="row viewable mt-32"><?php
+        ?><div class="row viewable"><div class="row pc mt-32"></div><?php
         switch ($this->router->module) {
             case 'buyu':
                 $this->renderBuyU();                
@@ -558,9 +558,9 @@ class Doc extends Page{
             
         $rtl=$this->router->isArabic();
         
-        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><aside class=cw2><?=$this->side_pane()?></aside><?php
         
-        ?><div class=col-10><div class="card doc"><div class="view" style="min-height:600px"><?php
+        ?><div class=cw10><div class="card doc"><div class="view" style="min-height:600px"><?php
         ?><h2 class=title style="color:var(--mdc60);font-size:52px"><?=$rtl?'كل ما تريد ان تعرفه عن':'Get your ad<br>featured and visible with'?><img alt="mourjan" style="width:348px;" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
                 
         $imgPath=$this->router->config->imgURL.'/presentation2/';
@@ -579,8 +579,8 @@ class Doc extends Page{
         }
         
         
-        ?><div class="col-12 ff-cols"><?php
-        ?><ul class=menu><?php
+        ?><div class="inline-flex w100 ff-cols"><?php
+        ?><ul class=gm><?php
         
         ?><li><a href="javascript:chapter(1)"><?=$rtl?'كيف يعمل؟ وما هو؟':'How it works'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter1><?php
@@ -765,23 +765,23 @@ class Doc extends Page{
     
     private function docFooter() : void {
         ?><div class=page-footer><?php
-        ?><div<?=$this->router->module==='about'?' class=sep':''?>><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></div><?php
-        ?><div class=col-12 style="flex-flow:row;justify-content:flex-end;padding:0;margin:0;overflow:hidden"><img style="position:relative;top:56px;width:206px;transform:rotateX(180deg);filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="<?=$this->router->config->cssURL?>/1.0/assets/emblem.svg"/></div><?php
+        ?><div<?=$this->router->module==='about'?' class="sep cw6"':''?>><img alt="mourjan" style="width:148px;margin-top:80px" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></div><?php
+        ?><div class=cw12 style="justify-content:flex-end;overflow:hidden"><img style="position:relative;top:56px;width:206px;transform:rotateX(180deg);filter:invert(36%) sepia(39%) saturate(7153%) hue-rotate(200deg) brightness(102%) contrast(106%);" src="<?=$this->router->config->cssURL?>/1.0/assets/emblem.svg"/></div><?php
         ?></div><?php
     }
     
     
     private function renderAbout() : void {
         $ar=$this->router->isArabic();
-        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
-        ?><div class=col-10><div class="card doc"><div class="view"><?php
+        ?><aside class=cw2><?=$this->side_pane()?></aside><?php
+        ?><div class=cw10><div class="card doc"><div class=view><?php
         if ($ar) {
             ?><h2 class=title>كل ما<br>تحتاج ان تعرفه عن<span style="display:inherit;margin-top:20px"><s style="line-height:49px;text-decoration:none">com.</s><img alt="mourjan" style="width:208px;margin-top:6px" src="<?=$this->router->config->cssURL?>/1.0/assets/inline-logo-en.svg" /></span></h2><?php            
         }
         else {
-            ?><h2 class=title>Everything<br>you need to know about<img alt="mourjan" style="width:320px;margin-top:32px" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></h2><?php
+            ?><h2 class=title><span style="display: block;">Everything</span><span>you need to know about</span><img class=domain alt="mourjan" src="<?=$this->router->config->cssURL?>/1.0/assets/domain.svg" /></h2><?php
         }
-        ?><div class=col-12 style="flex-flow:column;color:var(--mdc70)"><?php
+        ?><div class="cw12 ff-cols va-start"><?php
         if ($this->router->isArabic()) {
             ?><p>في عام ٢٠١٠ تم إنشاء&nbsp;<span itemscope itemtype="https://schema.org/LocalBusiness">موقع مرجان</span> الذي تملكه وتديره شركة مرجان كلاسيفايدس.</p><?php
             ?><p>مع أكثر من ١٥ عامًا من الخبرة في مجال الإعلانات المبوبة وحلول تكنولوجيا المعلومات، كنا نحن فريق العمل  وراء موقع مرجان (<span>mourjan.com</span>) - نبحث عن مشروع جديد يتماشى مع التطور السريع  في شبكة الويب العالمية.</p><?php
@@ -815,8 +815,8 @@ class Doc extends Page{
         $days=$this->router->isArabic()?'الإثنين الى الجمعة':'Monday to Friday';
         $hours=$this->router->isArabic()?'7:00 ص إلى 3:00 م GMT':'7:00AM to 3:00PM GMT';
         
-        ?><div class="col-12 mt-32" itemscope itemtype="https://schema.org/LocalBusiness"><?php
-        ?><div class="col-4 ff-cols" itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-location.svg"/></div><?php
+        ?><div class="cw12 va-start wrap mt-32" itemscope itemtype="https://schema.org/LocalBusiness"><?php
+        ?><div class="cw4 va-start ff-cols mb-64"  itemprop="address" itemscope itemtype="https://schema.org/PostalAddress"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-location.svg"/></div><?php
             ?><div class=addr><?php
             ?><span itemprop="streetAddress"><?=$ar?'مركز الاعمال راكز':'Business Center RAKEZ'?></span><span><span itemprop="addressLocality"><?=$ar?'رأس الخيمة':'Ras Al Khaimah'?></span><br><span itemprop="addressCountry"><?=$ar?'الامارات العربية المتحدة':'United Arab Emirates'?></span></span><?php
             ?></div><?php        
@@ -825,13 +825,13 @@ class Doc extends Page{
             ?></div><?php        
         ?></div><?php
 
-        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-phone.svg"/></div><?php
+        ?><div class="cw4 va-start ff-cols mb-64"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-phone.svg"/></div><?php
         ?><div class="addr"><span><?=$ar?'الامارات العربية المتحدة':'United Arab Emirates'?></span><span class="fw-500 tel" itemprop="telephone">+971 7 204 8438</span></div><?php
         ?><div class="addr"><span><?=$addressCountry?></span><span class="tel fw-500" itemprop="telephone">+961 70 424 018</span></div><?php
         ?><div class="addr"><span><?=$egypt?></span><span class="tel fw-500" itemprop="telephone">+20 109 136 5353</span></div><?php
         ?></div><?php
 
-        ?><div class="col-4 ff-cols"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-time.svg"/></div><?php
+        ?><div class="cw4 va-start ff-cols mb-32"><div class=i90><img src="<?=$this->router->config->cssURL?>/1.0/assets/about-time.svg"/></div><?php
             ?><div class="addr"><span class=fw-500><?=$openingHours?></span><span itemprop="openingHours"><?=$days?><br /><?=$hours?></span></div><?php
         ?></div><?php
         ?></div><?php
@@ -845,9 +845,9 @@ class Doc extends Page{
     private function renderTerms() : void {
         ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
         
-        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><aside class=cw2><?=$this->side_pane()?></aside><?php
         
-        ?><div class=col-10><div class="card doc en"><div class=view><h2 class=title>Mourjan Terms of Use</h2><?php                    
+        ?><div class=cw10><div class="card doc en"><div class=view><h2 class=title>Mourjan Terms of Use</h2><?php                    
         ?><h3>Introduction</h3><?php
         ?><p>Welcome to <span>www.mourjan.com</span> ("Mourjan"). By accessing <span>Mourjan</span> you are agreeing to the following terms, which are designed to make sure that Mourjan works for everyone. Mourjan is provided to you by Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209. This policy is effective January 1st, 2012.</p><?php
 ?><h3>Using Mourjan</h3><?php
@@ -920,8 +920,8 @@ class Doc extends Page{
     private function renderPrivacy() : void {
         ?><style>.ul{margin:0 40px;list-style:disc outside;display:list-item !important} .ul li{line-height:1.5em;margin-bottom:16px;border:none} .ul li:hover{background-color:initial;color:var(--mdc70)}</style><?php
 
-        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
-        ?><div class=col-10><div class="card doc en"><div class=view><?php
+        ?><aside class=cw2><?=$this->side_pane()?></aside><?php
+        ?><div class=cw10><div class="card doc en"><div class=view><?php
         ?><h2 class=title>Privacy policy</h2><?php
 ?><p>This privacy policy describes how we handle your personal information. We collect, use, and share personal information to help the Mourjan website ('Mourjan') work and to keep it safe (details below). In formal terms, Mourjan Classifieds FZ-LLC, Business Center RAKEZ, Ras Al Khaimah, registered in United Arab Emirates with number 45000209, acting itself and through its subsidiaries, is the 'data controller' of your personal information. This policy is effective 1 Jan 2012.</p>
 <h3>Collection</h3>
@@ -996,9 +996,9 @@ class Doc extends Page{
     
     
     public function renderFAQ() : void {
-        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><aside class=cw2><?=$this->side_pane()?></aside><?php
         
-        ?><div class=col-10><div class="card doc en"><div class="view"><?php
+        ?><div class=cw10><div class="card doc en"><div class=view><?php
         ?><h2 class=title>FAQ / Help Center</h2><?php
         ?></div><?php
         $this->docFooter();

@@ -50,16 +50,16 @@ class Contact extends Page {
             $name=$this->user->info['name'];
             if (isset ($this->user->info['email']) && strpos($this->user->info['email'], "@")!==false) $email=$this->user->info['email'];
         }
-        ?><div class="row viewable mt-32"><?php
-        ?><div class="col-2 side"><?=$this->side_pane()?></div><?php
+        ?><div class="row viewable"><div class="row pc mt-32"></div><?php
+        ?><aside class=cw2><?=$this->side_pane()?></aside><?php
         
-        ?><div class=col-10><div class="card doc"><div class=view style="color:var(--mdc70)"><?php
+        ?><div class=cw10><div class="card doc"><div class=view><?php
         ?><h2 class=title><?=$rtl?'راسلنا ولَو بسطر!':'Drop us a line!'?></h2><?php
         // $this->lang['header']
         $subTitle=$rtl?'عندك سؤال؟ تعليق؟ لم تجد ما كنت تبحث عنه؟ دعنا نعرف...':"Have a question? Feedback? Haven't found what you've been looking for? Let us know...";
-        ?><p class="fw-300" style="font-size:23px;line-height:1.5em;margin-top:-40px"><?=$subTitle?></p><div><?php
-        ?><form class="mb-32" onsubmit="vf(this);return false;"><?php
-        ?><div class=row style="margin-top:24px"><div class="bluebar group"><?php
+        ?><p class=fw-300 style="font-size:23px;line-height:1.5em;margin:-40px 0 16px"><?=$subTitle?></p><div class="flex w100"><?php
+        ?><form class="w100 mb-32" onsubmit="vf(this);return false;"><?php
+        ?><div class=row style="margin-top:1em"><div class="bluebar group mw"><?php
             ?><input type=text required onkeydown="dirElem(this)" onchange="dirElem(this)" type=text id=name value="<?= $name ?>" <?= $name ? "readonly":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
                 echo '<label>', $this->lang['hint_name'], '</label>';
@@ -68,7 +68,7 @@ class Contact extends Page {
             <span class=bar></span>
         </div></div><?php
             
-        ?><div class=row><div class="bluebar group">
+        ?><div class=row><div class="bluebar group mw">
             <input type=email required onkeydown="dirElem(this)" onchange="dirElem(this)" onkeyup="this.setAttribute('value', this.value);" id=email value="<?= $email ?>" <?= $email ? "disabled='disabled'":"" ?> /><?php
             if (!$this->user()->isLoggedIn()) {
                 echo '<label>', $this->lang['hint_email'], '</label>';
@@ -77,7 +77,7 @@ class Contact extends Page {
             <span class=bar></span>
         </div></div><?php
         
-        ?><div class=row><div class=group>
+        ?><div class=row><div class="group mw">
             <textarea required onkeydown="dirElem(this)" onchange="dirElem(this,1)" rows=10 id=msg><?= $message ?></textarea>
             <label><?= $this->lang['message'] ?></label>
             <span class=highlight></span>

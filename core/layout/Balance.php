@@ -26,7 +26,7 @@ class Balance extends UserPage {
         $this->render();
     }
     
-    
+    /*
     function mainMobile() {
         if ($this->user->info['id']) {
 
@@ -34,7 +34,8 @@ class Balance extends UserPage {
                 $this->renderDisabledPage();
                 return;
             }
-            $lang= $this->urlRouter->siteLanguage;
+            
+            $lang=$this->urlRouter->siteLanguage;
             switch($this->urlRouter->module){
                 case 'statement':
                     if($this->statementMode){
@@ -72,7 +73,7 @@ class Balance extends UserPage {
             //$this->renderLoginPage();
         }
     }
-    
+    */
     
     function main_pane() {
         ?><div class="row viewable"><div class=col-12><?php
@@ -97,6 +98,7 @@ class Balance extends UserPage {
     } 
     
     
+    /*
     function showMobileStatement(){ 
         $lang = $this->urlRouter->siteLanguage;
         $uid = 0;
@@ -261,7 +263,7 @@ class Balance extends UserPage {
             }
         }
     }
-    
+    */
     
     function showStatement() : void { 
         $lang=$this->router->language;

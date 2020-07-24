@@ -589,7 +589,7 @@ $lang=array(
     
     'buy_gold_bt'          =>  'Buy Gold',
     'gold_title'        =>  'Mourjan Gold',
-    'premium_title'        =>  'Mourjan <span class="fw-500" style="color:var(--premium)">PREMIUM</span>',
+    'premium_title'        =>  'Mourjan&nbsp;<span class="fw-500" style="color:var(--premium)">PREMIUM</span>',
     'gold_subtitle'        =>  'Make your ad premium with Mourjan gold',
     'gold_desc'        =>  'Make your ads premium with Mourjan gold. Find out how you can purchase Mourjan gold and use that gold to make your ads top listed',
     'gold_p1_title'            =>  'what is a Premium ad?',

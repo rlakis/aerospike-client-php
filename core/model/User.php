@@ -1188,7 +1188,7 @@ class User {
     
     
     function getStatement(int $user_id=0, int $offset=0, bool $balanceOnly=false, string $startDate=null, string $language='ar') {
-        if (isset($this->info['level']) && $this->info['level']==9 && $user_id) {
+        if (isset($this->info['level']) && $this->info['level']==9 && $user_id>0) {
             $userId=$user_id;
         }
         else {
@@ -1197,24 +1197,25 @@ class User {
                 if (isset ($_GET['u']) && is_numeric($_GET['u'])) $userId=(int)$_GET['u'];
             }
         }
-        $result = false;
+        $result=false;
         
-        if ($userId) {
+        if ($userId>0) {
             $q='select sum(credit-debit) as balance from t_tran where uid=?';
             $res=$this->db->get($q, [$userId]);
             if ($res && isset($res[0]['BALANCE']) && $res[0]['BALANCE']!=null) {
                 $result['balance']=(int)$res[0]['BALANCE'];
                 
                 if (!$balanceOnly) {
-                    $rs = $this->db->get("SELECT count(*) as total FROM T_TRAN r where r.UID=?", [$userId]);
-                    $total = 0;
+                    $rs=$this->db->get("SELECT count(*) as total FROM T_TRAN r where r.UID=?", [$userId]);
+                    $total=0;
                     if($rs && isset($rs[0]['TOTAL']) && $rs[0]['TOTAL']>0) {
-                        $total = $rs[0]['TOTAL'];
-                        $result['total'] = $total;
+                        $total=$rs[0]['TOTAL'];
+                        $result['total']=$total;
 
                         $rs = $this->db->get(
-                                "SELECT skip {$offset} r.id, o.ad_id, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', r.dated) DATED, r.AMOUNT, r.DEBIT, r.CREDIT,
-                                r.USD_VALUE, r.currency_id, p.NAME_{$language} as offer_name,
+                                "SELECT skip {$offset} r.id, o.ad_id, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', r.dated) DATED, 
+                                r.AMOUNT, r.DEBIT, r.CREDIT, r.USD_VALUE, r.currency_id, 
+                                p.NAME_{$language} as offer_name,
                                 m.name_{$language} as product_name, 
                                 s.name_{$language} as section_name,
                                 pu.name_{$language} as purpose_name,
@@ -1230,13 +1231,11 @@ class User {
                                 where r.UID=?
                                 order by r.ID desc", [$userId]);
                                 
-                        $balance=0;
-                                
-                        $balance = $this->db->get("SELECT sum(credit-debit) as balance from t_tran where uid=? and id<=?", [$userId, $rs[0]['ID']]);
-                        $count=count($rs);
-                        $newRs = [];
-                        if($balance && isset($balance[0]['BALANCE'])) {
-                            $balance = $balance[0]['BALANCE'] == null ? 0 : $balance[0]['BALANCE']+0;
+                        $balance=$this->db->get("SELECT sum(credit-debit) as balance from t_tran where uid=? and id<=?", [$userId, $rs[0]['ID']]);
+                        $count=\count($rs);
+                        $newRs=[];
+                        if ($balance && isset($balance[0]['BALANCE'])) {
+                            $balance=$balance[0]['BALANCE']==null?0:$balance[0]['BALANCE']+0;
                             for ($i=0; $i<$count; $i++) {
                                 $rs[$i]['CREDIT'] = $rs[$i]['CREDIT']+0;
                                 $rs[$i]['DEBIT'] = $rs[$i]['DEBIT']+0;
@@ -1247,10 +1246,10 @@ class User {
                                 $newRs[$i][] = $rs[$i]['DEBIT']+0;
                                 $newRs[$i][] = $balance;
                                         
-                                $balance = $balance+$rs[$i]['DEBIT']-$rs[$i]['CREDIT'];
+                                $balance=$balance+$rs[$i]['DEBIT']-$rs[$i]['CREDIT'];
 
-                                $label = '';
-                                if ($rs[$i]['CREDIT'] > 0) {
+                                $label='';
+                                if ($rs[$i]['CREDIT']>0) {
                                     if (!$rs[$i]['USD_VALUE'] || !$rs[$i]['PRODUCT_NAME']) {
                                         $label = $rs[$i]['PRODUCT_NAME'];
                                         if ($language == 'en') {
@@ -1273,7 +1272,7 @@ class User {
                                         }
                                     }
                                     else {
-                                        $label = $rs[$i]['PRODUCT_NAME'].($rs[$i]['GATEWAY']? ' - '. ucfirst(strtolower($rs[$i]['GATEWAY'])):'');
+                                        $label=$rs[$i]['PRODUCT_NAME'] . ($rs[$i]['GATEWAY']?' - '.ucfirst(strtolower($rs[$i]['GATEWAY'])):'') . ' ' . $rs[$i]['TRANSACTION_ID'];
                                     }
                                 }
                                 else {
@@ -1465,8 +1464,6 @@ class User {
     
     public function getBalance() : int {
         return (int)$this->data->getBalance();
-        //$rs = $this->db->get("select sum(credit-debit) balance from T_TRAN where uid=?", [$this->info['id']]);
-        //return (int)$rs[0]['BALANCE'];
     }
     
     

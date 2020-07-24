@@ -282,6 +282,24 @@ body > * {
     padding: 4px 0;
 }
 
+.cw1,
+.cw10,
+.cw11,
+.cw12,
+.cw2,
+.cw3,
+.cw4,
+.cw5,
+.cw6,
+.cw7,
+.cw8,
+.cw9 {
+    display: inline-flex;
+    align-items: center;
+    flex-basis: 100%;
+    padding: 0;
+}
+
 .mw {
     width: -webkit-fill-available;
     max-width: -webkit-fill-available;
@@ -544,9 +562,15 @@ body > * {
 .ff-cols {
   flex-flow: column
 }
+
 .ff-rows {
   flex-flow: row
 }
+
+.wrap {
+    flex-flow: wrap;
+}
+
 .va-center {
   align-items: center
 }
@@ -1330,6 +1354,19 @@ body[dir=rtl] .large .arrow {
     aside {
         display: flex;
     }
+
+    .cw1 { flex-basis: 8.33% }
+    .cw2 { flex-basis: 16.66% }
+    .cw3 { flex-basis: 25% }
+    .cw4 { flex-basis: 33.33% }
+    .cw5 { flex-basis: 41.66% }
+    .cw6 { flex-basis: 50% }
+    .cw7 { flex-basis: 58.33% }
+    .cw8 { flex-basis: 66.66% }
+    .cw9 { flex-basis: 75% }
+    .cw10 { flex-basis: 83.33% }
+    .cw11 { flex-basis: 91.66% }
+    .cw12 { flex-basis: 100% }
     
     .col-1 { width: 8.33% }
     .col-2 { width: 16.66% }

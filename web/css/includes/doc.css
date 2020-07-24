@@ -4,8 +4,9 @@ button{outline:none}
     border-radius: 2px;
     box-shadow: none;
     margin: 0 0 64px;   
-    padding:86px 70px 0;
-    line-height: 1.5em;
+    padding:24px 0 0;
+    line-height: 1.5em;    
+    max-width: calc( 100vw - 16px);
 }
 
 .card.barcode {
@@ -51,21 +52,30 @@ button{outline:none}
     display: inherit;
 }
 
-.card.doc .title{
+.card.doc .title {
     display: inherit;
     flex-flow: column;
     align-items: flex-start;    
     color:var(--mlc);
     margin: 0 0 44px;
-    font-size: 62px;
+    font-size: 44px;
     font-weight:700
+}
+
+.card.doc .title .domain {
+    margin-top:16px;
+    max-width:340px;
+    width:calc( 100vw / 2 ); 
 }
 
 .card.doc .view {
     flex-flow: column;
+    align-items: flex-start;
     color: var(--mdc70);
     max-width: 680px;
+    min-height: 300px;
     font-weight: 300;
+    padding-inline-end: 16px;
 }
 
 .card.doc p span{
@@ -94,8 +104,6 @@ button{outline:none}
 .card.doc .page-footer{
     display: inherit;
     margin-top: 24px;
-    width: 100%;
-    padding: 0;
 }
 
 .card.doc .page-footer .sep {
@@ -121,32 +129,36 @@ body[dir=rtl] .card.doc .page-footer .sep:before {
 
 input{border:0;outline: none}
 
-.side {
+
+aside {
     flex:1 auto;
-    padding-inline-end:16px
+    padding-inline-end:16px !important
 }
 
-.side ul {
+aside ul {
     display: inherit;
-    flex: inherit;
     flex-flow: column;
+    align-self: flex-start;
+    width: 100%;
 }
-.side li {
+
+aside li {
     display: inherit;
     border-bottom: thin solid var(--mdc12);
 }
 
-.side li a {
+aside li a {
     color:var(--mdc70);
+    width: 100%;
 }
 
-.side li.on {
+aside li.on {
     position: relative;    
     color:var(--mlc);
     justify-content: space-between;
 }
 
-.side li.on b:after {
+aside li.on b:after {
     content:"";
     background:var(--mlc);
     width: 20px;
@@ -155,19 +167,21 @@ input{border:0;outline: none}
     left:0px;
     position: absolute;
 }
-.side li.on i:after {
+
+aside li.on i:after {
     content:"›";
     font-style: normal;
     font-size: 16pt;
-    left:100%;
+    left:calc( 100% - 6px );
     position: absolute;
 }
-body[dir=rtl] .side li.on i:after {
+
+body[dir=rtl] aside li.on i:after {
     left: auto;
     right: 100%;
 }
 
-body[dir=rtl] .side li.on b:after {
+body[dir=rtl] aside li.on b:after {
     left:auto;
     right: 0;
 }
@@ -572,6 +586,25 @@ body[dir=rtl] .side li.on b:after {
         padding:8px 0 36px;
     }
     
+
+    .card.doc {
+        margin: 0 0 64px;
+        padding:86px 70px 0;
+        max-width: 100vw;
+    }
+    
+    .card.doc .title{
+        font-size: 62px;
+    }
+
+    .card.doc .title .domain {
+        margin-top:30px
+    }
+    
+    .card.doc .view {
+        padding-inline-end: 0;
+    }
+
     .sign .card.doc {
         height: 490px;
         max-width: 320px;

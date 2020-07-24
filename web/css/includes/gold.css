@@ -1,43 +1,54 @@
-.side li.on {
+aside li.on {
     color:var(--mdc70);
 }
-.side li.on b::after {
+aside li.on b::after {
     content: "";
     background: var(--premium);
 }
-.side li.on i::after {
+aside li.on i::after {
     color:var(--premium)
 }
 
-.menu {
+.gm {
     font-weight:400;
     font-size:20px;
     color:var(--mdc70)
 } 
-.menu li {
+
+.gm p {margin-top: 8px}
+
+.gm li {
     line-height:64px;
     color:inherit;
     flex-direction:column
 } 
-.menu li:hover{background-color:initial} 
-.menu .disclosure{font-weight:300;font-size:48px;color:inherit;margin-top: -4px}
-.menu li a{flex-direction:row;justify-content:space-between;color:inherit;width:100%}
+.gm li:hover{background-color:initial} 
+.gm .disclosure{font-weight:300;font-size:48px;color:inherit;margin-top: -4px}
 
-.menu li.open {
+.gm li a {
+    flex-direction:row;
+    justify-content:space-between;
+    color:inherit;
+    outline: none;
+    width:100%
+}
+
+.gm li.open {
     font-size: 24px;
     font-weight: 700;    
 }
 
 
-.menu li.open .disclosure {
+.gm li.open .disclosure {
     transform: rotate(90deg);
     font-weight: 500;
 }
 
-.menu li.open:hover {
+.gm li.open:hover {
     color:var(--mdc70);
 }
-.menu li > div{
+
+.gm li > div{
     display: none;
     flex-direction: column;
     color:var(--mdc70);
@@ -53,15 +64,17 @@
     transition:all 0.5s ease;
 }
 
-.menu li.open > div {
+.gm li.open > div {
     display: inline-flex;
     position: relative;
     border-top: 1px solid var(--mdc30);
     max-height: 100%;
     max-width: 100%;
     opacity: 1;
+    padding-top: 16px;
 }
-.menu li.open > div:before {
+
+.gm li.open > div:before {
     content: "";
     position: absolute;
     height: 3px;
@@ -71,22 +84,22 @@
 }
 
 
-.menu table {
+.gm table {
     border-collapse: collapse; 
     border-spacing:0;
     width:460px
 }
 
-.menu td, th {
+.gm td, th {
     padding:8px;
     height:44px; 
     border:1px solid var(--mdc12);
     text-align: center;
 }
 
-.menu td:first-child{font-weight: 700}
-.menu td:last-child{font-weight: 500}
-.menu th {
+.gm td:first-child{font-weight: 700}
+.gm td:last-child{font-weight: 500}
+.gm th {
     border-bottom: 0;
     border-top: 0;
     border-color: var(--mdc12);
