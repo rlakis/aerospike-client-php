@@ -78,6 +78,19 @@ button{outline:none}
     padding-inline-end: 16px;
 }
 
+.card.doc .view.gold {
+    min-height: 600px;
+}
+
+.card.doc .view.gold .title {
+    color:var(--mdc60);
+    font-size:44px
+}
+
+.card.doc .view.gold .title img {
+    width: 65vw;
+}
+
 .card.doc p span{
     font-weight:500;
 }
@@ -603,6 +616,14 @@ body[dir=rtl] aside li.on b:after {
     
     .card.doc .view {
         padding-inline-end: 0;
+    }
+
+    .card.doc .view.gold .title {
+        font-size:52px
+    }
+
+    .card.doc .view.gold .title img {
+        width: 348px;
     }
 
     .sign .card.doc {

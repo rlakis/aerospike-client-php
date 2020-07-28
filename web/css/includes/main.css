@@ -12,24 +12,6 @@ a {
   align-self: center
 }
 
-.float-left {
-  margin-right: auto;
-  float: left
-}
-.float-right {
-  margin-left: auto;
-  float: right
-}
-body[dir=rtl] .float-left {
-  margin-left: auto;
-  margin-right: 0;
-  float: right
-}
-body[dir=rtl] .float-right {
-  margin-right: auto;
-  margin-left: 0;
-  float: left
-}
 .h1,
 h1 {
   font-size: 3.5em;
@@ -78,12 +60,6 @@ i.iborder {
 }
 
 
-
-
-/*
-body[dir=rtl] [class*=col-] {
-  float: right
-}*/
 .hot {
   color: #f33!important
 }

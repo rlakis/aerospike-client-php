@@ -560,8 +560,8 @@ class Doc extends Page{
         
         ?><aside class=cw2><?=$this->side_pane()?></aside><?php
         
-        ?><div class=cw10><div class="card doc"><div class="view" style="min-height:600px"><?php
-        ?><h2 class=title style="color:var(--mdc60);font-size:52px"><?=$rtl?'كل ما تريد ان تعرفه عن':'Get your ad<br>featured and visible with'?><img alt="mourjan" style="width:348px;" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
+        ?><div class=cw10><div class="card doc"><div class="view gold"><?php
+        ?><h2 class=title><?=$rtl?'كل ما تريد ان تعرفه عن':'Get your ad<br>featured and visible with'?><img alt="mourjan" style="" src="<?=$this->router->config->cssURL?>/1.0/assets/premium-en-v1.svg" /></h2><?php
                 
         $imgPath=$this->router->config->imgURL.'/presentation2/';
         

@@ -1,6 +1,6 @@
 <?php
-ini_set('error_reporting', E_ALL);
-ini_set('display_errors', get_cfg_var('mourjan.server_id')=='99'?1:0);
+\ini_set('error_reporting', E_ALL);
+\ini_set('display_errors', \get_cfg_var('mourjan.server_id')=='99'?1:0);
 
 include_once dirname(__DIR__) . '/core/model/Singleton.php';
 
@@ -453,7 +453,19 @@ $config['url_bin']          = $config['url_base'].'/bin';
 $config['url_upload']       = $config['url_bin'].'/uploadLogo.php';
 
 Config::instance()->init($config);
-include_once dirname(__DIR__).'/core/model/Db.php';
+//include_once dirname(__DIR__).'/core/model/Db.php';
+
+include_once dirname(__DIR__).'/core/model/NoSQL.php';
+$as=Core\Model\NoSQL::instance();
+$globalSettings=$as->getBins($as->getConnection()->initKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'settings'));
+if ($globalSettings!==FALSE && isset($globalSettings['data'])) {
+    foreach ($globalSettings['data'] as $key => $value) {
+        $config[$key]=$value;
+    }
+    $config['modules']['ajax-number-info']=array('Bin',0);
+}
+
+/*
 $globalSettings=\Core\Model\DB::getCacheStorage($config)->get("global-settings");
 if ($globalSettings!==FALSE) {
     //$globalSettings['db_host']='fb.mourjan.com';
@@ -462,6 +474,7 @@ if ($globalSettings!==FALSE) {
     }
     $config['modules']['ajax-number-info']=array('Bin',0);
 }
+*/
 
 $config['dir_css']              = '/home/www/mourjan/web/css/2020';
 $config['url_resources']        = 'https://dev.mourjan.com';
@@ -470,7 +483,7 @@ $config['url_css']              = 'https://dev.mourjan.com/css/2020';
 $config['url_img']              = 'https://dev.mourjan.com/css/2020/1.0/assets';
 $config['url_uploader']         = 'https://dev.mourjan.com';
 
-$config['server_id']=get_cfg_var('mourjan.server_id');
+$config['server_id']=\get_cfg_var('mourjan.server_id');
 //$config['active_maintenance']=0;
 
 

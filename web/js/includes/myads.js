@@ -782,20 +782,22 @@ var d = {
     },
 
     normalize: function(e){
-        console.log(e.tagName,  e.innerText);
-        let data = {dx: e.dataset.foreign ? 2 : 1, rtl: e.classList.contains('ar') ? 1 : 0, t: e.innerText};
-        if(e.tagName==='DIV' && e.parentElement.tagName==='SECTION'){
+        //console.log(e.tagName, e.innerText, e.closest('SECTION'));
+        let pe=e.parentElement;
+        let data = {dx: pe.dataset.foreign ? 2 : 1, rtl: pe.classList.contains('ar') ? 1 : 0, t: e.innerText};
+        if(e.tagName==='DIV' && pe.tagName==='SECTION'){
+            
             if (data.dx===2||(data.dx===1&&data.t.length>30)){
                 this.updateAd(e, e.article().id, 0, 0, 0, data);
             }
         }      
-        else console.log('data not suitable', data);
+        //else console.log('data not suitable', data);
     },
 
     updateAd: function (e, adId, ro, se, pu, dat) {
         let ad=this.items[adId].mask(true).opacity(0.3);
         let data=(dat ? dat : {r: ro, s: se, p: pu, hl: (this.ar ? 'ar' : 'en')});
-
+        
         fetch('/ajax-changepu/?i=' + adId, _options('POST', data))
             .then(res => res.json()).then(response => {
                 console.log('updateAd', response);

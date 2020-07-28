@@ -105,7 +105,7 @@ body {
     background-color: #fff;
     line-height: 1;
     min-height: 100vh;
-    min-height: -webkit-fill-available;
+    /*min-height: -webkit-fill-available;*/
     overflow-x: hidden;
 }
 
@@ -1339,8 +1339,12 @@ body[dir=rtl] .large .arrow {
     }
     
     
-    html, body {
+    html {
         min-height: 0;
+    }
+    
+    body {
+        align-content: flex-start;
     }
     
     body > footer {
@@ -1401,7 +1405,8 @@ body[dir=rtl] .large .arrow {
     }
     
     main {
-        background: var(--mdc03);
+        min-height: 33vh;
+        background: var(--mdc03);        
         margin-bottom: 0;
     }
     
