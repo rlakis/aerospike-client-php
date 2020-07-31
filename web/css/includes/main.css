@@ -1088,30 +1088,8 @@ body[dir=rtl] .image.seclogo i {
   pointer-events: none;
   opacity: .5
 }
-.related {
-  flex: 1 auto;
-  height: 54px;
-  margin-bottom: 32px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-  overflow: hidden
-}
-.related .btn {
-  border-radius: 30px;
-  background-color: var(--mdc50);
-  font-size: 15px;
-  font-weight: 700;
-  color: #fff;
-  text-transform: capitalize;
-  margin-top: 0;
-  height: 50px;
-  box-shadow: none;
-  align-items: center;
-  display: inline-flex
-}
-.related .btn + .btn {
-  margin-inline-start: 12px
-}
+
+
 
 .rtl .oops .icn {
   margin: 0 0 0 10px

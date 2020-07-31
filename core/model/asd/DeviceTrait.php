@@ -21,12 +21,12 @@ trait DeviceTrait {
     
     
     private function initDeviceKey(string $uuid) {
-        return $this->getConnection()->initKey(NS_USER, TS_DEVICE, $uuid);
+        return $this->getConnection()->initKey(\Core\Data\NS_USER, TS_DEVICE, $uuid);
     }
     
     
     private function as_key(string $uuid) : array {
-        $key = $this->getConnection()->initKey(NS_USER, TS_DEVICE, $uuid);        
+        $key = $this->getConnection()->initKey(\Core\Data\NS_USER, TS_DEVICE, $uuid);        
         return $key;
     }
     

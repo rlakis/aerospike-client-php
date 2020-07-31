@@ -2,7 +2,7 @@
 var $=document;
 var $$=$.body;
 var ar=false;
-var mainMenu=null;
+
 $.addEventListener("DOMContentLoaded",function(e){
     $$=$.body;
     ar=($$.dir==='rtl');
@@ -88,19 +88,26 @@ regionWidget=function(e){
 };
 
 
-menu=function() {    
-    let footer=$$.query('footer'), header=$$.query('header');
-    let inses=$$.querySelectorAll('ins.adsbygoogle');
-    if (mainMenu==null) {
-        let apps=footer.query('#mcapps'), info=footer.query('#mcinfo').cloneNode(true);
-        info.classList.remove('col-4');
-        mainMenu=$.createElement('div');        
-        mainMenu.id='mmenu';
-        mainMenu.classList.add('menu');        
-        hh=header.cloneNode(true);
-        he=hh.query('#he').queryAll('a');
+fts=function() {
+    //let box=$$.query('section.search-box'), search=box.query('div.search');
+    //console.log('full text search', box, search);
+    //box.classList.toggle('pc');
+    //search.style.display='flex';
+    mfts();
+};
+
+
+initDialog=function(id) {
+    let container=byId(id);
+    if (container==null) {
+        container=createElem('div');
+        container.id=id;
+        container.style.display='none';
+        container.classList.add('menu');
+        header=$$.query('header').cloneNode(true);
+        he=header.query('#he').queryAll('a');
         he.forEach(a=>{
-            if (a.href!='javascript:menu()') {
+            if (a.href!="javascript:menu('mmenu')") {
                 a.remove();
             }
             else {
@@ -109,39 +116,81 @@ menu=function() {
                 a.query('i').classList.add('close2');
             }
         });
-        mainMenu.append(hh);
-        b=$.createElement('div');
-        b.style.padding='32px 44px 92px';        
-        b.append(info.query('ul').cloneNode(true));
-        aw=apps.query('ul').cloneNode(true);
-        aw.removeAttribute('id');
+        container.append(header);
         
-        aw.removeChild(aw.query('li#rwdgt')); 
-        var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        if (isIOS) {
-            aw.query('span.mandroid').parentNode.remove();
+        window.scrollTo(0, 0);
+        $$.query('header').after(container);        
+    }
+    return container;
+};
+
+
+toggleDialog=function(id) {
+    let dialogs=$$.queryAll('div.menu');
+    dialogs.forEach(container=>{
+        if (container.style.display=='none') {            
+            container.style.display='flex';
         }
         else {
-            aw.query('span.mios').parentNode.remove();
+            container.style.display='none';
+            window.scrollTo(0, 0);
         }
-        b.appendChild(aw);
-        
-        mainMenu.append(b);
-        window.scrollTo(0,0);
-        header.after(mainMenu);    
+    });
+    /*
+    console.log($$.queryAll('div.menu'));
+    
+    let container=byId(id);
+    if (container) {
+        console.log(id, container.style.display);
+        if (container.style.display=='none') {            
+            container.style.display='flex';
+        }
+        else {
+            container.style.display='none';
+            window.scrollTo(0, 0);
+        }
     }
+    */
+};
 
-    if (footer.style.display=='none') {
-        mainMenu.style.display='none';
-        footer.style.display='flex';
+
+mfts=function() {
+    if (simpleSearch==null) {
+        simpleSearch=initDialog('msearch');
     }
-    else {
-        footer.style.display='none';
-        mainMenu.style.display='flex';
-        inses.forEach(gad=>{
-            if (gad.style.zIndex>0) {
-                gad.style.zIndex--;
+    toggleDialog('msearch');
+};
+
+
+menu=function(id) {
+    //let inses=$$.querySelectorAll('ins.adsbygoogle');
+    if (byId(id)==null) {        
+        e=initDialog(id);
+        if (id=='mmenu') {
+            let footer=$$.query('footer'), apps=footer.query('#mcapps'), info=footer.query('#mcinfo').cloneNode(true);
+            info.classList.remove('col-4');
+                
+            b=$.createElement('div');
+            b.style.padding='32px 44px 92px';        
+            b.append(info.query('ul').cloneNode(true));
+            aw=apps.query('ul').cloneNode(true);
+            aw.removeAttribute('id');
+        
+            aw.removeChild(aw.query('li#rwdgt')); 
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            if (isIOS) {
+                aw.query('span.mandroid').parentNode.remove();
             }
-        });
+            else {
+                aw.query('span.mios').parentNode.remove();
+            }
+            b.appendChild(aw);        
+            e.append(b);   
+        }
+        
+        if (id=='msearch') {
+            console.log(id);
+        }
     }
-}
+    toggleDialog(id);  
+};

@@ -96,7 +96,7 @@ html * {
 body {
     display: flex;
     position: initial;
-    flex-flow: row wrap;
+    flex-flow: column;
     font-family: 'Roboto',Almarai,-apple-system,system;
     font-style: normal;
     font-size: 1em;
@@ -240,7 +240,7 @@ footer .addr {
 }
 body > * {
     display: inherit;
-    flex: 1 100%;
+    /*flex:auto;*/
     flex-flow: column
 }
 .viewable {
@@ -795,16 +795,19 @@ body > * {
 
 
 
-
+/*
 .search {
     display: none;
 }
+*/
+
+
 .search form {
   width: 100%;
   height: 58px;
   display: inherit;
-  border: 1px solid var(--mbc50);
-  border-radius: 3px;
+  border-bottom: 1px solid var(--mbc50);
+  border-radius: 0;
   justify-content: space-between;
   align-self: flex-start;
   flex-direction: row
@@ -849,8 +852,8 @@ body > * {
 .searchTerm {
   width: 100%;
   border: none;
-  padding-inline-start: 20px;
-  height: 56px!important;
+  padding-inline-start: 16px;
+  height: 100%;
   outline: 0;
   color: var(--mdc50);
   font-size: 1em;
@@ -864,14 +867,17 @@ body > * {
 }
 
 .searchButton {
+    min-width: 48px;
   width: 84px;
-  height: 56px;
+  height: 100%;
   border: 0;
   border-left: 1px solid var(--mbc);
-  border-radius: 0 3px 3px 0;
-  background: var(--mlc);
+  border-radius: 0;
+  background-color: var(--mbc);
   cursor: pointer;
+  outline: none;
   padding-top: 0
+      
 }
 /*
 .search select {
@@ -919,50 +925,60 @@ body > * {
   display: flex;
   flex-direction: column
 }
+
 .strg {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px;
-  font-size: 16px;
-  font-weight: 700;
+  min-width: 145px;
+  font-size: 14px;
+  font-weight: 400;
   color: var(--mdc70);
   height: 56px;
   line-height: 36px;
   cursor: pointer;
   border-inline-end: 1px solid var(--mbc50)
 }
+
 .strg > * {
   margin: 0 12px
 }
+
 .strg:hover {
-  background-color: var(--mlc);
+  background-color: var(--mbc);
   color: #fff;
   cursor: pointer
 }
+
 .options {
-  position: absolute;
   display: block;
-  top: calc(100% + 8px);
+  position: absolute;
+  top: calc(100% - 1px);
   left: 0;
   right: 0;
-  border: 1px solid #bec9ce;
-  border-radius: 5px;
   background: #fff;
   transition: all .5s;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   z-index: 100;
-  padding: 16px 16px 32px
+  padding: 0 0 48px
 }
+
+.options .option:last-child{
+    border-bottom: 0;
+}
+
 .sbe.open .options {
   opacity: 1;
+  padding: 0;
   visibility: visible;
   pointer-events: all;
-  width: fit-content
+  width: 100vw;
+  height: 100vh
 }
+
 .option {
   position: relative;
   display: flex;
@@ -985,9 +1001,10 @@ body > * {
 .option.selected {
   color: #fff;
   background-color: var(--mlc);
+  /*
   margin: 0 -16px;
   padding-inline-start: 32px;
-  padding-inline-end: 32px
+  padding-inline-end: 32px*/
 }
 .option.selected i {
   filter: invert(1)
@@ -1344,7 +1361,12 @@ body[dir=rtl] .large .arrow {
     }
     
     body {
+        flex-flow: row wrap;
         align-content: flex-start;
+    }
+    
+    body > * {
+        flex-basis: 100%;
     }
     
     body > footer {
@@ -1431,6 +1453,10 @@ body[dir=rtl] .large .arrow {
         margin: 36px 0 6px;
     }
     
+    .search form {
+        border: 1px solid var(--mbc50);
+        border-radius: 3px;
+    }
     
     .search-box {
         background-color:var(--mdc03);
@@ -1454,6 +1480,43 @@ body[dir=rtl] .large .arrow {
     
     .search-box:not(:last-of-type) {
         padding-bottom: 0;
+    }
+    
+    .strg {
+        justify-content: space-between;
+        padding: 0 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .strg:hover {
+        background-color: var(--mlc);
+    }
+    
+    .strg > * {
+        margin: 0 12px
+    }
+
+    .options {
+        top: calc(100% + 8px);
+        padding: 16px 16px 32px;
+        border: 1px solid #bec9ce;
+        border-radius: 3px;
+        width: fit-content;
+    }
+    
+    .sbe.open .options {
+        height: auto;
+    }
+    
+    .searchTerm {
+        padding-inline-start: 20px;
+    }
+    
+    .searchButton {
+        border-radius: 0 3px 3px 0;
+        background-color: var(--mlc);
     }
     
     .ad.p {

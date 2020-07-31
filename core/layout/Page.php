@@ -1661,8 +1661,8 @@ class Page extends Site {
         }
         ?></a></div><?php
         ?><div id=he><?php
-        ?><a href="#"><i class="i magnifier i20 invert"></i></a><?php
-        ?><a href="javascript:menu()"><i id=burger class="i burger i20 invert"></i></a><?php
+        ?><a href="javascript:menu('msearch')"><i class="i magnifier i20 invert"></i></a><?php
+        ?><a href="javascript:menu('mmenu')"><i id=burger class="i burger i20 invert"></i></a><?php
         ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div><?php
         ?></div></header><?php
 
@@ -2818,7 +2818,7 @@ class Page extends Site {
         
         ?><a href=<?=$this->router->getURL($this->router->countryId, $cityId)?>><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php */           
-        ?><a href="#"><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
+        ?><a href=<?=$this->router->getLanguagePath('/post/')?>><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
         ?><a href=<?=$this->router->getLanguagePath('/myads/')?>><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msettings.svg" />Settings</div></a><?php */           
         ?></nav><?php

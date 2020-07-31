@@ -190,6 +190,42 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
   border: 0
 }
 
+.ls .ad:last-child{
+    margin-block-end:1px;
+}
+.alt {
+    display: inherit;
+    flex-basis: 100%;
+    flex-flow: column;
+    max-height: 14em;
+    margin: 40px 16px 32px;
+    /*width: 100vw;*/
+}
+
+.alt .related {
+    flex: 1 auto;
+    /*height: 54px;
+  margin-bottom: 32px;*/
+  margin-top: 16px;
+  flex-wrap: wrap;
+  overflow: hidden
+}
+
+.alt .related .btn {
+  border-radius: 30px;
+  background-color: var(--mdc50);
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: capitalize;
+  margin-top: 0;
+  height: 50px;
+  box-shadow: none;
+  align-items: center;
+  display: inline-flex
+}
+
+
 /* page left side */
 aside {
     margin: 8px 8px 0;
@@ -523,4 +559,18 @@ aside .sbe.open .options {
         height: 205px;
         max-height: 205px;
     }
+    
+    .alt {
+        margin: 16px 0;    
+    }
+    
+    .alt .related {
+          height: 54px;
+    }
+    
+    .alt .related .btn + .btn {
+        margin-inline-start: 12px
+    }
+
+
 }

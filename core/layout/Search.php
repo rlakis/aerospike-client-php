@@ -1593,10 +1593,10 @@ class Search extends Page {
                 $hasExt=0;
                   
                 if ($followStr) {
-                    ?><!--googleoff: index --><div class=row><div class=col-12 style="flex-flow:column;margin-top:44px"><h4 style="width:100%;margin:0"><?=$this->lang['interestSection']?>:</h4><?php
-                    ?><div class="row related"><?php
+                    ?><!--googleoff: index --><div class=alt><h4><?=$this->lang['interestSection']?>:</h4><?php
+                    ?><div class=related><?php
                     echo $followStr;
-                    ?></div></div></div><!--googleon: index --><?php
+                    ?></div></div><!--googleon: index --><?php
                 }
                 
                 if ($this->router->module==='detail') {

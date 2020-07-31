@@ -1,10 +1,13 @@
-if (typeof $==='undefined') {
-    let $=document; 
-}
-$.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
     for (const select of $.querySelectorAll("div.sbw")) {
         let search=select.closest('div.search');
         if (search) {
+            /*
+            for (const o of search.querySelectorAll(".options")) {
+                console.log(o, search.offsetWidth, select.offsetLeft);
+                o.style.width=(search.offsetWidth-select.offsetLeft-3)+'px';
+                console.log(o.offsetWidth);
+            }*/
             select.querySelector('.options').style.width=(search.offsetWidth-3)+'px';
         }            
         select.addEventListener('click', function() {            
