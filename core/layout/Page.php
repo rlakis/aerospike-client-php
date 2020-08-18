@@ -1706,7 +1706,7 @@ class Page extends Site {
                 
         ?><input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what'];?>"><?php
         ?><input id=ro name=ro type=hidden value="0"><?php
-        ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i></button><?php
+        ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i><span class=mob>Search</span></button><?php
         ?></form><?php        
         ?></div><?php
         ?></div></section><?php

@@ -50,7 +50,6 @@ class Config extends \Core\Model\Singleton {
         $this->imgLibURL = $this->config['url_image_lib'];
         
         $this->adImgURL = 'https://c6.mourjan.com';
-        //error_log($this->imgURL);
         
         $this->libDir = $this->baseDir . '/core/lib/';
         $this->modelDir = $this->baseDir . "/core/model/";
@@ -127,7 +126,8 @@ class Config extends \Core\Model\Singleton {
     }
 }
 
-
+include_once 'shared.php';
+/*
 $aws = 'https://doxplxe8wce37.cloudfront.net';
 
 $config=array(
@@ -447,14 +447,14 @@ $config=array(
                                 'Mozilla/4.0 (compatible; MSIE 6.0; Windows 98)' => 1
                             ),
 );
-
+*/
 $config['url_base']         = $config['host'];
 $config['url_bin']          = $config['url_base'].'/bin';
 $config['url_upload']       = $config['url_bin'].'/uploadLogo.php';
 
-Config::instance()->init($config);
-//include_once dirname(__DIR__).'/core/model/Db.php';
+//Config::instance()->init($config);
 
+/*
 include_once dirname(__DIR__).'/core/model/NoSQL.php';
 $as=Core\Model\NoSQL::instance();
 $globalSettings=$as->getBins($as->getConnection()->initKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'settings'));
@@ -464,6 +464,7 @@ if ($globalSettings!==FALSE && isset($globalSettings['data'])) {
     }
     $config['modules']['ajax-number-info']=array('Bin',0);
 }
+*/
 
 /*
 $globalSettings=\Core\Model\DB::getCacheStorage($config)->get("global-settings");
@@ -484,7 +485,6 @@ $config['url_img']              = 'https://dev.mourjan.com/css/2020/1.0/assets';
 $config['url_uploader']         = 'https://dev.mourjan.com';
 
 $config['server_id']=\get_cfg_var('mourjan.server_id');
-//$config['active_maintenance']=0;
 
 
 Config::instance()->init($config);

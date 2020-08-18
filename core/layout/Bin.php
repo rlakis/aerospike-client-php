@@ -270,16 +270,17 @@ class Bin extends AjaxHandler {
                 }
                     
                 if (isset($_GET['fraud']) && \is_numeric($_GET['fraud'])){
-                    $content=\json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true);                    
+                    $content=\json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true); 
+                    /*
                     if (isset($content['fraud_score'])) {
                         $content['message']='Failed!';
                         Config::instance()->incLibFile('IPQuality');
                         $content=IPQuality::getIPStatus($content['host']);                        
-                    }
+                    }*/
                     $this->success($content);
                 }
                     
-                $lang = $this->getGetString('hl');
+                $lang=$this->getGetString('hl');
                 if(!$lang){$lang=$this->_JPOST['hl']??'en';}
                 if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
                 $this->fieldNameIndex=($lang==='en')?2:1;

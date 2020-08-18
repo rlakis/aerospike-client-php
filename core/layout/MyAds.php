@@ -29,6 +29,16 @@ class MyAds extends UserPage {
     ];
 
     
+    private array $adminReasons = [
+        1 => 'contains stop words',
+        994 => 'fraudulant with hidden activated mobile number',
+        995 => 'user verified number is from other country',        
+        996 => 'email contains more than one dot',        
+        997 => 'email contains hotel word',        
+        998 => 'email contains + sign',        
+        999 => 'system general'        
+    ];
+            
     function __construct() {
         parent::__construct();    
         /*
@@ -229,6 +239,7 @@ class MyAds extends UserPage {
         'لا يمكن نشر هذا الاعلان سوى في البلد الذي تتواجد فيه مكاتبكم وخدماتكم',
         'لا يمكن نشر هذا الاعلان في دولة وانت متواجد في دولة أخرى او قد يتم ايقاف حسابك',
         'لا يمكن نشر هذا الإعلان سوى في البلد حيث يتواجد فيه العقار، السيارة أو السلعة',
+        'لا توجد نتيجة من نشر الاعلان في ظل توقف السفر بشكل شبه كامل',
         'group=سياسة الموقع',
         'يرجى اضافة المعلومات الخاصة بمؤسسة التنظيم العقاري ريرا',
         'لا يمكن نشر اعلانات مماثلة دون ادراج رقم الموبايل المستخدم لتفعيل حسابك مع مرجان (فقط) ضمن وسائل التواصل',
@@ -269,6 +280,7 @@ class MyAds extends UserPage {
         'please choose \"international real estate\" section to publish your ad',
         'this ad can only be published in countries where your offices and services are located',
         'this ad cannot be published in countries other than the country of origin (cars, real estate, goods)',
+        'worthless seeking work ad posting while travel is prohibited',
         'group=Website Policy',      
         'please add missing details concerning RERA',
         'cannot publish similar ads unless you add ONLY the mobile number (used to activate your mourjan account) to the contact information',
@@ -751,7 +763,7 @@ class MyAds extends UserPage {
                             $this->router->getLanguagePath('/myads/').'?u='.$cad->uid().'">'.$name.'</a>';
                     
                     $geo = preg_replace('/,/', '' , preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/', '', $cad->dataset()->getUserLocation()));
-                    $title.='<span>' . $geo . '</span>';
+                    $title.='<span>' . $cad->dataset()->getUserLocation() . '</span>';
                     
                     if ($state===1 && $cad->getDateAdded()===$cad->getDateModified()) {
                         $title.='<span><span class="rj ren"></span></span>';
@@ -835,7 +847,9 @@ class MyAds extends UserPage {
                         break;
                 }
                                
-                if ($onlySuper) { $adClass.=' warn'; }
+                if ($onlySuper) { 
+                    $adClass.=' warn';                
+                }
                 
                 // new look
                 ?><article id=<?php                
@@ -854,7 +868,23 @@ class MyAds extends UserPage {
                         echo $onlySuper?$onlySuper:'...';
                         ?></span></div><?php
                         echo '<span class=msg>', $this->lang['pendingMsg'],'</span></div>';
-                        echo '<span class=alloc>', ($assignedAdmin?$assignedAdmin:''), '</span>';
+                        echo '<span class=alloc>';
+                        if ($cad->getSuperAdmin()>0) {
+                            echo 'Help: ';
+                            if (isset($this->adminReasons[$cad->getSuperAdmin()])) {
+                                echo $this->adminReasons[$cad->getSuperAdmin()];
+                            }
+                            else if (isset ($this->editors[$cad->getSuperAdmin()])) {
+                                echo $this->editors[$cad->getSuperAdmin()];                                
+                            }
+                            else {
+                                echo $cad->getSuperAdmin(), ' Undefined!';
+                            }                            
+                        }
+                        else {
+                            echo ($assignedAdmin?$assignedAdmin:'');
+                        }
+                        echo '</span>';
                         break;
 
                     case 2:
@@ -863,7 +893,7 @@ class MyAds extends UserPage {
                         break;
                     
                     case 3:
-                        echo '<div class="nb nbr"><span class="fail"></span>', $this->lang['rejectedMsg'], ($cad->dataset()->getMessage() ? ': ' . $cad->dataset()->getMessage() : ''),($assignedAdmin ? $assignedAdmin:'') ,'</div>';
+                        echo '<div class="nb nbr"><span class=fail></span>', $this->lang['rejectedMsg'], ($cad->dataset()->getMessage() ? ': ' . $cad->dataset()->getMessage() : ''),($assignedAdmin ? $assignedAdmin:'') ,'</div>';
                         break;
                     
                     default:
