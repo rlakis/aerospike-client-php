@@ -361,6 +361,173 @@ class MCSaveHandler {
     }
 
     
+    function similarByAdId(int $id, int $stripPremuim=0) : array {
+        $db=new DB(true);
+        $rs=$db->queryResultArray("select section_id, purpose_id, rtl, WEB_USER_ID, content from ad_user where id=?", [$id])[0];
+        $db->close();
+        
+        $obj=\json_decode($rs['CONTENT'], false);
+        $obj->pu=$rs['PURPOSE_ID'];
+        $obj->se=$rs['SECTION_ID'];
+        $obj->rtl=$rs['RTL'];
+        $obj->user=$rs['WEB_USER_ID'];
+        
+        $words=\explode(' ', $obj->attrs->ar);
+        
+        $fields=['id', 'attrs', 'locality_id', 'featured', 'section_id', 'purpose_id'];
+        $names=[];
+        $query=new Core\Lib\MCSearch($db->manticore);
+        $query->expression('featured', 'IF(featured_date_ended>=NOW(),1,0)');
+        
+        $xPhones=$xMails=$sbGeoKeys="";
+        
+        if (isset($obj->attrs->geokeys) && !empty($obj->attrs->geokeys)) {
+            $len=\count($obj->attrs->geokeys);            
+            $expr='ANY(';
+            for ($i=0; $i<$len; $i++) {
+                if ($i>0) $expr.=' OR ';
+                $expr.="x={$obj->attrs->geokeys[$i]}";
+            }
+            $expr.=' FOR x IN attrs.geokeys)';
+            $query->expression('gfilter', $expr);
+            $fields[]='gfilter';
+            \error_log($expr);
+        }
+        else {
+            if (isset($obj->attrs->locality)) {
+                $query->expression('gfilter', "attrs.locality.id={$obj->attrs->locality->id}");
+                $fields[]='gfilter';
+            }
+            else {
+                $obj->attrs->locality=new stdClass();
+                $obj->attrs->locality->id=-1;
+            }
+        }
+        
+        if (!isset($obj->attrs->geokeys)) { $obj->attrs->geokeys=[]; }        
+        if (isset($obj->attrs->price)) { $names['price']=0; }        
+        if (isset($obj->attrs->rooms)) { $names['rooms']=0; }
+        if (isset($obj->attrs->space)) { $names['space']=0; }        
+        
+        if (isset($obj->attrs->phones) && isset($obj->attrs->phones->n) && !empty($obj->attrs->phones->n)) {
+            $len=\count($obj->attrs->phones->n);
+            $xPhones.='ANY(';
+            for ($i=0; $i<$len; $i++) {
+                if ($i>0) {  $xPhones.=' OR '; }
+                $xPhones.="BIGINT(x)={$obj->attrs->phones->n[$i]}";                    
+            }
+            $xPhones.=' FOR x IN attrs.phones.n)';
+        }
+        
+        if (isset($obj->attrs->mails) && !empty($obj->attrs->mails)) {
+            $len=\count($obj->attrs->mails);
+            $xMails.='ANY(';
+            for ($i=0; $i<$len; $i++) {
+                if ($i>0) {  $xMails.=' OR '; }
+                $xMails.="x='{$obj->attrs->mails[$i]}'";
+            }
+            $xMails.=' FOR x IN attrs.mails)';
+        }
+            
+        $contactFilter=false;
+        if ($xPhones!=='' && $xMails!=='') {
+            $fields[]='cfilter';
+            $query->expression('cfilter', "({$xPhones} OR {$xMails})");
+            $contactFilter=true;
+        }
+        else if ($xPhones!=='' && $xMails==='') {
+            $fields[]='cfilter';
+            $query->expression('cfilter', $xPhones);
+            $contactFilter=true;
+        }
+        else if ($xPhones==='' && $xMails!=='') {
+            $fields[]='cfilter';
+            $query->expression('cfilter', $xMails);
+            $contactFilter=true;
+        }
+        $query->setSource($fields)->limit(200)->idFilter($id, true);
+        
+        if ($contactFilter) { 
+            $query->filter('cfilter', 'equals', 1)->orFilter('user_id', 'equals', $obj->user);
+        }
+        
+        if ($stripPremuim===1) {
+           $query->filter('featured', 'equals', 0);
+        }
+        
+        if (!empty($q)) {
+            $query->match($q);
+        }
+        
+        
+        $rs=$query->get();        
+        $scores=$messages=[];
+        
+        \error_log(PHP_EOL.\json_encode($query->getBody()).PHP_EOL);
+        while ($rs->valid()) {
+            $hit=$rs->current();
+            //\error_log(var_export($hit, true));
+            $desc='';
+            $id=\intval($hit->getId());
+            $scores[$id]=0;
+            $attrs=$hit->get('attrs');
+            if (isset($attrs['locality']) && isset($obj->attrs->locality) && $attrs['locality']['id']==$obj->attrs->locality->id) {
+                $desc.="G: 100% ";
+                $scores[$id]+=1;
+            }
+            elseif (isset($attrs['geokeys'])) {
+                //error_log(json_encode($attrs->geokeys) . "\t" . json_encode($obj->attrs->geokeys));
+                $geo_score=(empty($obj->attrs->geokeys))?0:\count(\array_intersect($attrs['geokeys'], $obj->attrs->geokeys))/\count($obj->attrs->geokeys);
+                
+                $scores[$id]+=$geo_score;
+                $desc.="G: ".number_format($geo_score*100) ."% ";
+                
+            }
+             
+            $att_score=0;
+            foreach ($names as $key => $value) {
+                if (isset($attrs[$key])) {                    
+                    $att_score+=(ceil($attrs[$key])==ceil($obj->attrs->$key))?1:0;
+                    $desc.="[".$key.": " . ((ceil($attrs[$key])== ceil($obj->attrs->$key))?'Y':'N') . "] ";                    
+                }
+            }
+            $scores[$id]+=count($names)>0 ? $att_score / count($names) : 0;            
+            $desc.=" A: ".  number_format( (count($names)>0 ? $att_score / count($names) : 0)*100)."%";
+        
+            if (isset($attrs['ar'])) {
+                $jaccard=$this->jaccardIndex($words, explode(' ', $attrs['ar']));
+                $scores[$id]+=$jaccard;
+                $desc.= " Similarity: ".number_format($jaccard*100,2).'%';
+            }
+            $scores[$id]+=($hit->get('section_id')==$obj->se)?1:0;
+            $scores[$id]+=($hit->get('purpose_id')==$obj->pu)?1:0;
+
+            $desc.=" Total: ".number_format($scores[$id], 2);
+            $messages[$id]=$desc;     
+            
+            $rs->next();
+        }
+        
+        arsort($scores, SORT_NUMERIC);
+
+        $searchResults=['body'=>['matches'=>[], 'scores'=>[] ]];
+
+        foreach ($scores as $key => $value) {           
+            if ($value>=0.25) {
+                $searchResults['body']['scores'][$key]=$messages[$key];
+                $searchResults['body']['matches'][]=$key;
+            }
+        }
+        
+        $searchResults['body']['facet']=$obj->attrs;
+        $searchResults['body']['total']=count($searchResults['body']['matches']);
+        $searchResults['body']['total_found'] = $searchResults['body']['total'];
+        //\error_log(PHP_EOL.__FUNCTION__.var_export($searchResults, true));
+        
+        return $searchResults;
+    }
+    
+    
     function searchByAdId(int $reference, int $stripPremuim=0) : array {
         $db=new DB(true);
         Config::instance()->incLibFile('SphinxQL');
@@ -461,6 +628,7 @@ class MCSaveHandler {
         $res=$sphinx->search($q);
         $sphinx->close();
 
+        //\error_log(__FUNCTION__.PHP_EOL.var_export($res['matches'], true));
         $len=\count($res['matches']);
         $scores=[];
         $messages=[];
@@ -525,10 +693,11 @@ class MCSaveHandler {
             }
         }
         
-        $searchResults['body']['facet'] = $obj->attrs;
+        //$searchResults['body']['facet'] = $obj->attrs;
         $searchResults['body']['total'] = count($searchResults['body']['matches']);
         $searchResults['body']['total_found'] = $searchResults['body']['total'];
                 
+        \error_log(PHP_EOL.__FUNCTION__.var_export($searchResults, true));
         return $searchResults;
     }
     

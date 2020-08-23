@@ -1120,11 +1120,13 @@ class Search extends Page {
         }
                         
         $topFeatureCount=\count($featured_ids);
+        
+        $results=$this->searchResults['body']['matches'];
         foreach ($this->searchResults['body']['matches'] as $ad_id) {
             if (!\in_array($ad_id, $featured_ids)) {
                 $ad_keys[]=$ad_id;
             }
-        }
+        }        
         
         $max=$this->num+2;
         if ($this->searchResults['body']['total_found']>$max && \count($ad_keys)<$max && isset($this->searchResults['zone0'])) {

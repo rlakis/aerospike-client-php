@@ -11,19 +11,22 @@
         "vendor-dir": "deps"
     },
     "require": {
-        "zammad/zammad-api-client-php": "^1.1",
-        "giggsey/libphonenumber-for-php": "^8.8",
-        "aerospike/aerospike-client-php": "^7.0",
+        "zammad/zammad-api-client-php": "^1.5",
+        "giggsey/libphonenumber-for-php": "^8.12",
         "mobiledetect/mobiledetectlib": "^2.8",
         "maxmind-db/reader": "^1.1",
         "phpmailer/phpmailer": "^6.0",
         "google/recaptcha": "^1.1",
-        "hybridauth/hybridauth": "v2.9.2",
+        "hybridauth/hybridauth": "^v3.3.0",
         "facebook/graph-sdk": "* 5.6.0",
-        "nexmo/client": "^1.1",
         "sinergi/browser-detector": "^6.1",
         "kreait/firebase-php":"^3.7.0",
         "edigear/client-sdk": "dev-master",
-        "google/apiclient": "^2.0"
+        "manticoresoftware/manticoresearch-php": "dev-master",
+        "google/apiclient": "^2.0",
+	"tedivm/jshrink": "~1.0",
+        "katzgrau/klogger": "dev-master",
+        "aerospike/aerospike-client-php": "~7.0",
+        "php-http/curl-client": "^2.1"
     }
 }

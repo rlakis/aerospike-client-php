@@ -28,6 +28,10 @@ class DB {
     public SphinxQL $ql;
     public NoSQL $as;
     
+    public \Manticoresearch\Client $manticore;
+    public \Manticoresearch\Index $idx;
+    //public \Manticoresearch\Search $search;
+    
     public \RdKafka\Producer $kafkaProducer;
     
     private $version=0;
@@ -68,11 +72,28 @@ class DB {
         
         $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
         
-        $conf = new \RdKafka\Conf();
-        $conf->set('log_level', LOG_ERR);
-        $conf->set('debug', 'generic');
+        //$conf = new \RdKafka\Conf();
+        //$conf->set('log_level', LOG_ERR);
+        //$conf->set('debug', 'generic');
         //$this->kafkaProducer = new \RdKafka\Producer($conf);
         //$this->kafkaProducer->addBrokers("a1.mourjan.com:9092,www.edigear.com:9092");
+
+        $params = ['connections'=>
+            [
+                ['host' => '138.201.50.158', 'port' => 8308],
+                ['host' => '148.251.186.42', 'port' => 8308],
+                ['host' => '138.201.142.130', 'port' => 8308],
+            ],
+            'connectionStrategy' => \Manticoresearch\Connection\Strategy\RoundRobin::class,
+            'retries' => 3
+        ];
+        $this->manticore=new \Manticoresearch\Client($params);
+        
+        $this->idx=new \Manticoresearch\Index($this->manticore, 'ad');
+        //$this->search=new \Manticoresearch\Search($this->manticore);
+        //$this->search->setIndex('ad');
+        //var_dump($this->idx->search('mbw 320')->get());
+        //$this->manticore->se
     }
 
 

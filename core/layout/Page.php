@@ -2892,7 +2892,7 @@ class Page extends Site {
             ?></div></div></div></div></div><?php
         }
         */
-       
+       //var_export($this->router->db->idx->status());
         ?></footer><?php                               
     }
 

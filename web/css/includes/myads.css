@@ -139,6 +139,11 @@ article .note b::before {
     opacity: 0.85;
 }
 
+.ipqs {
+    display: inherit;
+    height: 32px;
+}
+
 .myad .user span{display: inline-flex;align-items: center}
 .myad .user div{display:inline-flex}
 

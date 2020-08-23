@@ -247,7 +247,7 @@ class MyAds extends UserPage {
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
         'اعلانات المتاجرة بالتأشيرات والإقامات مجرمة قانونيا',
         'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال',
-        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بروكسي',
+        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بوكسي وفي بي ان',
         'الاعلان مرسل من نطاق انترنت مصنف احتيالي من قبل الوكالات الامنية المختصة'
     ],
     'en':[
@@ -544,6 +544,8 @@ class MyAds extends UserPage {
 
         
         if ($this->adList->count()>0) {
+            $as=\Core\Model\NoSQL::instance();
+            $ips=[];
             $hasPrevious=($this->adList->page()>0);
             $hasNext=(($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
             
@@ -569,7 +571,15 @@ class MyAds extends UserPage {
                 $link=$altlink=$liClass='';
                 $textClass=$cad->rtl()?'ar':'en';
                     
-                if ($isAdmin) { $isAdminOwner=($cad->uid()===$this->user->id()?true:false); }
+                if ($isAdmin) { 
+                    $isAdminOwner=($cad->uid()===$this->user->id()?true:false);
+                    if (!isset($ips[$cad->dataset()->getIpAddress()])) {
+                        $pk=$as->getConnection()->initKey('mccache', 'ipqs', $cad->dataset()->getIpAddress());
+                        if ($as->getRecord($pk, $record, ['info'])===\Aerospike::OK) {
+                            $ips[$cad->dataset()->getIpAddress()]=\json_decode($record['info'], true);
+                        }                        
+                    }
+                }
                 
                 $assignedAdmin='';
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
@@ -903,7 +913,20 @@ class MyAds extends UserPage {
                 ?></header><?php
                 
                 
-                if ($isAdmin) { echo $title; }
+                if ($isAdmin) {
+                    echo $title;
+                    if (isset($ips[$cad->dataset()->getIpAddress()])) {
+                        $ip=$ips[$cad->dataset()->getIpAddress()];
+                        $showIPQS=($ip['vpn']||$ip['active_vpn']||$ip['tor']||$ip['active_tor']);
+//                        if ($ip['vpn']||$ip['active_vpn'])
+                        if ($showIPQS) {
+                            ?><div class=ipqs><?php
+                            ?><span>VPN: <?=$ip['vpn'].'/'.$ip['active_vpn']?></span><?php
+                            ?><span>TOR: <?=$ip['tor'].'/'.$ip['active_tor']?></span><?php
+                            ?></div><?php
+                        }
+                    }
+                }
                 
                 $userLang=$cad->dataset()->getUserLanguage();             
                 $pc=\count($cad->dataset()->getPictures());
