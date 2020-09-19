@@ -309,6 +309,13 @@ body > * {
     max-width: 100%
 }
 
+.maw {
+    width: -webkit-fill-available;
+    max-width: -webkit-fill-available;
+    width: -moz-available;
+    max-width: -moz-available;
+}
+
 .menu {
     position: fixed;
     top:0;

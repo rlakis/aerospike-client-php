@@ -29,6 +29,7 @@ class NoSQL extends Singleton {
     const NS_USER               = 'users';
     const NS_MOURJAN            = 'mourjan';
     const NS_EDIGEAR            = 'edigear';
+    const NS_CACHE              = 'mccache';
     
     const ERR_INVALID_HOST              = \Aerospike::ERR_INVALID_HOST;
     const ERR_PARAM                     = \Aerospike::ERR_PARAM;

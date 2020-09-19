@@ -392,6 +392,10 @@ function oad(ad){
 
 function report(e){
     let level=parseInt($.body.dataset.level);    
+    if (level===9 && e.closest('div.ad').dataset.premuim=='1') {
+        alert('Stop premium ad is not allowed!');
+        return;
+    }
     if(level===9||level===90){
         if(confirm("Hold this ad?")){
             fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',

@@ -319,15 +319,14 @@ class Register extends Page {
             else {
                 $msg=$this->lang['congrats_social'];
             }
+            $msg=$this->lang['congrats_account'];
             ?><div class='list htu'></div><?php
-            ?><div class="lgt rc sh"><?php 
-                ?><h2><span class="done"></span> <?= $msg ?></h2><?php
-            ?></div><?php 
+            ?><div class="lgt rc sh"><h2><span class=done></span><?=$msg?></h2></div><?php 
             
             
-            ?><ul id="note" class='note <?= $this->urlRouter->siteLanguage ?>'></ul><?php
-            ?><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php 
-            ?><a href="/post/<?= $lang ?>" class="option half"><span class="j pub"></span> <?= $this->lang['button_ad_post_m'] ?></a><?php
+            ?><ul id=note class="note <?=$this->urlRouter->siteLanguage?>"></ul><?php
+            ?><div class="account <?=$this->urlRouter->siteLanguage?>"><?php 
+            ?><a href="/post/<?=$lang?>" class="option half"><span class="j pub"></span> <?=$this->lang['button_ad_post_m']?></a><?php
                 ?><a href="/statement/<?= $lang ?>" class="option half balance"><span class="pj coin"></span> <span id="coins"><?= $this->lang['myBalance'] ?></span></a><?php
             ?></div><div class="account <?= $this->urlRouter->siteLanguage ?>"><?php     
                 ?><a id="active" href="/myads/<?= $lang ?>" class="option quarter active"><span class="pj ads1"></span><br /><?= $this->lang['ads_active'] ?></a><?php
@@ -349,11 +348,11 @@ class Register extends Page {
         }
         elseif ($this->router->module==='signup') {
             ?><div class=row><div class=col-12><div class="card card-doc"><?php
-            ?><div class='card-title'><?= $this->lang['hint_reg_1'] ?></div><?php
-            ?><div class=card-content><p><?= $this->lang['account_email'] ?></p><br><?php
+            ?><div class='card-title'><?=$this->lang['hint_reg_1']?></div><?php
+            ?><div class=card-content><p><?=$this->lang['account_email']?></p><br><br><?php
             ?><div class="lgt rc sh"><?php 
-                ?><div id="eform"><?php
-                    ?><div class="row"><div class="group"><?php
+                ?><div id=eform><?php
+                    ?><div class=row><div class="group maw"><?php
                         ?><input type="email" id="email" required onkeyup="validateEmail(this);"><?php                                        
                         ?><label><?= $this->lang['your_email'] ?></label><?php
                     ?></div></div><?php
@@ -391,14 +390,14 @@ class Register extends Page {
                 else {                    
                     ?><div class=card-title><?= $this->lang['hint_reg_2'] ?></div><?php
                 }
-                ?><div class=card-content><p><?= $this->lang['account_password'] ?></p><br><?php                
+                ?><div class=card-content><p><?=$this->lang['account_password']?></p><br><br><?php                
                     ?><div id="eform"><?php
-                    ?><div class=row><div class=group><?php
+                    ?><div class=row><div class="group maw"><?php
                     ?><input type="password" id="pwd" required value="" onkeyup="pswdStrength(this)" onkeypress="return (event.charCode>32);"><div class=bar></div><?php
                     ?><label><?= ($step?$this->lang['your_new_password']:$this->lang['your_password']) ?></label><?php
                     
                     ?></div></div><?php
-                    ?><div class=row><div class=group><?php
+                    ?><div class=row><div class="group maw"><?php
                     ?><input type="password" id="pwd2" required value="" onkeyup="pswdStrength(this)"><div class=bar></div><?php
                     ?><label><?= $this->lang['re_your_password'] ?></label><?php
                     ?></div></div><?php

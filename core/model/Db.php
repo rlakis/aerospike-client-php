@@ -3,7 +3,7 @@ namespace Core\Model;
 
 \Config::instance()->incLibFile('MCCache')->incLibFile('SphinxQL')->incModelFile('NoSQL')->incCoreFile('/data/Schema');
 use Core\Lib\MCCache;
-use Core\Lib\SphinxQL;
+//use Core\Lib\SphinxQL;
 use Core\Model\NoSQL;
 
 class DB {
@@ -25,7 +25,7 @@ class DB {
     public array $citiesDictionary;
     
     private bool $slaveOfRedis;
-    public SphinxQL $ql;
+    //public SphinxQL $ql;
     public NoSQL $as;
     
     public \Manticoresearch\Client $manticore;
@@ -70,7 +70,7 @@ class DB {
         //self::$LocalitiesVersion = $this->version;
         //self::$TagsVersion = $this->version;
         
-        $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
+        //$this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
         
         //$conf = new \RdKafka\Conf();
         //$conf->set('log_level', LOG_ERR);
@@ -124,9 +124,10 @@ class DB {
 
     public function __destruct() {
         $this->close();
-        if ($this->ql!=null) { $this->ql->close(); }
+        //if ($this->ql!=null) { $this->ql->close(); }
     }
 
+    
     
     public function index() : SphinxQL {
         return $this->ql;
@@ -732,6 +733,7 @@ class DB {
         if ($this->as->getBins($pk, $record, ['data'])===\Aerospike::OK) {
             return $record['bins']['data'];
         }
+        
         return [];
     }
     

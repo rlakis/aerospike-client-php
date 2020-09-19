@@ -1,4 +1,6 @@
+let lang='en';
 $.addEventListener("DOMContentLoaded", function () {
+    lang=$$.dir==='rtl'?'ar':'en';
     let container=$.querySelector('div#pin');
     for (const pd of container.querySelectorAll("input[type=number]")) {
         pd.addEventListener('keydown', function(e) {
@@ -9,7 +11,11 @@ $.addEventListener("DOMContentLoaded", function () {
         });
         pd.addEventListener('keyup', function(e) {
             let index=parseInt(this.dataset.index);
-            if (e.key==='Backspace' && index>1) {
+            console.log(e, index);
+            if (e.key==='Backspace') {
+                 e.path[1].querySelector('input#d'+(index)).value='';
+            }
+            if (e.key==='Backspace' && index>1) {               
                 e.path[1].querySelector('input#d'+(index-1)).focus();
                 return;
             }
@@ -37,6 +43,7 @@ keyChanged=function(e){
 numberCheck=function(e) {
     let card=e.closest('div.card');
     let alert=card.query('div.alert');
+    let mwm=window.matchMedia("(max-width: 768px)")
     alert.innerHTML='';
     
     let code=card.query('select#code');
@@ -67,23 +74,24 @@ numberCheck=function(e) {
             .then(data => {  
                 if (data.success===1) {
                     let rs=data.result;
-                    if (!rs.valid) {
-                        showAlert('Not a valid phone number', 'alert-danger', true);
-                    }
-                    else if (!rs.mobile) {
-                        showAlert('Not a valid mobile phone number', 'alert-danger', true);
-                    }
-                    else if (rs.disposable) {
-                        showAlert('Fraudulent phone number!', 'alert-danger', true);
+                    if (!rs.valid || !rs.mobile || rs.disposable) {
+                         showAlert(rs.message[lang], 'alert-danger', true);
                     }
                     else {
                         num.value=code.value===rs.region?rs.national:rs.intl;
                         card.dataset.e164=rs.e164;
                         num.disabled=true;
-                        showAlert('<span>Mobile Number&nbsp;<b>'+rs.intl+'</b> Verification</span>', 'alert-success');
                         e.closest('div.group').classList.add('none');
-                        card.query('div#via').classList.remove('none');                     
-                    }
+                        card.query('div#via').classList.remove('none');
+                        if (mwm.matches) {
+                            card.query('p.mb-32').classList.add('none');
+                            showAlert(lang==='en'?'Mobile Number Verification':'الحقق من رقم الموبايل', 'alert-success');
+                            card.query('div#via').scrollIntoView();
+                        }
+                        else {
+                            showAlert(rs.message[lang], 'alert-success');                            
+                        }
+                    }                    
                 }
                 else {
                     showAlert(data.error, 'alert-danger', true);                    

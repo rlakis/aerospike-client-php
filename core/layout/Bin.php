@@ -484,17 +484,31 @@ class Bin extends AjaxHandler {
                     $this->response('national', $validator->format($number, \libphonenumber\PhoneNumberFormat::NATIONAL));
                     $this->response('region', $validator->getRegionCodeForNumber($number));
                     
-                    $contents=file_get_contents('/var/www/mourjan/bin/number-list.json');
+                    $contents=\file_get_contents('/var/www/mourjan/bin/number-list.json');
                     $pattern='/\"'.\substr($validator->format($number, \libphonenumber\PhoneNumberFormat::E164), 1).'\"\:/';
-                    error_log($pattern);
+                    //error_log($pattern);
                     $disposal=\preg_match($pattern, $contents);
                     
                     //$disposal=system('cat /var/www/mourjan/bin/number-list.json | grep \"'. \substr($validator->format($number, \libphonenumber\PhoneNumberFormat::E164), 1) .'\"');
                     
-                    $this->response('disposable', $disposal);//!==false && \strlen($disposal)>20);     
+                    $this->response('disposable', $disposal);
                     $carrierMapper=\libphonenumber\PhoneNumberToCarrierMapper::getInstance();
                     if ($valid) {
                         $this->response('carrier', $carrierMapper->getNameForValidNumber($number, 'en'));
+                        if (!($type===libphonenumber\PhoneNumberType::MOBILE||$type===libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)) {
+                            $this->response('message', ['en'=>'Not a valid mobile phone number', 'ar'=>'رقم الهاتف ليس رقم موبايل/جوال']);
+                        }
+                        else if ($disposal) {
+                            $this->response('message', ['en'=>'Fraudulent mobile phone number!', 'ar'=>'رقم هاتف احتيالي!']);
+                        }
+                        else {
+                            $this->response('message', [
+                                'en'=>'<span>Mobile Number&nbsp;<b>'.$validator->format($number, \libphonenumber\PhoneNumberFormat::INTERNATIONAL).'</b> Verification</span>', 
+                                'ar'=>'<span>التحقق من رقم الموبايل/الجوال <b style="unicode-bidi:plaintext;">'.$validator->format($number, \libphonenumber\PhoneNumberFormat::INTERNATIONAL).'</b></span>']);
+                        }
+                    }
+                    else {
+                        $this->response('message', ['en'=>'Not a valid phone number', 'ar'=>'رقم الهاتف غير صحيح']);
                     }
                 } 
                 catch (Exception $ex) {
@@ -1291,62 +1305,66 @@ class Bin extends AjaxHandler {
                 
             case 'stat':
                 \ignore_user_abort(true);
-                if ($this->router->config->serverId<=0 || $this->router->config->serverId>=99) {
-                    //return;
+                
+                $clientVisitorId=0;
+                if (isset($_COOKIE['mourjan_user'])) {
+                    $data=\json_decode($_COOKIE['mourjan_user']);
+                    if (\is_object($data) && isset($data->cv) && $data->cv>0) {        
+                        $clientVisitorId=$data->cv;
+                    }
                 }
                 
+                if ($this->router->config->serverId<=0 || $this->router->config->serverId>=99) {
+                    return;
+                }
+                
+                //if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
+                //    return;
+                //}
+                
+                $crawlers_agents='Google|msnbot|Rambler|Yahoo|AbachoBOT|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|java';
+                if (\strpos($crawlers_agents , $_SERVER['HTTP_USER_AGENT'])!==false) {                   
+                    return;                    
+                }
+                
+                /*
                 $ip=IPQuality::fetch(false);
                 $is_bot=$ip['bot_status']??0;
                 $is_crawler=$ip['is_crawler']??0;
                 if ($is_bot||$is_crawler) {
                     return;
                 }
-                //if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
-                //    return;
-                //}
+                */
                 
-                $req=NULL;  
-              
-                $stat_servers=$this->router->db->getCache()->get("sphinx_servers");
+                $req=NULL;                 
                 if (isset($this->_JPOST['a']) && !empty($this->_JPOST['a'])) {
                     $final_req=$req=\is_array($this->_JPOST['a']) ? $this->_JPOST['a'] : \json_decode($this->_JPOST['a'], true);
                 }
             
                 if ($req) {
-                    $stat_server=$this->router->db->getCache()->get("stat_server");
-                    $redis=new Redis;
-                    $ok=1;
-                    try {
-                        $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
-                        $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);                        
-                        $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
-                        $redis->select($stat_server['index']);
-                    } 
-                    catch (RedisException $e) {
-                        error_log(__CLASS__.'.'.__FUNCTION__.' -> '.$e->getMessage());
-                        $ok=0;
-                    }
+                    $logName='/var/log/mourjan/incoming/'.uniqid('mc_', true).'.stx';
+                    
                     $countryCode=$referer=''; 
                     
                     if (!empty($req)) {
                         if (isset($_POST['app'])){
-                            $referer = 'mourjan-app'; 
-                            $countryCode = (isset($_POST['code']) && strlen($_POST['code']) == 2) ? strtoupper(trim($_POST['code'])) : '';
+                            $referer='mourjan-app'; 
+                            $countryCode=(isset($_POST['code']) && \strlen($_POST['code'])===2) ? \strtoupper(trim($_POST['code'])) : '';
                         }
                         else {
-                            if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], 'mourjan')) {
-                                $referer = substr($_SERVER['HTTP_REFERER'], 0, 256);
+                            if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && \strpos($_SERVER['HTTP_REFERER'], 'mourjan')) {
+                                $referer=\substr($_SERVER['HTTP_REFERER'], 0, 256);
                             }
                            
                             if (!isset($this->user->params['user_country'])){
                                 $this->checkUserGeo();
                             }
-                            $countryCode = strtoupper(trim($this->user->params['user_country']));
-                            if(strlen($countryCode)!=2)$countryCode='';
-                        }                                             
+                            $countryCode=\strtoupper(trim($this->user->params['user_country']));
+                            if (\strlen($countryCode)!==2) { $countryCode=''; }
+                        }                                    
                        
                         $result=NULL;
-                        $batch='';
+                        //$batch='';
 
                         foreach ($req as $action => $refs) {
                             switch ($action) {
@@ -1356,116 +1374,33 @@ class Bin extends AjaxHandler {
                                             $uniques=[];
                                             foreach ($final_refs as $id) {
                                                 $uniques[$id]=TRUE;
-                                                if (count($uniques)>50) {
+                                                if (\count($uniques)>50) {
                                                     break;
                                                 }
                                             }
 
                                             foreach (array_keys($uniques) as $id) {
-                                                $id=\intval($id);
-                                                $batch.="select id, impressions from {$this->router->config->get('search_index')} where id={$id};\n";
-                                                
-                                                $adData=$this->classifieds->getById($id);
-                                                
-                                                if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) {
-                                                    if ($ok===1 && $redis->isConnected()) {                    
-                                                        $redis->sAdd('U'.$adData[Classifieds::USER_ID], $id);
-                                                        
-                                                        if (!$redis->hIncrBy('AI'.$id, date("Y-m-d"), 1)) {
-                                                            error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                            
-                                                        }
-                                                    } 
-                                                    else {
-                                                        error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");
-                                                    }
-                                                }
+                                                \error_log(\sprintf("%s\tad-imp\t%d\t%s\t%s", \date("Y-m-d H:i:s"), \intval($id), $countryCode, $referer).PHP_EOL, 3, $logName);                                                
                                             }
                                         }
                                     }
                                     break;
                                     
                                 case 'ad-clk':
-                                    if ($refs && is_numeric($refs)) {                                        
-                                        $adData=$this->classifieds->getById($refs);                                                
-                                        if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) {
-                                            if ($ok==1 && $redis->isConnected()) {                                                    
-                                                $redis->sAdd('U'.$adData[Classifieds::USER_ID], $refs);
-                                                $redis->hIncrBy('AC'.$refs, date("Y-m-d"), 1);
-                                            } 
-                                            else {
-                                                error_log(sprintf("%s\tad-clk\t%d\t%s", date("Y-m-d H:i:s"), $refs, $countryCode).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                
-                                            }
-                                        }
+                                    if ($refs && \is_numeric($refs)) {
+                                        \error_log(\sprintf("%s\tad-clk\t%d\t%s", \date("Y-m-d H:i:s"), $refs, $countryCode).PHP_EOL, 3, $logName);                                         
                                     }
                                     break;
                                 default:
                                     break;
                             }
-                        }
-                        
-                        if (!empty($batch)) {
-                            foreach ($stat_servers as $stat_server) {
-                                $ss=new SphinxQL($stat_server, $this->router->config->get('search_index'));
-                                $result=$this->router->db->ql->search($batch);
-                                foreach($result['matches'] as $row) {
-                                    if (isset($row[0])) { $row=$row[0]; }
-                                    if (!isset($row['id'])) { continue; }
-                                    
-                                    $id=$row['id']+0;    
-                                    $im=$row['impressions']+1;                                                                                        
-                                    $ss->getConnection()->real_query("update {$this->router->config->get('search_index')} set impressions={$im} where id={$id}");
-                                }
-                                $ss->close();
-                            }
-                        }                                  
-                    }
-                    
-                    if ($ok) { $redis->close(); }
-                    
+                        }                                                                 
+                    }                                        
                 }
                 
-                $this->success();
-                /*
-                if (isset($_POST['l']) && $_POST['l']) {
-                    $req = (is_array($_POST['l']) ? $_POST['l'] : json_decode($_POST['l'],true));
-                    if($req && is_array($req)){
-                        if( 
-                                isset($req['cn']) && is_numeric($req['cn']) && 
-                                isset($req['c']) && is_numeric($req['c']) && 
-                                isset($req['se']) && is_numeric($req['se']) && $req['se'] && 
-                                isset($req['pu']) && is_numeric($req['pu'])  
-                                ){
-                            if (isset($this->user->params['last'])) {
-                                $last = $this->user->params['last'];
-                                if ($last['cn'] == $req['cn'] && $last['c'] == $req['c'] && $last['se'] != $req['se']) {
-                                    error_log(sprintf("%d\t%d\t%d\t%d\t%d\t%d\t%s", $req['se'], $last['se'], $req['cn'], $req['c'], $req['pu'], $last['pu'], date("Y-m-d H:i:s")).PHP_EOL, 3, "/var/log/mourjan/s-follow.log");
-                                    /*
-                                    $q='update or insert into section_follow
-                                    (section_id, to_section_id, country_id, city_id, purpose_id, to_purpose_id)
-                                    values (?,?,?,?,?,?)
-                                    matching (section_id,to_section_id,country_id,city_id,purpose_id,to_purpose_id)';
-                                    $this->urlRouter->db->queryResultArray($q, array(
-                                        $req['se'],
-                                        $last['se'],
-                                        $req['cn'],
-                                        $req['c'],
-                                        $req['pu'],
-                                        $last['pu']
-                                    ));
-                                     * 
-                                     *
-                                    $this->user->params['last']=$req;
-                                    $this->user->update();
-                                }
-                            }
-                            else {
-                                $this->user->params['last']=$req;
-                                $this->user->update();
-                            }
-                        }
-                    }
-                }*/
+                $this->success();               
                 break;
+                
                 
             case 'ga':
                 $this->authorize(true);
@@ -1750,6 +1685,7 @@ class Bin extends AjaxHandler {
                     $forPostAd=($path==='/post/');
                     
                     $sections=$this->router->sections;
+                    //$this->response('router', $sections);
                     /*
                     $osecs=[];
                     switch ($id) {
@@ -1786,20 +1722,30 @@ class Bin extends AjaxHandler {
                     }*/
                     // todo: move differ section to last
                     
-                    $result['n'] = $sections;
-                    $len = \count($sections);                                        
+                    $len=\count($sections);                                        
+                    $result['n']=$sections;
+                    $others=[];
                     
                     foreach ($this->router->roots as $root) {
                         $result['r'][$root[\Core\Data\Schema::BIN_ID]]=['name'=>$root[$this->name], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
                     }                                    
-                                                            
-                    for ($i=0; $i<$len; $i++) {                  
-                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sections'][$sections[$i][\Core\Data\Schema::BIN_ID]] = $sections[$i][$this->name];                                                             
-                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sindex'][] = $sections[$i][\Core\Data\Schema::BIN_ID];                                       
+                         
+                    for ($i=0; $i<$len; $i++) {
+                        if (\in_array($sections[$i][\Core\Data\Schema::BIN_ID], [29, 63, 105, 117])) {  
+                            $others[$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]=$sections[$i];
+                            continue;                            
+                        }
+                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sections'][$sections[$i][\Core\Data\Schema::BIN_ID]]=$sections[$i][$this->name];                                                             
+                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sindex'][]=$sections[$i][\Core\Data\Schema::BIN_ID];                                       
                     }
-
+                    
+                    foreach ($others as $k=>$v) {                        
+                        $result['r'][$k]['sections'][$v[\Core\Data\Schema::BIN_ID]]=$v[$this->name]; 
+                        $result['r'][$k]['sindex'][]=$v[\Core\Data\Schema::BIN_ID];                            
+                    }                    
+                    
                     if ($forPostAd===false) {                        
-                        $lnIndex = $lang=='ar' ? 4 : 3;
+                        $lnIndex=($lang==='ar'?4:3);
                         foreach ($this->router->config->get('smart_section_fix') as $SID => $switches) { 
                              foreach ($switches as $switch){
                                 $result['qs'][$SID][]=[$switch[0], $switch[1] , $switch[2] , $switch[$lnIndex]];
@@ -1813,7 +1759,7 @@ class Bin extends AjaxHandler {
                         }
                     }
                     
-                    $nameIdx = ($lang=='ar'?1:2);
+                    $nameIdx=($lang==='ar'?1:2);
                     foreach ($this->router->pageRoots as $Rid => $root) {  
                         foreach ($root['purposes'] as $Pid => $pu) {
                             if ($Rid!=999){
@@ -3739,27 +3685,22 @@ class Bin extends AjaxHandler {
                 break;
                 
                 
-            case 'ajax-help':
-                if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) {
-                    $id=$_POST['i'];
-                    if (is_numeric($id)) {
-                        if ($this->user->referrToSuperAdmin($id, $this->user->info['id'])) {
-                            $this->process();                            
-                            try {            	
-                                $redis = new Redis();
-                                $data = ['cmd'=>'superAdmin', 'data'=>['id'=>$id]];
-                                if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
-                                    $redis->publish('editorial', json_encode($data));
-                                }
-                            } 
-                            catch (RedisException $re) {}
-                            
-                        }
-                        else $this->fail('103');
+            case 'help':
+                $this->authorize(true, 9);
+                $id=\filter_var($this->_JPOST['i'], FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]])+0;
+                if (!(\is_int($id) || $id<=0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                
+                if ($this->user->referrToSuperAdmin($id, $this->user->id())) {
+                    $redis=new Redis;
+                    $data=['cmd'=>'superAdmin', 'data'=>['id'=>$id]];
+                    if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
+                        $redis->publish('editorial', json_encode($data));
                     }
-                    else $this->fail('102');
+                    $this->success();
                 }
-                else $this->fail('101');
+                else {
+                    $this->error(self::ERR_SYS_FAILURE);    
+                }               
                 break;
                 
             
@@ -5039,19 +4980,20 @@ class Bin extends AjaxHandler {
                 
             case 'ususpend':
                 $this->authorize(true, 9);
-                $id=$this->_JPOST['i']??0;
-                $hours=$this->_JPOST['v']??0;
-                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!(\is_int($hours) && $hours>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                $id=\intval(\filter_var($this->_JPOST['i'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+                $hours=\intval(\filter_var($this->_JPOST['v'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+                $reason=\filter_var($this->_JPOST['m'], \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                
+                if ($id<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                if ($hours<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
 
-                $reason = isset($this->_JPOST['m']) && $this->_JPOST['m'] ? $this->_JPOST['m'] : 0;
-                $mcUser = new \Core\Lib\MCUser($id);
+                $mcUser=new \Core\Lib\MCUser($id);
                 if ($mcUser->isMobileVerified()) {
                     $this->check($this->user()->suspend($id, $hours, $mcUser->getMobileNumber(), $reason)===true);
                 }
                 else {
                     $this->check($this->user()->suspend($id, $hours)===true);
-                }                   
+                }            
                 
                 break;
                 
@@ -5277,6 +5219,7 @@ class Bin extends AjaxHandler {
                 $this->error(self::ERR_SYS_FAILURE, ['en'=>'Could not send email verification.', 'ar'=>'لا يمكن ارسال رسالة التحقق في الوقت الحالي.']);
                 break;
                 
+                
             case 'register':
                 if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
                 $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', \FILTER_SANITIZE_EMAIL)));
@@ -5374,6 +5317,7 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
+                                
             case 'ajax-js-error':
                 $error=$this->post('e');
                 if($error){

@@ -304,43 +304,35 @@ class Home extends Page {
     
     
     public function recommendedForYou() : void {
-        ?><div class="row viewable"><div class=col-12><div class=hscard><header class=plain><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
-        $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
-         if ($this->router->cityId>0) {
-             $q.=' and city_id='.$this->router->cityId;
-         }
-         $q.=' order by r desc limit 5';
-         $rs=$this->router->db->ql->search($q);
-         if ($rs['total_found']>0) {
+        $query=new Core\Lib\MCSearch($this->router->db->manticore);
+        $rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort('rand()')->limit(5)->setSource(['id'])->result();
+        
+        if ($rs['total_found']>0) {
+            ?><div class="row viewable"><div class=col-12><div class=hscard><header class=plain><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
             ?><div class="col-12 wad"><?php
-            foreach ($rs['matches'] as $row) {
-                $this->adWidget($row['id']);
+            foreach ($rs['matches'] as $id) {
+                $this->adWidget($id);
             }
             ?><div class=space></div><?php
             ?></div><?php
-         }
-        ?></div></div></div><?php
+            ?></div></div></div><?php
+        }                  
     }
 
     
     public function recentUploads() : void {
-         ?><div class="row viewable mb-64"><div class=col-12><div class=hscard><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
-         $q='select id from ad where hold=0 and canonical_id=0 and media=1 and country_id='.$this->router->countryId;
-         if ($this->router->cityId>0) {
-             $q.=' and city_id='.$this->router->cityId;
-         }
-         $q.=' order by date_added desc limit 5';
-         $rs=$this->router->db->ql->search($q);
+         $query=new Core\Lib\MCSearch($this->router->db->manticore);
+         $rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort(Core\Lib\MCSearch::DATE_ADDED, 'desc')->limit(5)->setSource(['id'])->result();
          if ($rs['total_found']>0) {
-            ?><div class="col-12 wad"><?php
-            foreach ($rs['matches'] as $row) {
-                $this->adWidget($row['id']);
+             ?><div class="row viewable mb-64"><div class=col-12><div class=hscard><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
+             ?><div class="col-12 wad"><?php
+            foreach ($rs['matches'] as $id) {
+                $this->adWidget($id);
             }
             ?><div class=space></div><?php
-            ?></div><?php
-         }
-         ?></div></div></div><?php
-        
+            ?></div><?php             
+            ?></div></div></div><?php
+         }                 
     }
     
     

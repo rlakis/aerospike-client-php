@@ -421,11 +421,11 @@ class MourjanMail extends PHPMailer {
         
         $this->templatePath=$this->dir.'/bin/utils/include';
         $this->Debugoutput=function($str, $level) { \error_log( "debug level $level; message: $str"); };
-        //error_log($this->Host.':'.$this->Port.' -> '.$this->Username.' / '.$this->Password);
+        //error_log(__FUNCTION__.'('.__LINE__.')'.PHP_EOL.$this->Host.':'.$this->Port.' -> '.$this->Username.' / '.$this->Password.PHP_EOL);
     }
 
     
-    function doClearAll(){        
+    function doClearAll() : void {        
         $this->ClearAddresses();
         $this->ClearBCCs();
         $this->ClearCCs();
@@ -1103,10 +1103,10 @@ class MourjanMail extends PHPMailer {
     
     
     function Send() : bool {
-        \error_log(__FUNCTION__.'('.__LINE__.') sending mail');
+        \error_log(__FUNCTION__.'('.__LINE__.') sending mail'.PHP_EOL);
         if ($this->Username==='account@mourjan.com') {  
             $sent=parent::Send();
-            error_log("is sent {$sent}");
+            error_log("is sent {$sent}".PHP_EOL);
             return $sent;
         }
         else {
@@ -1117,35 +1117,40 @@ class MourjanMail extends PHPMailer {
             if (!$this->notifierMailIndexFile) {                
                 $this->getNotifierMailIndex();
                 $this->notifierMailIndexDefault=$this->notifierMailIndex;
-                $this->Username     = $this->notifiers[$this->notifierMailIndex];
+                $this->Username=$this->notifiers[$this->notifierMailIndex];
                 $this->SetFrom($this->Username, 'Mourjan.com');
             }
-            $sent = parent::Send();
+            $sent=parent::Send();
             
             if ($this->debug) {
                 echo 'sending by ',"{$this->Username}\n";
             }
 
-            if($sent){
+            if ($sent) {
                 if ($this->debug) {
                     echo 'sending ok',"\n";
                     echo "\n------------------------------------------------------\n";
                 }
+                
                 if($this->notifierMailIndex!=$this->notifierMailIndexDefault){
                     $this->setNotifierMailIndex();
                 }
-                try{
-                    if($this->notifierMailIndexFile)
+                
+                try {
+                    if($this->notifierMailIndexFile) {
                         @fclose($this->notifierMailIndexFile);
-                }catch(Exception $ex){
+                    }
+                }
+                catch(Exception $ex) {
                     syslog(LOG_NOTICE, var_export($ex));
                 }
                 return 1;
-            }else{
+            }
+            else {
                 $this->notifierMailIndex++;
-                $notifiersCount = count($this->notifiers);
-                $this->notifierMailIndex = $this->notifierMailIndex % $notifiersCount;
-                if($this->notifierMailIndex == $this->notifierMailIndexDefault){
+                $notifiersCount=count($this->notifiers);
+                $this->notifierMailIndex=$this->notifierMailIndex % $notifiersCount;
+                if ($this->notifierMailIndex==$this->notifierMailIndexDefault) {
                     if($this->notifierMailIndexFile)
                         @fclose($this->notifierMailIndexFile);
                     if ($this->debug) {
@@ -1154,7 +1159,7 @@ class MourjanMail extends PHPMailer {
                     }
                     return 0;
                 }
-                else{
+                else {
                     $this->Username=$this->notifiers[$this->notifierMailIndex];
                     $this->SetFrom($this->Username, 'Mourjan.com');
                     $this->Send();
@@ -1173,8 +1178,10 @@ class MourjanMail extends PHPMailer {
         return $this->notifierMailIndex;
     }
     
-    function setNotifierMailIndex(){
+    
+    function setNotifierMailIndex() {
         fseek($this->notifierMailIndexFile, 0);
         fwrite($this->notifierMailIndexFile, $this->notifierMailIndex);
     }
+    
 }

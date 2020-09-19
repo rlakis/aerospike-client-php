@@ -200,7 +200,7 @@ body[dir=rtl] aside li.on b:after {
 }
 
 .card-doc .block{display:block}
-.card-doc .card-title{color:#3C4858;text-align:center;margin-bottom:24px;}
+.card-doc .card-title{color:#3C4858;text-align:center;margin-bottom:24px;padding-top:8px;line-height: 1.5em}
 .card-doc h4{color:#3C4858;margin:32px 0 4px}
 
 .sign {
@@ -285,10 +285,10 @@ body[dir=rtl] aside li.on b:after {
 .group>input,.group>textarea{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none}
 .group>input:focus,.group>textarea:focus{outline:none;}
 .group label{color:var(--mdc70);font-size:16px;font-weight:300;position:absolute;pointer-events:none;margin-inline-start:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
-.group input:focus ~ label, input:valid ~ label {top:-20px;font-size:14px;color:#5264AE;}
-.group input[type="email"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
-.group input[type="password"]:not([value='']) ~ label{top:-20px;font-size:14px;color:#5264AE;}
-.group textarea:focus ~ label, textarea:valid ~ label{top:-20px;font-size:14px;color:#5264AE;}
+.group input:focus ~ label, input:valid ~ label {top:-24px;font-size:14px;color:#5264AE;}
+.group input[type="email"]:not([value='']) ~ label{top:-24px;font-size:14px;color:#5264AE;}
+.group input[type="password"]:not([value='']) ~ label{top:-24px;font-size:14px;color:#5264AE;}
+.group textarea:focus ~ label, textarea:valid ~ label{top:-24px;font-size:14px;color:#5264AE;}
 .group .bar{position:relative; display:block; width:100%;}
 .group .bar:before, .bar:after{content:'';height:2px;width:0;bottom:1px;position:absolute;background:var(--mlc);transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
 .group .bar:before{left:50%;}
@@ -298,7 +298,7 @@ body[dir=rtl] aside li.on b:after {
 .group .highlight{position:absolute;height:60%;width:100%;top:25%;left:0;pointer-events:none;opacity:0.5;}
 .group input:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
 .group textarea:focus ~ .highlight{-webkit-animation:inputHighlighter 0.3s ease;-moz-animation:inputHighlighter 0.3s ease;animation:inputHighlighter 0.3s ease;}
-
+.group input[type="email"] {direction: ltr}
 .bluebar.group:after{
     content:"";
     position: absolute;

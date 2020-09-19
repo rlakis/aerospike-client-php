@@ -2,7 +2,6 @@
 
 namespace Core\Model\ASD;
 
-//const TS_CACHE = 'cache';
 
 const CACHE_DATA    = 'data';
 

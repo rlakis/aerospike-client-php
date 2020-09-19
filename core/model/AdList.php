@@ -5,6 +5,7 @@ class AdList extends \SplDoublyLinkedList {
     private int $state;
     private int $uid;
     private int $alterUID;
+    private \User $user;
     
     private int $rootId;
     private int $purposeId;
@@ -27,10 +28,11 @@ class AdList extends \SplDoublyLinkedList {
         $this->purposeId= \intval(\filter_input(\INPUT_GET, 'fpu',  \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
         $this->lang     = \intval(\filter_input(\INPUT_GET, 'fhl',  \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
         if ($this->alterUID===0) {
-            $this->alterUID = \intval(\filter_input(\INPUT_GET, 'fuid', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
+            $this->alterUID=\intval(\filter_input(\INPUT_GET, 'fuid', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
         }
         
-        $this->uid = ($this->alterUID>0) ? $this->alterUID : Router::instance()->user->id();
+        $this->user=Router::instance()->user;
+        $this->uid=($this->alterUID>0)?$this->alterUID:$this->user->id();        
     }
     
     
@@ -93,9 +95,8 @@ class AdList extends \SplDoublyLinkedList {
             $w.="AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
             $o ='ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
         }
-        elseif ($this->state>0) {
-            $user=Router::instance()->user;
-            $adLevel=$user->isSuperUser() ? $adLevel=100000000 : 0;
+        elseif ($this->state>0 && $this->state!==3) {
+            $adLevel=$this->user->isSuperUser()?$adLevel=100000000:0;
             
             $q.= ', ';
             $q.= 'AD_USER.ADMIN_ID, AD_USER.DOC_ID, AD_OBJECT.super_admin, ';
@@ -116,11 +117,16 @@ class AdList extends \SplDoublyLinkedList {
                 $w.=" (AD_USER.state between 1 and 4) and AD_USER.web_user_id={$this->uid} ";
             }
             else {
-                if ($this->alterUID>0) {
-                    $w.= '((AD_USER.state in (1,2,4)) and AD_USER.web_user_id='. $this->alterUID . ') ';
+                if ($this->alterUID>0) { 
+                    $w.='((AD_USER.state in (1,2,4)) and AD_USER.web_user_id='. $this->alterUID . ') ';
                 }
                 else {
-                    $w.= '((AD_USER.state in (1,2,4)) or (AD_USER.state=3 and AD_USER.web_user_id='. $this->uid.')) ';
+                    if ($this->user->level()>=9) {
+                        $w.='((AD_USER.state in (1,2,4)) or (AD_USER.state=3 and AD_USER.web_user_id='. $this->uid.')) ';
+                    }
+                    else {
+                        $w.='(AD_USER.state in (1,3,4) and AD_USER.web_user_id='. $this->uid.') ';                        
+                    }
                 }
             }
             $w.= ' and (AD_OBJECT.super_admin is null or AD_OBJECT.super_admin<='.$adLevel.') ';
@@ -143,14 +149,16 @@ class AdList extends \SplDoublyLinkedList {
             //error_log($q.$f.$w);
         }
         else {
-            // draft ads
+            // draft or rejected ads 
             $w.= "AD_USER.WEB_USER_ID={$this->uid} and AD_USER.STATE={$this->state} ";
             $o = 'ORDER BY AD_USER.LAST_UPDATE desc';
         }
 
         $l=' rows '.(($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
+        
         //Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
 
+        
         $fixes=[];
         $st=$db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
         if ($st->execute()) {

@@ -216,7 +216,7 @@ class Admin extends Page {
             $rs=$this->router->db->queryResultArray(
                     'select b.BRN, a.NAME_AR as agent_name_ar, a.NAME_EN as agent_name_en, o.NAME_AR as co_name_ar, 
                     o.NAME_EN as co_name_en, a.TELEPHONE, a.MOBILE, o.EMIRATE, o.orn,
-                    b.EXPIRY_DATE broker_expiry_date,  o.EXPIRY_DATE office_expiry_date
+                    b.EXPIRY_DATE broker_expiry_date, o.EXPIRY_DATE office_expiry_date
                     from RERA_BROKER b 
                     left join CACHE_BRN_AE a on a.ID=b.CACHE_BRN_ID 
                     left join CACHE_ORN_AE o on o.ID=a.CACHE_ORN_ID
@@ -1532,6 +1532,7 @@ $.ajax({
         echo '<li><a class=btn href="/myads/', $lang, '?sub=drafts&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Drafts</a></li>';
         echo '<li><a class=btn href="/myads/', $lang, '?sub=pending&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Pending</a></li>';
         echo '<li><a class=btn href="/myads/', $lang, '?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Active</a></li>';
+        echo '<li><a class=btn href="/myads/', $lang, '?sub=rejected&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Rejected</a></li>';
         echo '<li><a class=btn href="/myads/', $lang, '?sub=archive&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Archived</a></li>';
         echo '<li><a class=btn href="/myads/', $lang, '?sub=deleted&u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Deleted</a></li>';
         echo '<li><a class=btn href="/statement/', $lang, '?u=' . $record[\Core\Model\ASD\SET_RECORD_ID] . '">Balance</a></li>';

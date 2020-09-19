@@ -796,6 +796,7 @@ class Router extends \Core\Model\Singleton {
                     $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'purposes'),
                     $as->initStringKey(\Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'sections'),
                     ], $records);
+            
             if ($status===\Aerospike::OK) {
                 foreach ($records as $record) {
                     switch ($record['key']['key']) {
@@ -810,7 +811,7 @@ class Router extends \Core\Model\Singleton {
                             $this->roots=$record['bins']['data'];
                             break;
                         case 'sections':
-                            $this->sections=$record['bins']['data'];
+                            $this->sections=$record['bins']['data']??null;
                             break;
                         case 'purposes':
                             $this->purposes=$record['bins']['data'];
@@ -864,7 +865,7 @@ class Router extends \Core\Model\Singleton {
         }
 
         if ($this->sections===NULL){            
-            $this->sections = $this->db->asSections();
+            $this->sections=$this->db->asSections();
         }
 
         if ($this->purposes===NULL) {

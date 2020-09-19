@@ -5,6 +5,7 @@ $TID=\filter_input(\INPUT_GET, 'tid', \FILTER_SANITIZE_STRING, ['options'=>['def
 $signature=\filter_input(\INPUT_GET, 'signature', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
 if ($TID && \base64_decode($signature)===\strtoupper(\hash_hmac('sha1', $TID, MOURJAN_KEY))) {
     $filename=$TID.'.pdf';
+    //\error_log($downloadLinkPath.$TID."?overwrite=1");
     $content=\file_get_contents($downloadLinkPath.$TID);
     \header("Content-type:application/pdf");
     \header('Content-Length: '.\strlen($content));

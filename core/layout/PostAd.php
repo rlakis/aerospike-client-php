@@ -455,8 +455,8 @@ class PostAd extends Page {
 .group input,.group select{font-size:1rem;padding:10px 10px 10px 5px;display:block;width:100%;border:1px solid var(--mdc12);resize:none;outline:none;color:var(--mdc70)}
 .group .btn{color: white}
 .group>input:focus{outline:none;}
-.group label{color:var(--mdc70);font-size:16px;font-weight:300;position:absolute;pointer-events:none;margin-inline-start:5px;top:10px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
-.group input:focus ~ label, input:valid ~ label, input:disabled ~ label {top:-20px;font-size:15px;color:#5264AE;}
+.group label{color:var(--mdc70);font-size:16px;font-weight:300;position:absolute;pointer-events:none;margin-inline-start:5px;top:8px;transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
+.group input:focus ~ label, input:valid ~ label, input:disabled ~ label {top:-24px;font-size:15px;color:#5264AE;}
 .group .bar{position:relative; display:block; width:100%;}
 .group .bar:before, .bar:after{content:'';height:2px;width:0;bottom:1px;position:absolute;background:var(--mlc);transition:0.2s ease all;-moz-transition:0.2s ease all;-webkit-transition:0.2s ease all;}
 .group .bar:before{left:50%;}
@@ -468,6 +468,12 @@ input::-webkit-outer-spin-button,input::-webkit-inner-spin-button {-webkit-appea
 input[type=number]{-moz-appearance: textfield;}
 .digit{width:18px;border:0; border-bottom:1px solid var(--mdc50);height:32px;outline:none;font-size:16px;font-weight:500; color:var(--mdc70);text-align:center;margin:0;padding:0}
 .digit + .digit{margin-inline-start: 8px;}
+.card.holder{padding:32px 64px 64px;color: inherit}
+@media only screen and (max-width:768px) {
+    .card{box-shadow: none}
+    .card.holder{padding:8px 12px 64px;color: inherit}
+    .card-content{padding:8px 0}
+}
 </style>
             <?php
             $this->inlineJS('phone-number');
@@ -475,14 +481,14 @@ input[type=number]{-moz-appearance: textfield;}
             $q='select code, id, name_'.$this->router->language.', locked, trim(id_2) from country where id!=109 order by locked desc, name_'.$this->router->language;
             $cc=$this->router->db->queryCacheResultSimpleArray('country_codes_req_'.strtolower($this->router->language), $q);
             
-            ?><div class="card" style="padding:16px 64px 64px;color:inherit"><div class="alert"></div><div class="card-content ff-cols"><?php
+            ?><div class="card holder"><div class="alert"></div><div class="card-content ff-cols"><?php
            
-            ?><p class="mb-32"><?= $this->lang['notice_mobile_required'] ?></p><?php 
+            ?><p class="mb-32"><?=$this->lang['notice_mobile_required']?></p><?php 
             
-            ?><div id=mb_notice class="ff-cols" style="display:flex;align-self:center"><?php 
+            ?><div id=mb_notice class=ff-cols style="display:flex;align-self:center"><?php 
             
             ?><div class=group><?php
-            ?><select id=code style="direction:ltr;height:40px;font-family:inherit;"><?php 
+            ?><select id=code style="height:42px;font-family:inherit;"><?php 
                 foreach($cc as $country){
                     $country[2]=preg_replace('/\x{200E}/u','',trim($country[2]));
                     ?><option value="<?=$country[4]?>"<?=$this->user->params['country']==$country[1]?' selected':''?>><?=$country[2]?> (<?=($this->router->language==='ar'?'':'+').$country[0].($this->router->language==='ar'?'+':'')?>)</option><?php
@@ -490,7 +496,7 @@ input[type=number]{-moz-appearance: textfield;}
             ?></select><?php
             ?></div><?php
             
-            ?><div class=group><input type=tel id=number oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');" onkeyup="keyChanged(this);" required value="<?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?>"><label><?=$this->lang['your_mobile']?></label><span class=highlight></span><span class=bar></span></div><?php                                                                    
+            ?><div class=group><input class=en type=tel id=number oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');" onkeyup="keyChanged(this);" required value="<?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?>"><label><?=$this->lang['your_mobile']?></label><span class=highlight></span><span class=bar></span></div><?php                                                                    
             ?><div class=group><input class=btn type=button onclick="numberCheck(this)" value="<?=$this->lang['continue']?>" /></div><?php
             
             
@@ -522,6 +528,7 @@ input[type=number]{-moz-appearance: textfield;}
             ?></div></div><?php
             
             ?></div></div><?php
+            /*
             ?><div id="mb_check"><?php 
                 ?><p class="ph ctr num corr" id="num_string"></p><?php 
                 ?><div class="ctr row"><?php
@@ -536,6 +543,7 @@ input[type=number]{-moz-appearance: textfield;}
                 ?></div><?php
                
             ?></div><?php
+            
                 ?><form onsubmit="validate();return false"><?php
                 ?><div id="mb_validate"><?php 
                     ?><p class="ph ctr num" id="val_string"><?= isset($this->user->pending['mobile']) ? '+'.$this->user->pending['mobile'] : '' ?></p><?php 
@@ -560,11 +568,12 @@ input[type=number]{-moz-appearance: textfield;}
                 ?></div><?php
                 ?><div class="ctr" id="mb_load"><?php 
                     ?><br /><p class="ph ctr"><?= $this->lang['mobile_wait'] ?></p><br /><?php 
-                    /*?><img src="<?=$this->router->config->cssURL?>/i/mobile-loading.gif" height="200" width="158" /><?php*/
+                    //?><img src="<?=$this->router->config->cssURL?>/i/mobile-loading.gif" height="200" width="158" /><?php
                 ?></div><?php
                 if($this->router->isMobile){
                     ?></div><?php
                 }
+                */
                 ?></div></div><?php
                 $this->globalScript.='
                     var curNumber="'.(isset($this->user->pending['mobile'])?$this->user->pending['mobile']:'').'";

@@ -544,13 +544,13 @@ class Page extends Site {
         ?><a class=btn style="background-color:#3b5998" href="/web/lib/hybridauth/?provider=facebook"><i class="i facebook"></i>Facebook</a><?php
         ?><a class=btn style="background-color:#4285F4" href="/web/lib/hybridauth/?provider=google"><i class="i google"></i>Google</a><?php
         ?><a class=btn style="background-color:#1da1f2" href="/web/lib/hybridauth?provider=twitter"><i class="i twitter"></i>Twitter</a><?php
-        ?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo"><i class="i yahoo"></i>Yahoo</a><?php
+        /*?><a class=btn style="background-color:#410093" href="/web/lib/hybridauth?provider=yahoo"><i class="i yahoo"></i>Yahoo</a><?php*/
         ?><a class=btn style="background-color:#0075b5" href="/web/lib/hybridauth?provider=linkedin"><i class="i linkedin"></i>LinkedIn</a><?php
         ?><a class=btn style="background-color:#7fba00;" href="/web/lib/hybridauth?provider=live"><i class="i microsoft"></i>Windows Live</a><?php
         ?></div></div><?php
         
         
-        ?><div class="card doc barcode"><div class=title><h5>Mourjan Mobile App</h5></div><?php
+        ?><div class="card doc barcode"><div class=title><h5><?= $this->lang['signin_app']?></h5></div><?php
         ?><div class="content ha-center"><img width=200 height=200 src="<?=$base64?>" /></div><?php
         ?><div class="card-footer" style="color:var(--mdc70);font-weight:500"><span class="bt scan"><span class=apple></span><span class="apple up"></span><?=$this->lang['hint_login_signin']?><?php
         ?><span class="apple up"></span><span class=apple></span></span></div><?php

@@ -297,6 +297,10 @@ class MyAds extends UserPage {
                 $this->pendingAds();
                 break;
             
+            case 'rejected':
+                $this->pendingAds(3);
+                break;
+            
             case 'archive':
                 $this->pendingAds(9);
                 break;
@@ -518,10 +522,12 @@ class MyAds extends UserPage {
         
         $sub=$this->getGetString('sub');
         $uid=$isAdmin?$this->getGetInt('u'):0;
+
         $this->adList->setState($state)->fetchFromAdUser();
         $count=$this->adList->count();
         $dbCount=$this->adList->dbCount();
-              
+
+        \error_log($count.' '.$dbCount.PHP_EOL);
         
         ?><div class="row viewable"><div class=col-12><?php
         //if ($isAdmin===true && $uid>0 && $uid!==$this->user->id()) {

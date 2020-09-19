@@ -94,7 +94,7 @@ class MCCache extends \Redis {
 
     
     function delete($key, ...$other_keys) : int {
-        return $this->master()->delete($key);
+        return $this->master()->del($key);
     }
     
     

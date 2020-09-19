@@ -70,7 +70,7 @@ class IPQuality {
         }
     }
 
-    
+    /*
     private function get_IPQ_URL($url) {
         $ch = curl_init();
         $timeout = 5;
@@ -82,7 +82,73 @@ class IPQuality {
         curl_close($ch);
         return $data;
     }
-
+    */
+    
+    
+    public function get_IPQ_URL(string $url, string $keyAsString, ?array &$result) : bool {
+        $result=[];
+        $ch=\curl_init();
+        $timeout=5;
+        \curl_setopt($ch, \CURLOPT_URL, $url);
+        \curl_setopt($ch, \CURLOPT_RETURNTRANSFER, 1);
+        \curl_setopt($ch, \CURLOPT_FOLLOWLOCATION, 1);
+        \curl_setopt($ch, \CURLOPT_CONNECTTIMEOUT, $timeout);
+        $data=\curl_exec($ch);
+        $status=\curl_getinfo($ch, \CURLINFO_HTTP_CODE);
+        \curl_close($ch);
+        if ($status===200) {
+            $result=\json_decode($data, true);
+            if ($result['success']??false && $result['message']==='Success') {
+                unset($result['success']);
+                unset($result['message']);
+                unset($result['request_id']);
+                if (!isset($result['smtp_score'])) {
+                    $result['is_crawler']=$result['is_crawler']?1:0;
+                    $result['mobile']=$result['mobile']?1:0;
+                    $result['proxy']=$result['proxy']?1:0;
+                    $result['vpn']=$result['vpn']?1:0;
+                    $result['tor']=$result['tor']?1:0;
+                    $result['active_vpn']=$result['active_vpn']?1:0;
+                    $result['active_tor']=$result['active_tor']?1:0;
+                    $result['recent_abuse']=$result['recent_abuse']?1:0;
+                    $result['bot_status']=$result['bot_status']?1:0;
+                    if (isset($result['device_brand']) && $result['device_brand']==='N/A') {
+                        unset($result['device_brand']);
+                    }
+                    if (isset($result['device_model']) && $result['device_model']==='N/A') {
+                        unset($result['device_model']);
+                    }
+                    if (isset($result['ISP']) && isset($result['organization']) && $result['ISP']===$result['organization']) {
+                        unset($result['organization']);
+                    }
+                }
+                else {
+                    $result['valid']=$result['valid']?1:0;
+                    $result['disposable']=$result['disposable']?1:0;
+                    $result['generic']=$result['generic']?1:0;
+                    $result['common']=$result['common']?1:0;
+                    $result['dns_valid']=$result['dns_valid']?1:0;
+                    $result['honeypot']=$result['honeypot']?1:0;
+                    $result['frequent_complainer']=$result['frequent_complainer']?1:0;
+                    $result['catch_all']=$result['catch_all']?1:0;
+                    $result['timed_out']=$result['timed_out']?1:0;
+                    $result['suspect']=$result['suspect']?1:0;
+                    $result['recent_abuse']=$result['recent_abuse']?1:0;
+                    $result['leaked']=$result['leaked']?1:0;
+                }
+                
+                $as=Core\Model\NoSQL::instance();
+                $key=$as->getConnection()->initKey(\Core\Model\NoSQL::NS_CACHE, 'ipqs', $keyAsString);
+                $options=[\Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_IGNORE, \Aerospike::OPT_WRITE_TIMEOUT=>5000, \Aerospike::OPT_POLICY_RETRY=>\Aerospike::POLICY_RETRY_ONCE];
+                if ($as->getConnection()->put($key, ["info"=>\json_encode($result)], 7*86400, $options)!==\Aerospike::OK) {                    
+                    \error_log(__FUNCTION__. " -> cache to aerospike failed: [{$as->getConnection()->errorno()}] {$as->getConnection()->error()}\n");
+                }
+                return true;
+            }                        
+        }
+	return false;
+    }
+    
     
     function validIP($IP) {	
         $IPResult = $this->checkIP($IP);	
@@ -119,6 +185,17 @@ class IPQuality {
         }
     }
 
+    
+    public function get_from_cache(string $address, ?array &$result) : int {
+        $as=Core\Model\NoSQL::instance();
+        $key=$as->getConnection()->initKey(\Core\Model\NoSQL::NS_CACHE, 'ipqs', $address);
+        $status=$as->getConnection()->get($key, $record);
+        if ($status==\Aerospike::OK && isset($record['bins'])) {                    
+            $result=\json_decode($record['bins']['info'], true);            
+        }
+        return $status;
+    }
+    
     
     public static function ipScore($mobile=null) : float {
         $ip = static::getClientIP();
@@ -174,13 +251,19 @@ class IPQuality {
     }
     
     
-    public static function ipLocation(string $ip='') : string {
+    public static function ipLocation(string $ip=''): string {
         $location='';
         if ($ip==='') {
             static::getClientIP();
         }
         
-        if ($ip!='UNKNOWN') {
+        if ($ip!=='UNKNOWN') {
+            $ipq=new IPQuality;
+            if ($ipq->get_from_cache($ip, $result)===\Aerospike::OK) {
+                return $result['city']. ', ' . $result['region'] . ' ' . $result['country_code'] . ' [' . $result['latitude'] . ', ' . $result['longitude'] . '], ' . $result['timezone'];
+            }
+            
+            /*
             $redis = new Redis();
             try {                              
                 if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
@@ -205,9 +288,12 @@ class IPQuality {
                 }
             } 
             catch (RedisException $re) {}
-        
-            $ipq = new IPQuality;
-            $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true')); 
+            */
+            
+            if ($ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true'), $ip, $result)) {
+                return $result['city']. ', ' . $result['region'] . ' ' . $result['country_code'] . ' [' . $result['latitude'] . ', ' . $result['longitude'] . '], ' . $result['timezone'];
+            }
+            /*
             $result = \json_decode($raw, true);
             if ($result!==null) {
                 try {
@@ -220,6 +306,8 @@ class IPQuality {
                 } 
             } 
             $redis->close();
+             * 
+             */
         }
         return '';
     }
@@ -262,6 +350,23 @@ class IPQuality {
     }
     
     
+    public static function getEMailStatus(string $email, bool $force=false) : array {
+        $email=\strtolower(\trim($email));
+        $ipq=new IPQuality;
+        if (!$force && $ipq->get_from_cache($email, $result)===\Aerospike::OK) {
+            
+            return $result;
+        }  
+        
+        if ($ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/email/%s/%s', $ipq->key, $email), $email, $result)) {
+            return $result;
+        }
+     
+        return [];
+    }
+    
+    
+    /*
     public static function getEMailStatus(string $email, bool $force=false) : array {
         $email=\strtolower(\trim($email));
         if (!$force) {
@@ -322,7 +427,7 @@ class IPQuality {
             
         }
         return $result;
-    }
+    }*/
 
 
     public static function fetchJson(bool $mobile=false) : array {
@@ -336,72 +441,26 @@ class IPQuality {
             $ret['error']="Unknown IP address";
         }
         else {
-            $redis=new Redis;
-            try {                  
-                if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
-                    $redis->select(3);
-                    $redis->setOption(Redis::OPT_PREFIX, 'IP:');  
-                    $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
-                    $raw = $redis->get($ret['ip']);                    
-                    
-                    if (!empty($raw)) {
-                        $result = json_decode($raw, true);
-                        if ($result!==null) {
-                            $redis->close();
-                            if (isset($result['request_id'])) { unset($result['request_id']); }
-                            $ret['ipquality']=$result;
-                        }
-                        else {
-                            error_log(__FUNCTION__ . ' error json decode!!!');
-                        }
-                    }
-                }
-            } 
-            catch (RedisException $re) {}
-           
+            $ipq=new IPQuality;
+            if ($ipq->get_from_cache($ret['ip'], $result)===\Aerospike::OK) {
+                $ret['ipquality']=$result;
+            }
+       
             if (empty($ret['ipquality'])) {
-                $ipq=new IPQuality;
                 if ($mobile===TRUE) {
-                    $raw=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ret['ip'], 3, 'false', 'true')); 
+                    $ok=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ret['ip'], 3, 'false', 'true'), $ret['ip'], $result); 
                 }
                 else {
-                    $user_agent=\urlencode($ret['agent']); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
-                    $language=\urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
-                    $raw=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ret['ip'], $user_agent, $language, 3, 'false'));                
+                    $user_agent=urlencode($ret['agent']); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                    $language=urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                    $ok=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ret['ip'], $user_agent, $language, 3, 'false'), $ret['ip'], $result);  
                 }
-                $result=\json_decode($raw, true);
-                if ($result!==null) {
-                    if (isset($result['request_id'])) { unset($result['request_id']); }
-                    $ret['ipquality']=$result;
-                    
-                    if (isset($result['tor'])) { $result['tor']=$result['tor'] ? 1 : 0; }
-                    if (isset($result['vpn'])) { $result['vpn']=$result['vpn'] ? 1 : 0; }
-                    if (isset($result['proxy'])) { $result['proxy']=$result['proxy'] ? 1 : 0; }
-                    if (isset($result['mobile'])) { $result['mobile']=$result['mobile'] ? 1 : 0; }
-                    if (isset($result['is_crawler'])) { $result['is_crawler']=$result['is_crawler'] ? 1 : 0; }
-                    if (isset($result['success'])) { $result['success']=$result['success'] ? 1 : 0; }
-                    if (isset($result['recent_abuse'])) { $result['recent_abuse']=$result['recent_abuse'] ? 1 : 0; }
-                    if (isset($result['message']) && $result['message']=='Success') { unset($result['message']); }
-                    $raw=\json_encode($result);
-                    try {
-                        if (!$redis->isConnected()) {
-                            if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
-                                $redis->select(3);
-                                $redis->setOption(Redis::OPT_PREFIX, 'IP:');  
-                                $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
-                            }
-                        }
-                        $redis->setex($ret['ip'], 604800, $raw);
-                    } 
-                    catch (RedisException $re) {}
-                    finally {
-                        $redis->close();
-                    }
+                if ($ok && !empty($result)) {
+                    $ret['ipquality']=$result;                                        
                 }
                 else {
-                    $ret['error']="Could not get ip record";
+                    $ret['error'] = "Could not get ip record";
                 }
-                $redis->close();
             }
         }
         return $ret;

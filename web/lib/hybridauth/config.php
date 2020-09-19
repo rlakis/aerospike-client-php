@@ -15,41 +15,35 @@ return [
             "OpenID" => ["enabled" => true],
 
             "Yahoo" => [
-                    "enabled" => true,
+                    "enabled" => false,
+                    "keys"    => ["id" => "PUT_YOURS_HERE", "secret" => "PUT_YOURS_HERE"],
+                    "scope"   => ['sdct-r', 'fspt-r', 'mail-r', 'sdps-r'], // optional
                     "wrapper" => [ "path" => "vendor/hybridauth/hybridauth/additional-providers/hybridauth-yahoo-openid/Providers/Yahoo.php", "class" => "Hybrid_Providers_Yahoo" ]
                 ],
 
             "Google" => [
-                        "enabled" => true,
-                        "keys"    => [
-                                "id" => "1017340605957-a5e8e6b12v4o5t8v2hjh16i140ju873u.apps.googleusercontent.com",
-                                "secret" => "Ar4wtlv1pkVm1gi3fo2us110"],
-                        "scope"   => ""
+                    "enabled" => true,
+                    "keys"    => ["id" => "1017340605957-a5e8e6b12v4o5t8v2hjh16i140ju873u.apps.googleusercontent.com", "secret" => "Ar4wtlv1pkVm1gi3fo2us110"],
+                    "scope"   => ""
                 ],
 
             "Facebook" => [
-                        "enabled" => true,
-                        "keys"    => [
-                            "id" => "184370954908428",
-                             "secret" => "e52e8d321c6b9dd828c8e0504b1ec5bd"
-                            ],
-                           
-                            // A comma-separated list of permissions you want to request from the user. See the Facebook docs for a full list of available permissions: http://developers.facebook.com/docs/reference/api/permissions.
-                            "scope"   => "email",
-                            // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
-                            "display" => "popup"
+                    "enabled" => true,
+                    "keys"    => ["id" => "184370954908428", "secret" => "e52e8d321c6b9dd828c8e0504b1ec5bd"],                           
+                    // A comma-separated list of permissions you want to request from the user. See the Facebook docs for a full list of available permissions: http://developers.facebook.com/docs/reference/api/permissions.
+                    "scope"   => "email",
+                    // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
+                    "display" => "popup"
             ],
 
             "Twitter" => [
-                        "enabled" => true,
-                        "keys"    => [
-                  "key" => "cNlPKmwj28nhGldSWj8gyLLge",
-                   "secret" => "Smxh9tO3kh2LlMfsKJ1dfitbPKvVy2KjAyrwyJJPVSdQte9V5J"]
+                    "enabled" => true,
+                    "keys"    => ["key" => "cNlPKmwj28nhGldSWj8gyLLge", "secret" => "Smxh9tO3kh2LlMfsKJ1dfitbPKvVy2KjAyrwyJJPVSdQte9V5J"]
                 ],
 
-                "Live" => [
-                        "enabled" => true,
-                        "keys"    => [
+            "Live" => [
+                    "enabled" => true,
+                    "keys"    => [
                     "id" => "00000000400CDFD6",
                      "secret" => "m8pGBdgDo-IatzHhGJGBMXPbG3bLhBb6" ]
                 ],

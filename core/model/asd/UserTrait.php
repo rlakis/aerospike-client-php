@@ -150,7 +150,7 @@ trait UserTrait {
                     $bins=$record['bins'];                    
                     
                     try {
-                        \Config::instance()->incModelFile('DB');
+                        \Config::instance()->incModelFile('Db');
                         //include_once \Prefs::$dir . '/config/cfg.php';
                         //include_once \Prefs::$dir . '/core/model/Db.php';
                         //global $config;
@@ -319,7 +319,7 @@ trait UserTrait {
             $bins = $record['bins'];
         }
         else if ($status!==\Aerospike::ERR_RECORD_NOT_FOUND) {
-            error_log(__FUNCTION__ . PHP_EOL . $identifier.'-'.$provider. ' Error');
+            error_log(__FUNCTION__ . PHP_EOL . $identifier.'-'.$provider. ' Error'.PHP_EOL);
         }
         
         return $status;

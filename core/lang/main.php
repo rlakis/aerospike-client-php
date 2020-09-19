@@ -228,6 +228,7 @@ $lang=array(
     "signin"    =>  "Sign In",
     "signin_error"    =>  "Mourjan system failed to verify your account, please try again or try with a different account",
     "signin_m"    =>  "Sign In With",
+    "signin_app"    => "Using Mourjan App",
     "signin_f"    =>  "To use your favorites please",
     "signout"    =>  "Sign Out",
     "shareFriends"  =>  "Share This Ad:",

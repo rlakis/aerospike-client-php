@@ -18,6 +18,7 @@ class MCSearch extends \Manticoresearch\Search {
     const MEDIA             = 'media';
     const STARRED           = 'starred';
     const PUBLISHER_TYPE    = 'publisher_type';
+    const DATE_ADDED        = 'date_added';
     const FEATURED_TTL      = 'featured_date_ended';
 
     
@@ -98,6 +99,14 @@ class MCSearch extends \Manticoresearch\Search {
     }
 
     
+    public function starred(int $value, bool $exclude=false) : self {
+        if ($value>0) {
+            $this->conditions[$exclude===false?'must':'not'][static::STARRED]=['equals', $value];
+        }
+        return $this;
+    }
+    
+    
     public function localityFilter(int $value, bool $exclude=false) : self {
         if ($value>0) {
             $this->conditions[$exclude===false?'must':'not'][static::LOCALITY]=['equals', $value];
@@ -157,11 +166,20 @@ class MCSearch extends \Manticoresearch\Search {
     
     
     public function result() : array {
-        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'object'=>$this->get()];
+        $result=['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'time'=>0, 'matches'=>[], 'object'=>null];
+        try {
+            //$b=$this->compile();
+            //\error_log(PHP_EOL.\json_encode($b).PHP_EOL);
+            $result['object']=$this->get();
+        }
+        catch (Exception $re) {
+            \error_log("sgsgsdfgd");
+        }
+        
         if ($result['object']->getResponse()->hasError()) {
             $result['error']=$result['object']->getResponse()->getError();
-            \error_log($result['error']);
         }
+        $result['total']=$result['object']->count();
         $result['total_found']=$result['object']->getTotal();
         $result['time']=$result['object']->getTime();
         while ($result['object']->valid()) {

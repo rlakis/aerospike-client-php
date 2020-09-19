@@ -478,6 +478,29 @@ var d = {
         inline.show();
     },
 
+
+    help: function(e, uid) {
+        let article = e.article();
+        if(!this.isSafe(article.id))return;
+        
+        if (confirm(this.ar?'هل تود فعلاً تحويل هذا الاعلان للمراجعة؟':'Do you want to send this ad to admin revision?')) {
+            let ad=d.items[article.id].mask().maskText(this.ar?'تحويل الاعلان للمراجعة...':'Sending ad to admin revision...');
+            
+            fetch('/ajax-help/', _options('POST', {i: parseInt(article.id)}))
+                    .then(res=>res.json())
+                    .then(response => {
+                        if (response.success===1) {
+                            d.items[article.id].mask().maskText('Sent To Super Admin');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Error:', error);
+                        ad.removeMask();
+                    });                        
+        }
+    },
+    
+    
     suspend: function (e, uid) {
         let article = e.article();
         if(!this.isSafe(article.id))return;
@@ -504,13 +527,17 @@ var d = {
                     .then(res => res.json())
                     .then(response => {
                         console.log('Success:', JSON.stringify(response));
-                        //if (response.success===1) {
-                            //let ad=new Ad(e.parentElement.parentElement.id);
-                            //ad.approved();
-                        //}
+                        if (response.success!==1) {
+                            Swal.fire('Failed', response.error, 'error');
+                            ad.removeMask();
+                        }
+                        else {
+                            setTimeout(ad.removeMask(), 1500);
+                            d.reject(e, uid);
+                        }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
+                         Swal.fire('JS Failed', error, 'error');
                         ad.removeMask();
                     });
             inline.hide();

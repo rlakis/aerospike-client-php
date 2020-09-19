@@ -34,7 +34,7 @@ class Site {
         }
         if (isset($argc)) { return; }
         
-        $this->initSphinx();
+        //$this->initSphinx();
         
         $this->user=new User($this);
         $this->router->setUser($this->user);
@@ -398,7 +398,12 @@ class Site {
         } /* End of WatchId */
         else {
             if (($this->user->isLoggedIn() || $this->pageUserId) && $this->userFavorites) {
-                $id = $this->user->id()>0 ? $this->user->id() : $this->pageUserId;                
+                $id=$this->user->id()>0?$this->user->id():$this->pageUserId;
+                $fq=new MCSearch($this->router->db->manticore);
+                $fq->starred($id)->setSource('id')->offset($offset)->limit($this->num)->sort('date_added', 'desc');
+                $this->searchResults['body']=$fq->result();
+                /*
+                 * TO BE MIGRATED
                 $this->router->db->index()
                         ->setSelect('id')
                         ->starred($id)
@@ -406,6 +411,8 @@ class Site {
                         ->setLimits($offset, $this->num)
                         ->addQuery('body', '');
                 $this->searchResults=$this->router->db->index()->executeBatch();
+                 * 
+                 */
             } 
             else {
                 $__compareID=$this->router->getPositiveVariable('cmp', \INPUT_GET);
@@ -451,29 +458,32 @@ class Site {
                 
                 switch ($this->langSortingMode) {
                     case 0:
-                        $lng='0 as lngmask';
-                        $search->expression('lngmask', 0);
+                        $lexpr=0;
+                        //$lng='0 as lngmask';
+                        break;
                     case 1:
-                        $lng='IF(rtl>0,0,1) as lngmask';
-                        $search->expression('lngmask', 'IF(rtl>0,0,1)');
+                        //$lng='IF(rtl>0,0,1) as lngmask';
+                        $lexpr='IF(rtl>0,0,1)';
                         break;
                     case 2:
-                        $lng='IF(rtl<>1,0,1) as lngmask';
-                        $search->expression('lngmask', 'IF(rtl<>1,0,1)');
+                        //$lng='IF(rtl<>1,0,1) as lngmask';
+                        $lexpr='IF(rtl<>1,0,1)';
                         break;
                     default:
-                        $lng=($this->router->language==='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
-                        $search->expression('lngmask', ($this->router->language==='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1)');
+                        $lexpr=($this->router->language==='ar') ? 'IF(rtl>0,0,1)' : 'IF(rtl<>1,0,1)';
+                        //$lng=($this->router->language==='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
                         break;
                 }
-           
+                $search->expression('lngmask', $lexpr);
 
+                //\error_log(PHP_EOL.$lng.PHP_EOL);
+                
                 if (($last_visited=$this->user->getLastVisited())) {
-                    $fields="id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";
+                    //$fields="id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";
                     $search->expression('newad', "if(date_added>{$last_visited}, 1, 0)");
                 }
                 else {
-                    $fields="id, 0 as newad, date_added, {$lng}";
+                    //$fields="id, 0 as newad, date_added, {$lng}";
                     $search->expression('newad', 0);
                 }
                 $search->setSource(['id', 'newad', 'date_added', 'lngmask']);
@@ -485,15 +495,16 @@ class Site {
                     $search->sort('lngmask')->sort('date_added', 'desc');                    
                 }
                 
-                if (!empty($q)) {
+                if (\trim($q)!=='') {
                     $search->search($q);
                 }
                 
                 $this->searchResults['body']=$search->result();// ['total_found'=>$rs->getTotal(), 'matches'=>$rs];
                 
-                if ($__compareID>0) {
-                    \error_log(PHP_EOL.\json_encode($search->getBody()).PHP_EOL);
-                }
+                
+                //if ($__compareID>0) {
+                //    \error_log(PHP_EOL.\json_encode($search->getBody()).PHP_EOL);
+                //}
                 //\error_log(var_export($search->getBody(), true));
                 //var_dump($search->get()->current());
                 /*

@@ -4,10 +4,11 @@ include_once dirname(__DIR__) . '/../config/cfg.php';
 include_once dirname(__DIR__) . '/../deps/autoload.php';
 
 include_once 'Schema.php';
-Config::instance()->incModelFile('Db')->incModelFile('NoSQL');
+Config::instance()->incModelFile('Db')->incModelFile('NoSQL')->incLibFile('SphinxQL');
 
 $schema = \Core\Data\Schema::instance();
 $db=new \Core\Model\DB();
+$db->ql=new Core\Lib\SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
 /*
 $rs=$db->get('select * from country');
 $i=0;
@@ -75,7 +76,7 @@ function roots(Core\Model\DB $db) : void {
 
 function sections(Core\Model\DB $db) : void {
     global $schema;
-    $rs=$db->get("SELECT ID, NAME_AR, NAME_EN, URI, ROOT_ID, BLOCKED,  UNIXTIME FROM SECTION order by 1");
+    $rs=$db->get("SELECT ID, NAME_AR, NAME_EN, URI, ROOT_ID, BLOCKED, UNIXTIME FROM SECTION order by 1");
     foreach ($rs as $data) {    
         $bins=[];
         foreach ($data as $name=>$value) { $bins[strtolower($name)]=$value; }
@@ -205,12 +206,12 @@ function asPurposes() : void {
 
 
 function qlSections(Core\Model\DB $db) : void {
-    $as=Core\Model\NoSQL::instance();
+    $as=Core\Model\NoSQL::instance();    
     $records = $db->ql->directQuery(
                     "select id, section_name_ar as name_ar, section_name_en as name_en, "
                     . " section_uri as uri, root_id, "
-                    . " related_id, related, purposes, related_purpose_id, related_to_purpose_id "
-                    . "from section limit 100000");
+                    . " related_id, /*related,*/ purposes, related_purpose_id, related_to_purpose_id "
+                    . "from section where section_blocked=0 limit 100000");
     $rs=[];
     foreach ($records as $k=>$v) {
         $ps=explode(',', $v[7]);
@@ -227,10 +228,10 @@ function qlSections(Core\Model\DB $db) : void {
             \Core\Data\Schema::BIN_URI=>$v[3], 
             \Core\Data\Schema::BIN_ROOT_ID=>$v[4], 
             'related_id'=>$v[5],
-            'related'=>$v[6], 
+            /*'related'=>$v[6], */
             'purposes'=>$p, 
-            'related_purpose_id'=>$v[8], 
-            'related_to_purpose_id'=>$v[9] ];
+            'related_purpose_id'=>$v[7], 
+            'related_to_purpose_id'=>$v[8] ];
     }
     $pk=$as->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, 'sections');
     $as->setBins($pk, ['data'=>$rs]);
