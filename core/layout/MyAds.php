@@ -243,11 +243,13 @@ class MyAds extends UserPage {
         'group=سياسة الموقع',
         'يرجى اضافة المعلومات الخاصة بمؤسسة التنظيم العقاري ريرا',
         'لا يمكن نشر اعلانات مماثلة دون ادراج رقم الموبايل المستخدم لتفعيل حسابك مع مرجان (فقط) ضمن وسائل التواصل',
+        'لا يمكن نشر إعلانات لها علاقة بالتدخين ولوازمه',
         'للأسف هذا القسم قد تم الغاؤه',
         'لا يمكن نشر إعلانات مماثلة طبقاً لسياسة الموقع',
         'اعلانات المتاجرة بالتأشيرات والإقامات مجرمة قانونيا',
         'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال',
-        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بوكسي وفي بي ان',
+        'لا يمكن إضافة صور لاشخاص عشوائياً توافقاً مع قوانين حقوق الملكية وخصوصية الأفراد',
+        'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بروكسي وفي بي ان',
         'الاعلان مرسل من نطاق انترنت مصنف احتيالي من قبل الوكالات الامنية المختصة'
     ],
     'en':[
@@ -279,14 +281,18 @@ class MyAds extends UserPage {
         'This ad can on be published in the suitable city section',
         'please choose \"international real estate\" section to publish your ad',
         'this ad can only be published in countries where your offices and services are located',
+        'this ad cannot be published in a country while your reside in a different country or your account might be blocked',
         'this ad cannot be published in countries other than the country of origin (cars, real estate, goods)',
         'worthless seeking work ad posting while travel is prohibited',
         'group=Website Policy',      
         'please add missing details concerning RERA',
         'cannot publish similar ads unless you add ONLY the mobile number (used to activate your mourjan account) to the contact information',
+        'All ads related to smoking are against the website policy and cannot be published',
         'This type of ads is against the website policy and cannot be published',
+        'Sorry but this ad section is not supported anymore',
         'Selling Visas and work permits is against the law',
         'This ad contradicts with the sense of your other published ads, and this is a warning before blocking your account for fraud',
+        'Cannot add pictures of random people due to copyrights and legal privacy policies',
         'The user behind VPN/PROXY ad posting is prohibited',
         'Posting ad from fraudulent connection is not accepted'
     ]
