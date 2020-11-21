@@ -1,524 +1,386 @@
 <?php
 require_once 'deps/autoload.php';
-Config::instance()->incLayoutFile('Site')->incModelFile('NoSQL')->incModelFile('MobileValidation')->incModelFile('Ad');
+require_once $config['dir'].'/core/layout/Site.php';
+require_once $config['dir'].'/core/model/NoSQL.php';
+require_once $config['dir'].'/core/model/MobileValidation.php';
 
+use MaxMind\Db\Reader;
 use Core\Model\NoSQL;
 use Core\Model\MobileValidation;
+use Core\Model\DB;
+use Core\Model\Router;
 use Core\Model\Classifieds;
 use Core\Lib\SphinxQL;
 
 class AjaxHandler extends Site {
 
     var $rp=1;
-    public string $msg='';
-    public array $data=[];
+    var $msg='';
+    var $data=array();
     var $sid='';
     var $dir='';
     var $host='';
 
-    function __construct() {
-        parent::__construct();
-        $this->dir=$this->router->config->baseDir;
-        $this->host=$this->router->config->host;
-        $this->sid=\session_id();
+    function __construct(Router $router){
+        parent::__construct($router);
+        $this->dir=$router->cfg['dir'];
+        $this->host=$router->cfg['host'];
+        $this->sid=session_id();
     }
 
     function setData($res, $label=''){
-        if ($label) {
-            $this->data[$label]=$res;
-        }
-        else {
-            $this->data[]=$res;
-        }
+        if ($label) $this->data[$label]=$res;
+        else $this->data[]=$res;
     }
 
     function mergeData($res, $label){
-        if (isset($this->data[$label])) {
-            $this->data[$label]=\array_merge($this->data[$label], $res);
-        }
-        else {
-            $this->data[$label]=$res;
-        }
+        if (isset ($this->data[$label])) $this->data[$label]=array_merge($this->data[$label], $res);
+        else $this->data[$label]=$res;
     }
 
     function process(){
-        $res=['RP'=>$this->rp, 'MSG'=>$this->msg, 'DATA'=>$this->data];
-        \header("Content-Type: application/json");
-        echo \json_encode($res);
+        $res=array();
+        $res['RP']=$this->rp;
+        $res['MSG']=$this->msg;
+        $res['DATA']=$this->data;
+        header("Content-Type: application/json");
+        print json_encode($res);
     }
 
     function processRaw($res){
-        \header("Content-Type: application/json");
-        echo \json_encode($res);
+        header("Content-Type: application/json");
+        echo json_encode($res);
     }
     
     function processJson($res){
-        \header("Content-Type: application/json");
+        header("Content-Type: application/json");
         echo $res;
     }
 
     function fail($msg='illegal access failure'){
-        $this->msg=$msg;
+	$this->msg=$msg;
         $this->rp=0;
         $this->process();
-        exit(0);
+        exit (0);
     }
 }
 
 
-class Bin extends AjaxHandler {
-    const ERR_USER_BLOCKED          = 100;
-    const ERR_USER_SUSPENDED        = 101;
-    const ERR_USER_UNAUTHORIZED     = 102;
-    const ERR_DATA_INVALID_PARAM    = 200;
-    const ERR_DATA_INVALID_META     = 201;
-    const ERR_DATA_INVALID_EMAIL    = 202;
-    const ERR_DATA_USED_EMAIL       = 203;
-    const ERR_DATA_INVALID_PHONE    = 204;
-    const ERR_LIMIT_EXCEEDED        = 299;
-    const ERR_SYS_MAINTENANCE       = 400;
-    const ERR_SYS_FAILURE           = 401;
-    const ERR_SYS_UNKNOWN           = 402;
-    
-    private array $_JPOST = [];
-    private array $resp = ['command'=>'', 'success'=>0, 'code'=>0, 'error'=>'', 'warning'=>'', 'result'=>[]];
-    
-    private array $errors = [
-        self::ERR_USER_BLOCKED      => ['en'=>'Blocked user! this account is not active anymore.', 'ar'=>'هذا الحساب مقفل ولا يمكن استعماله في مرجان!'],
-        self::ERR_USER_SUSPENDED    => ['en'=>'Suspended user! this account is suspended.', 'ar'=>'هذا الحساب معلق!'],
-        self::ERR_USER_UNAUTHORIZED => ['en'=>'Unauthorized action', 'ar'=>'حساب غير مصرح لتنفيذ الطلب!'],
-        self::ERR_DATA_INVALID_PARAM=> ['en'=>'Invalid request parameter', 'ar'=>'المعطيات غير صحيحة'],
-        self::ERR_DATA_INVALID_META => ['en'=>'', 'ar'=>''],
-        self::ERR_DATA_INVALID_EMAIL=> ['en'=>'Not a valid email address.', 'ar'=>'البريد الالكتروني غير صحيح'],
-        self::ERR_DATA_USED_EMAIL   => ['en'=>'Email address already in use!', 'ar'=>'البريد الالكترروني تم استعماله مسبقا!'],
-        self::ERR_DATA_INVALID_PHONE=> ['en'=>'Not a valid phone number.', 'ar'=>'رقم الهاتف غير صحيح'],
-        self::ERR_LIMIT_EXCEEDED    => ['en'=>'Request limit exceeded', 'ar'=>'تم تجاوز حد الطلب'],
-        self::ERR_SYS_MAINTENANCE   => ['en'=>'Sorry! System is in maintenance, try again later...', 'ar'=>'نأسف لعدم تلبيتكم الآن! النظام قيد الصيانة.'],
-        self::ERR_SYS_FAILURE       => ['en'=>'Sorry! System is failed to execute your request', 'ar'=>'عملية غير ناجحة!'],
-        self::ERR_SYS_UNKNOWN       => ['en'=>'', 'ar'=>''],
-    ];
-    
-    private string $name;
-    
-    function __construct(){
-        parent::__construct();
-        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
-        if ($contentType==='application/json') {
-            $content=\trim(\file_get_contents("php://input"));
-            if ($content) {
-                $this->_JPOST=\json_decode($content, true);
-            }
-        }
-        
-        if (empty($this->_JPOST) && !empty($_POST)) {
-            $this->_JPOST=$_POST;
-        }
-        
-        /*
-        // set default language if matched
-        if (isset($this->user->params['slang']) &&  \in_array($this->user->params['slang'], ['en', 'ar'])) {
-            $this->router->language=$this->user->params['slang'];
-        }
-        else {
-            $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
-            if ($referer) {
-                $r=\parse_url($referer);
-                if (\is_array($r) && $r['scheme']==='https' && ($r['host']==='www.mourjan.com'||$r['host']==='dv.mourjan.com'||$r['host']==='h1.mourjan.com'||$r['host']==='dev.mourjan.com')) {
-                    \preg_match('/(:?\/)(en|fr|)(:?\/|)$/', $r['path'], $matches);
-                    if ($matches && $matches[2]==='en') { \Core\Model\Router::instance()->language=$matches[2]; }
-                }
-            }
-        }
-        */
-        
-        $this->name='name_'.$this->router->language;
-        $this->actionSwitch();        
+class Bin extends AjaxHandler{
+
+    function __construct($router){
+        parent::__construct($router);
+        $this->actionSwitch();
     }
 
-    
-    private function output() : void {
-        \header("Content-Type: application/json");        
-        echo \json_encode($this->resp);
-        exit(0);
-    }
-    
-    
-    private function error(int $code, array $details=[]) : void {
-        $this->resp['success']=0;
-        $this->resp['code']=$code;
-        if ($this->router->language!=='ar' && $this->router->language!=='en') {
-            $this->router->language='en';
-        }
-        $this->resp['error']= $this->errors[$code][$this->router->language] ?? ('failed to get message! > '.$this->router->language);
-        if (!empty($details)) {
-            $this->resp['error'].=' ';
-            $this->resp['error'].=$details[$this->router->language];
-        }
-        $trace=\debug_backtrace();
-        if (\is_array($trace) && \count($trace)>1) {
-            $this->resp['error'].=' (';
-            $this->resp['error'].=$trace[0]['line'];
-            $this->resp['error'].=')';
-        }
-        $this->output();
-    }
-    
-    
-    private function success(array $result=[]) : void {        
-        $this->resp['success']=1;
-        if (!empty($result)) {
-            $this->resp['result']=$result;
-        }
-        $this->output();
-    }
-    
-    
-    private function response(string $name, $value) : Bin {
-        $this->resp['result'][\strtolower(\trim($name))]=$value;
-        return $this;
-    }
-    
-    
-    private function authorize(bool $for_write=false, int $level=-1) : void {
-        if ($for_write) {
-            if ($this->router->config->isMaintenanceMode()) {
-                $this->error(self::ERR_SYS_MAINTENANCE);
-            }
-        }
-        
-        if (!$this->user->isLoggedIn()) {
-            $this->error(self::ERR_USER_UNAUTHORIZED);
-        }
-        
-        if ($this->user()->getProfile()->isBlocked()) {
-            $this->error(self::ERR_USER_BLOCKED);
-        }
-        
-        if ($this->user()->getProfile()->isSuspended()) {
-            $this->error(self::ERR_USER_SUSPENDED);
-        }
-        
-        if ($this->user()->level()<$level) {
-            $this->error(self::ERR_USER_UNAUTHORIZED);
-        }
-    }
-    
-    
-    private function check(bool $ok, int $fail_code=self::ERR_SYS_FAILURE) : void {
-        if ($ok) {
-            $this->success();
-        }
-        else {
-            $this->error($fail_code);
-        }
-    }
-    
-    
-    function logAdmin(int $adId, int $state, string $msg="") : void {
-        if ($this->user()->isLoggedIn(9) && $adId) {
-            $this->router->db->queryResultArray('insert into log_admin (ad_id, admin_id, state,msg) values (?, ?, ?, ?)', [$adId, $this->user()->id(), $state, $msg]);
+    function logAdmin($adId,$state,$msg=""){
+        if($this->user->info['id'] && $this->user->info['level']==9 && $adId){
+            $this->urlRouter->db->queryResultArray(
+                'insert into log_admin (ad_id, admin_id, state,msg) values (?,?,?,?)', array(
+                $adId,
+                $this->user->info['id'],
+                $state,
+                $msg
+            ));
         }
     }
 
-    
     function getCountryUnit($countryId){
         $unit='$ USD';
         $currencies = $this->urlRouter->db->queryCacheResultSimpleArray(
                 'currencies',
-                'select trim(id) id,name_ar,name_en from currency',
-        null, 0, $this->urlRouter->cfg['ttl_long']);
+                'select trim(id) id,name_ar,name_en from currency');
+      
         $rcunit=$currencies[trim($this->urlRouter->countries[$countryId][6])];
         $unit=trim($rcunit[0]);
-        if ($this->urlRouter->language=='ar' && $rcunit[1]!='') $unit=trim($rcunit[1]);
+        if ($this->urlRouter->siteLanguage=='ar' && $rcunit[1]!='') $unit=trim($rcunit[1]);
         if ($unit=='USD') $unit='$';
         else $unit=' '.$unit;
         return $unit;
     }    
 
     
-    private function getPostedJson() : array {
-        $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
-        if ($contentType==='application/json') {
-            $content = trim(file_get_contents("php://input"));
-            return json_decode($content, true);
-        }
-        return [];
-    }
-    
-    
-    function actionSwitch() : void {
-        $err_file='/var/log/mourjan/editor.log';
-        $action=\substr($this->router->module, 5);
-        $this->resp['command']=$action;
+    function actionSwitch() {
+        //error_log("switch");
+        switch($this->urlRouter->module) {
+            case 'ajax-notice':
+                if($this->user->info['id']){
+                    $mcUser = new MCUser($this->user->info['id']);
+                    
+                    $nbId = $this->get('nb','numeric');
+                    if($nbId){
+                        $mcUser->deleteMessageByKey($nbId);
+                    }else{                    
+                        $lang = $this->get('hl');
+                        if(!in_array($lang,array('ar','en'))){
+                            $lang = 'ar';
+                        }
+                        $this->load_lang(['main'],$lang);
 
-        switch ($action) {
-            
+                        $messages = [];
+
+                        if($mcUser->getUserMessage() && $this->urlRouter->module != 'rera'){
+                            if($this->isMobile){
+                                $messages[MCUser::MESSAGE_PENDING_RERA_MOBILE_VERIFICATION] = [$this->lang['pending_rera_verification_mob'],0];
+                            }else{
+                                $messages[MCUser::MESSAGE_PENDING_RERA_MOBILE_VERIFICATION] = [$this->lang['pending_rera_verification'],0];
+                            }
+                        }
+
+                        $notice = $mcUser->getNotificationByKey(MCUser::MESSAGE_RERA_ENFORCEMENT);
+                        if(isset($notice[$lang])){
+                            $messages[MCUser::MESSAGE_RERA_ENFORCEMENT] = [$this->lang['rera_ads_stop_notice'],MCUser::MESSAGE_RERA_ENFORCEMENT];
+                        }
+                        $this->setData($messages, 'nb');
+                    }
+                    $this->process();
+                }
+                break;
+            case 'ajax-screen':
+                if (isset($_POST['w']) && $_POST['w'] && isset($_POST['h']) && $_POST['h']) {
+                    $w=$_POST['w'];
+                    $h=$_POST['h'];
+                    $update=0;
+                    if (isset($_POST['c'])) {
+                        $c = $this->post('c','boolean');
+                        $this->user->params['hasCanvas'] = $c ? 1 : 0;
+                        $update=1;
+                    }
+                    if (is_numeric($w) && is_numeric($h) && $w && $h) {
+                        if (!$this->user->info['id']) {
+                            $this->user->params['etag']=$w*-1;
+                        }
+                        elseif(isset($this->user->params['etag'])){
+                            unset($this->user->params['etag']);
+                        }
+                        $this->user->params['screen']=array($w,$h);
+                        $update=1;
+                    }
+                    if ($update) {
+                        $this->user->update();
+                        $this->user->setCookieData();
+                    }
+                }
+                $this->process();
+                break;
+                
             case 'ajax-sorting':
                 $order = $this->get('or','boolean');
                 $this->user->params['catsort']=$order;
                 $this->user->update();
                 $this->process();
                 break;
-                    
             
-            case 'changepu':
-                $this->authorize(true, 9);
-                if (\is_array($this->_JPOST)) {
-                    foreach ($this->_JPOST as $key => $value) {
-                        $_POST[$key]=$value;
-                    }
-                }
-                    
-                if (isset($_GET['fraud']) && \is_numeric($_GET['fraud'])){
-                    $content=\json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true); 
-                    /*
-                    if (isset($content['fraud_score'])) {
-                        $content['message']='Failed!';
-                        Config::instance()->incLibFile('IPQuality');
-                        $content=IPQuality::getIPStatus($content['host']);                        
-                    }*/
-                    $this->success($content);
-                }
-                    
-                $lang=$this->getGetString('hl');
-                if(!$lang){$lang=$this->_JPOST['hl']??'en';}
-                if (!in_array($lang, ['ar','en'])) { $lang = 'ar'; }
-                $this->fieldNameIndex=($lang==='en')?2:1;
-                $this->router->language=$lang;
-                $this->load_lang(array('main'), $lang);
-                    
-                $id = $this->getGetInt('i', 0);
-                $ro = $this->post('r');
-                $se = $this->post('s');
-                $pu = $this->post('p');
-                    
-                //error_log("pu ". $pu);
-                if ($se) { $ro=$this->router->sections[$se][\Core\Data\Schema::BIN_ROOT_ID]; }
-                if ($ro==4) { $pu=5; }
-                    
-                $text = $this->_JPOST['t']??'';
-                $textIdx = \intval($this->post('dx'));
-                $textRtl = $this->post('rtl');
-                                                           
-                $this->router->db->setWriteMode();  
-                                                
-                $ad=new Core\Model\Ad();
-                $ad->getAdFromAdUserTableForEditing($id);
-                if ($ad->id()===0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-
-                $textOnly=false;
-                $imgAdmin = $this->get('img', 'boolean');
-                $imgIdx = $this->getGetInt('ix', -1);
-                $pixPath = $this->getGetString('pix');
-                    
-                //$ad=$ad[0];
-                //$content=\json_decode($ad['CONTENT'], true);
-                $content = $ad->dataset()->getOldContent();
-                if ($imgAdmin) {
-                    $newImgs = [];
-                    $i=0;
-                    $imageToRemove = '';
-                    if ($pixPath) {
-                        $imageToRemove = $pixPath;
-                        foreach ($ad->dataset()->getPictures() as $pp => $dim) {
-                            if ($pp!==$pixPath) { $newImgs[$pp]=$dim; }
+            case 'ajax-verify':
+                if($this->user->info['id']){
+                    $code = $this->post('code','numeric');
+                    if($code){
+                        $res = $this->urlRouter->db->queryResultArray("update rera_office set state = 1 
+                                where uid = ? and code = ? and state = 2 returning state",
+                                [$this->user->info['id'], $code],true);
+                        if(isset($res[0]['STATE']) && $res[0]['STATE'] == 1){
+                            $this->setData(1, 'ok');
                         }
-                        //foreach($content['pics'] as $img => $dim) {
-                        //     if ($img!==$pixPath) { $newImgs[$img]=$dim; }                                 
-                        // }
-                    }                                                        
-                            
-                    if ($imageToRemove) {
-                        $media = $this->router->db->queryResultArray('select * from media where filename=?', [$imageToRemove], false);
-                        if ($media && \count($media)) {
-                            foreach ($media as $m) {
-                                $this->router->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $m['ID']], true);
+                    }
+                }            
+                $this->process();            
+                break;
+            
+            case 'ajax-changepu':                
+                if($this->user->info['id'] && $this->user->info['level']==9){
+                    if(isset($_GET['fraud']) && is_numeric($_GET['fraud'])){
+                        $content = file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']);
+                        //$this->setData($content, 'content');
+                        $this->processJson($content);
+                        break;
+                    }
+                    $lang = $this->get('hl');
+                    $this->fieldNameIndex=1;
+                    if(!in_array($lang,array('ar','en'))){
+                        $lang = 'ar';
+                    }
+                    if($lang=='en'){
+                        $this->fieldNameIndex=2;
+                    }
+                    $this->urlRouter->siteLanguage=$lang;
+                    $this->load_lang(array('main'), $lang);
+                    
+                    $id = $this->get('i');
+                    $ro = $this->get('r');
+                    $se = $this->get('s');
+                    $pu = $this->get('p');
+                    
+                    $text = '';
+                    if(isset($_POST['t'])){
+                        $text = $_POST['t'];
+                    }
+                    $textIdx = $this->post('dx');
+                    $textRtl = $this->post('rtl');
+                    
+                    $imgAdmin = $this->get('img','boolean');
+                    $imgIdx = $this->get('ix');
+                    
+                    $this->urlRouter->db->setWriteMode();  
+                    
+                    $ad=$this->user->getPendingAds($id);
+                    if (!empty($ad)) {
+                        $textOnly=false;
+                        
+                        $ad=$ad[0];
+                        $content=json_decode($ad['CONTENT'],true);
+                        
+                        if($imgAdmin){
+                            $newImgs = [];
+                            $i=0;
+                            $imageToRemove = '';
+                            foreach($content['pics'] as $img => $dim){
+                                if($i++ != $imgIdx){
+                                    $newImgs[$img]=$dim;
+                                }else{
+                                    $imageToRemove = $img;
+                                }
+                            }
+                            if($imageToRemove){
+                                $media = $this->urlRouter->db->queryResultArray("select * from media where filename = ?",[$imageToRemove],true);
+                                if($media && count($media)){
+                                    $this->urlRouter->db->queryResultArray("delete from ad_media where ad_id = ? and media_id = ?",[$id,$media[0]['ID']],true);
+                                }
                             }
                             
-                        }
-                    }
-                           
-                    $ad->dataset()->setPictures($newImgs);
-                    $content['pics']=$newImgs;
+                            $content['pics']=$newImgs;
                             
-                    $images='';
-                    foreach ($ad->dataset()->getPictures() as $pp => $dim) {
-                        if ($images) { $images.="||"; }
-                        $images.='<img width="118" src="'.$this->router->config->adImgURL.'/repos/s/'.$pp.'" />';                        
-                    }                                      
-                    if ($images) { $images.="||"; }
-                    $images.='<img src="'.$this->router->config->imgURL.'/90/' . $ad->sectionId() . $this->router->_png .'" />';
-                    
-                }
-                
-                $version=$ad->dataset()->getVerion();
-                if ($version<3 && $ro) { $content['ro']=$ro; }
-                        
-                if ($se) {
-                    $ad->setSectionID($se);
-                    if ($version<3) { $content['se']=$se; }
-                }
-                        
-                if ($pu) {
-                    $ad->setPurposeID($pu);
-                    if ($version<3) { $content['pu']=$pu; }
-                }
-                        
-                if ($textIdx) {
-                    $text = \trim($text);
-                    if (!empty($text)) {
-                        $text .= \json_decode('"\u200b"') . ' ' . $this->user->parseUserAdTime($content['cui'], $content['cut']??[], $textRtl);
-                    }
-                    $textOnly = true;
-                    if ($textIdx===1) {
-                        $content['other'] = $text;
-                        $content['rtl'] = $textRtl;
-                    }
-                    else {
-                        $content['altother'] = $text;
-                        $content['altRtl'] = $textRtl;
-                    }
-                }
-                                                    
-                // fix here
-                Config::instance()->incLibFile('MCSaveHandler');
-                $normalizer = new MCSaveHandler();    
-                $normalized = $normalizer->getFromContentObject( $content, false);
-                if ($normalized) { $content=$normalized; }
-                $text = $content['other']??'';
-                $rtl = $content['rtl']??0;
-                $text2 = isset($content['altother']) ? $content['altother'] : '';
-                $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';                        
-                //if ($text2=='') { $content['extra']['t']=2; }
-                //$root = $content['ro'];
-                //$section = $content['se'];
-                //$purpose = $content['pu'];
-            
-                //$content = \json_encode($content);                                            
-                if ($this->router->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [\json_encode($content), $ad->sectionId(), $ad->purposeId(), $id])) {
-                    if ($imgAdmin) {
-                        $redisAction = 'editorialImg'; 
-                        $this->response('sic', $images);
-                        $this->response('index', $imgIdx);
-                        $this->response('removed', $imageToRemove, );
-                    }
-                    elseif ($textOnly) {
-                        $redisAction = 'editorialText';
-                        $this->response('native', $text);
-                        $this->response('foreign', $text2);
-                        $this->response('rtl', $rtl);
-                        $this->response('frtl',  $rtl2);
-                        $this->response('index', $textIdx);
-                    }
-                    else {                                
-                        $label = $this->getAdSection($ad, $ad->rootId());
-                        $this->response('label', $label);
-                        $this->response('ro', $ad->rootId());
-                        $this->response('se', $ad->sectionId());
-                        $this->response('pu', $ad->purposeId());
-                        $redisAction = 'editorialUpdate';
-                    }
-                    $this->response('id', $id);
+                            $images='';
+                            if (isset($content['pics']) && is_array($content['pics']) && count($content['pics'])) {
+                                $pass=0;
+                                foreach($content['pics'] as $img => $dim){
+                                    if($pass==0){
+                                        $content['pic_def']=$img;
+                                    }
+                                    if($images){
+                                        $images.="||";
+                                    }
+                                    $images.='<img width="118" src="'.$this->urlRouter->cfg['url_ad_img'].'/repos/s/' . $img . '" />';
+                                    $pass=1;
+                                }
+                            }else{
+                                unset($content['pic_def']);
+                                $content['extra']['p']=2;
+                            }
+                            if (isset($content['video']) && $content['video'] && count($content['video'])) {
+                                if($images){
+                                    $images.="||";
+                                }
+                                $vid = $content['video'][2];
+                                $images .='<img width="118" height="93" src="' . $vid . '" /><span class="play"></span>';
+                            }
+
+                            if($images){
+                                $images.="||";
+                            }
+                            $images.='<img class="ir" src="'.$this->urlRouter->cfg['url_img'].'/90/' . $ad['SECTION_ID'] . $this->urlRouter->_png .'" />';
                             
-                    try {            	
-                        $redis = new Redis();
-                        $data = ['cmd' => $redisAction, 'data' => $this->data];
-                        if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
-                            $redis->publish('editorial', json_encode($data));
                         }
-                    } 
-                    catch (RedisException $re) { $this->resp['warning']=$re->getMessage(); }
-                    
-                    $this->logAdmin($id, 6);
-                    $this->success();
-                }
-                else { $this->error(self::ERR_SYS_FAILURE); }                
-                
-                break;
-            
-            case 'ajax-text':
-                if ($this->user()->isLoggedIn(9)) {
-                    $id = $this->_JPOST['id']??0;
-                    $text = $this->_JPOST['text']??'';
-                    Config::instance()->incLibFile('MCSaveHandler');
-                    $normalizer = new MCSaveHandler();    
-                    $normalized = $normalizer->getFromContentObject(['id'=>$id, 'other'=>$text], true);
-                    if ($normalized) {
-                        $this->setData($normalized,'normalized');
-                        $this->process();
-                    }
-                    else {
-                        $this->fail('102');
-                    }
-                }
-                else {
-                    $this->fail('101');
-                }
-                break;
-            
-                
-            case 'number-info':
-                $this->authorize(false);
-                $country_code=\strtoupper(\trim(\filter_input(\INPUT_GET, 'key', FILTER_SANITIZE_STRING)));
-                $phone_number=\filter_input(\INPUT_GET, 'num', FILTER_SANITIZE_NUMBER_INT);
-                if (\is_numeric($phone_number)) { $phone_number= \intval($phone_number); }
-                
-                if (\strlen($country_code)!==2||$phone_number<=0) {
-                    $this->error(self::ERR_DATA_INVALID_PHONE);
-                }
-                
-                $validator=libphonenumber\PhoneNumberUtil::getInstance();
-                try {
-                    $number=$validator->parse($phone_number, $country_code);
-                    $valid=$validator->isValidNumber($number);
-                    if (!$valid && strlen(strval($phone_number))>8) {
-                        $number=$validator->parse("+{$phone_number}", $country_code);
-                        $valid=$validator->isValidNumber($number);
-                    }
-                    $type=$validator->getNumberType($number);
-                    $this->response('valid', $valid);
-                    $this->response('type', $type);
-                    $this->response('mobile',  ($type===libphonenumber\PhoneNumberType::MOBILE||$type===libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE));
-                    $this->response('e164', $validator->format($number, \libphonenumber\PhoneNumberFormat::E164));
-                    $this->response('intl', $validator->format($number, \libphonenumber\PhoneNumberFormat::INTERNATIONAL));
-                    $this->response('national', $validator->format($number, \libphonenumber\PhoneNumberFormat::NATIONAL));
-                    $this->response('region', $validator->getRegionCodeForNumber($number));
-                    
-                    $contents=\file_get_contents('/var/www/mourjan/bin/number-list.json');
-                    $pattern='/\"'.\substr($validator->format($number, \libphonenumber\PhoneNumberFormat::E164), 1).'\"\:/';
-                    //error_log($pattern);
-                    $disposal=\preg_match($pattern, $contents);
-                    
-                    //$disposal=system('cat /var/www/mourjan/bin/number-list.json | grep \"'. \substr($validator->format($number, \libphonenumber\PhoneNumberFormat::E164), 1) .'\"');
-                    
-                    $this->response('disposable', $disposal);
-                    $carrierMapper=\libphonenumber\PhoneNumberToCarrierMapper::getInstance();
-                    if ($valid) {
-                        $this->response('carrier', $carrierMapper->getNameForValidNumber($number, 'en'));
-                        if (!($type===libphonenumber\PhoneNumberType::MOBILE||$type===libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE)) {
-                            $this->response('message', ['en'=>'Not a valid mobile phone number', 'ar'=>'رقم الهاتف ليس رقم موبايل/جوال']);
+                        
+                        if($ro){
+                            $content['ro']=$ro;
                         }
-                        else if ($disposal) {
-                            $this->response('message', ['en'=>'Fraudulent mobile phone number!', 'ar'=>'رقم هاتف احتيالي!']);
+                        if($se){
+                            $content['se']=$se;
+                            $ad['SECTION_ID']=$se;
                         }
-                        else {
-                            $this->response('message', [
-                                'en'=>'<span>Mobile Number&nbsp;<b>'.$validator->format($number, \libphonenumber\PhoneNumberFormat::INTERNATIONAL).'</b> Verification</span>', 
-                                'ar'=>'<span>التحقق من رقم الموبايل/الجوال <b style="unicode-bidi:plaintext;">'.$validator->format($number, \libphonenumber\PhoneNumberFormat::INTERNATIONAL).'</b></span>']);
+                        if($pu){                            
+                            $content['pu']=$pu;
+                            $ad['PURPOSE_ID']=$pu;
+                        }
+                        
+                        if($textIdx){
+                            $text=trim($text);
+                            if($text){
+                                $text.=json_decode('"\u200b"').' '.$this->user->parseUserAdTime($content['cui'],$content['cut']??[],$textRtl);
+                            }
+                            $textOnly=true;
+                            if($textIdx==1){
+                                $content['other']=$text;
+                                $content['rtl']=$textRtl;
+                            }else{
+                                $content['altother']=$text;
+                                $content['altRtl']=$textRtl;
+                            }
+                        }
+                        if($content['other']=='' && $content['altother']){
+                            $content['other']=$content['altother'];
+                            $content['rtl']=$content['altRtl'];
+                            $content['altother']='';
+                            $content['altRtl']=0;
+                            $textIdx=1;
+                        }
+                        $text = $content['other'];
+                        $rtl = $content['rtl'];
+                        $text2 = isset($content['altother']) ? $content['altother'] : '';
+                        $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';
+                        
+                        if($text2==''){
+                            $content['extra']['t']=2;
+                        }
+                        
+                        $root = $content['ro'];
+                        $section=$content['se'];
+                        $purpose=$content['pu'];
+                        $content = json_encode($content);
+                        
+                        if($this->urlRouter->db->queryResultArray(
+                            'update ad_user set content=?, section_id=?, purpose_id=? where id = ?', array(
+                             $content,
+                                $section,
+                                $purpose,
+                                $id
+                        ))){
+                            if($imgAdmin){
+                                $redisAction = 'editorialImg'; 
+                                $this->setData($images, 'sic');
+                                $this->setData($imgIdx, 'dx');
+                                $this->setData($imageToRemove, 'removed');
+                            }elseif($textOnly){
+                                $redisAction = 'editorialText';
+                                $this->setData($text, 't');
+                                $this->setData($text2, 't2');
+                                $this->setData($rtl, 'rtl');
+                                $this->setData($rtl2, 'rtl2');
+                                $this->setData($textIdx, 'dx');
+                            }else{                                
+                                $label = $this->getAdSection($ad, $root);
+                                $this->setData($label, 'label');
+                                $this->setData($root, 'ro');
+                                $this->setData($section, 'se');
+                                $this->setData($purpose, 'pu');
+                                $redisAction = 'editorialUpdate';
+                            }
+                            $this->setData($id, 'id');
+                            $this->process();
+                            
+                            try {
+            	
+                                $redis = new Redis();
+                                $data = [
+                                    'cmd'   =>  $redisAction,
+                                    'data'  => $this->data
+                                ];
+                                if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
+                                    $redis->publish('editorial', json_encode($data));
+                                } 
+
+                            } catch (RedisException $re) {}
+                            
+                            $this->logAdmin($id, 6);
+                        }else{
+                            $this->fail();
                         }
                     }
-                    else {
-                        $this->response('message', ['en'=>'Not a valid phone number', 'ar'=>'رقم الهاتف غير صحيح']);
-                    }
-                } 
-                catch (Exception $ex) {
-                    $this->error(self::ERR_SYS_UNKNOWN, ['en'=>$ex->getMessage(), 'ar'=>$ex->getMessage()]);
+                }else{
+                    $this->fail();
                 }
+                break;      
                 
-                $this->success();
-                break;
-            
-            
             case 'ajax-number':   
                 if ($this->user->info['id'] && $this->user->info['level']==9) {
                     $numero = $this->post('num','uint');
@@ -612,7 +474,107 @@ class Bin extends AjaxHandler {
                         }
                         
                         $this->setData($number,'i');
-                        $this->process();                     
+                        $this->process();
+                        /*
+                        $request = \Berysoft\EdigearRequest::Create()->
+                            setAction(\Berysoft\EGAction::CheckNumber)->
+                            setChannel(\Berysoft\EGChannel::Undefined)->
+                            setPlatform(\Berysoft\EGPlatform::Website)->
+                            setPhoneNumber($number);
+                        
+                        $response = \Berysoft\Edigear::getInstance()->setSecretKey("D38D5D58-572B-49EC-BAB5-63B6081A55E6")->send($request);
+                        
+                        if($response){
+                            
+                            if(isset($response['status']) && $response['status']==200){
+                                
+                                $data = $response['data'];
+                                
+                                $types = [
+                                    'FIXED_LINE'    =>  0,
+                                    'MOBILE'    =>  1,
+                                    'FIXED_LINE_OR_MOBILE'    =>  2,
+                                    'TOLL_FREE'    =>  3,
+                                    'PREMIUM_RATE'    =>  4,
+                                    'SHARED_COST'    =>  5,
+                                    'VOIP'    =>  6,
+                                    'PERSONAL_NUMBER'    =>  7,
+                                    'PAGER'    =>  8,
+                                    'UAN'    =>  9,
+                                    'VOICEMAIL'    =>  10,
+                                    'UNKNOWN'    =>  -1
+                                ];
+                                
+                                $number = [
+                                    'e' =>  '',
+                                    'i' =>  $data['valid'] ? $data['formatting'] : 'invalid',
+                                    'n' =>  $this->post('num','uint'),
+                                    'p' =>  true,
+                                    't' =>  0,
+                                    'v' =>  $data['valid'] ? true : false,
+                                    'idx'=>$index
+                                ];
+                                
+                                switch($types[$data['type']]){                                    
+                                    case 0:
+                                        if ($ot >= 7 && $ot <= 9)
+                                            $number['t'] = true;
+                                        break;
+                                    case 1:
+                                        if (($ot >= 1 && $ot < 6) || $ot == 13)
+                                            $number['t'] = true;
+                                        break;
+                                    case 2:
+                                        if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
+                                            $number['t'] = true;
+                                        break;
+                                    case 3:
+                                        if ($ot >= 7 && $ot <= 9)
+                                            $number['t'] = true;
+                                        break;
+                                    case 4:
+                                        $number['e'] = "PREMIUM RATE";
+                                        break;
+                                    case 5:
+                                        if (($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)
+                                            $number['t'] = true;
+                                        break;
+                                    case 6:
+                                        $number['e'] = "VOIP";
+                                        break;
+                                    case 7:
+                                        $number['e'] = "PERSONAL NUMBER";
+                                        break;
+                                    case 8:
+                                        $number['e'] = "PAGER";
+                                        break;
+                                    case 9:
+                                        $number['e'] = "UAN";
+                                        break;
+                                    case 10:
+                                        $number['e'] = "VOICEMAIL";
+                                        break;
+                                    case -1:
+                                        $number['e'] = "UNKNOWN";
+                                        break;
+                                }
+                                
+                                if($data['valid']){
+                                    $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                                    $num = $validator->parse($number['i'], $iso);
+                                    if($validator->isValidNumber($num)){
+                                        $number['n'] = $validator->formatInOriginalFormat($num, $iso);
+                                    }
+                                }
+                                
+                                $this->setData($number,'i');
+                                $this->process();
+                            }else{
+                                $this->fail('103');
+                            }
+                        }else{
+                            $this->fail('102');
+                        }*/
                     }
                     else {
                         $this->fail('101');
@@ -623,266 +585,280 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
-            case 'mobile':
-                $this->authorize();
-                
-                if (!isset($this->_JPOST['method'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!isset($this->_JPOST['tel'])) { $this->error(self::ERR_DATA_INVALID_PHONE); }
-                
-                $method=\filter_var($this->_JPOST['method'], \FILTER_SANITIZE_NUMBER_INT)+0;
-                if ($method<-1||$method>1) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                
-                $number=\filter_var($this->_JPOST['tel'], \FILTER_SANITIZE_NUMBER_INT)+0;
-                if ($number<=0) { 
-                    unset($this->user->pending['mobile']);
-                    $this->user->update();
-                    $this->error(self::ERR_DATA_INVALID_PHONE);                     
-                }
-                $pin=isset($this->_JPOST['pin'])?\filter_var($this->_JPOST['pin'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]):0;
-                
-                $lang=$this->router->language;        
-                //$keyCode=0;                                    
-                //$number = filter_input(INPUT_POST, 'tel');
-                //$validateByCall = filter_input(INPUT_POST, 'vc');
-                //$keyCode = filter_input(INPUT_POST, 'code');
-                
-                if (!empty($pin) && !is_numeric($pin)) { 
-                    $pin=0; 
-                    $this->error(self::ERR_DATA_INVALID_PARAM);
-                }
+            case 'ajax-mobile':
+                if ($this->user->info['id'] && $this->user->info['level']!=5) {
+                    $keyCode=0;
+                    $lang=filter_input(INPUT_POST, 'hl');
+                    if(!in_array($lang, ['en','ar'])) {
+                        $lang='en';
+                    }
+                    
+                    $number = filter_input(INPUT_POST, 'tel');
+                    $validateByCall = filter_input(INPUT_POST, 'vc');
+                    $keyCode = filter_input(INPUT_POST, 'code');
+                    if (!is_numeric($keyCode)) {
+                        $keyCode=0;
+                    }
                                         
-                $validator=libphonenumber\PhoneNumberUtil::getInstance();
-                $num=$validator->parse("+{$number}", 'LB');
-                $numberType=$validator->getNumberType($num);
-                $numberValid=$num && $validator->isValidNumber($num) && ($numberType==libphonenumber\PhoneNumberType::MOBILE||$numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE);
-                if ($numberValid===false) {
-                    $this->error(self::ERR_DATA_INVALID_PHONE);
-                }        
-                
-                if (NoSQL::instance()->isBlacklistedContacts([\strval($number)])) {
-                    $this->errors(self::ERR_DATA_INVALID_PHONE, ['en'=>'This phone number is banned', 'ar'=>'رقم الهاتف هذا محظور على مرجان']);
-                }
-                
-                if ($pin>0) {
-                    $this->response('verified', 0);
-                    $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);                            
-                    if ($mrs!==false) {
-                        $response=MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $pin);
+                    if($number) { 
+                        $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                        $num = $validator->parse($number, 'LB');
+                        $numberType = $validator->getNumberType($num);
+                        $numberValid = $num && $validator->isValidNumber($num) && 
+                                ($numberType==libphonenumber\PhoneNumberType::MOBILE || $numberType==libphonenumber\PhoneNumberType::FIXED_LINE_OR_MOBILE);
+                        
+                        if($keyCode) {                                                                                   
+                            $this->setData(0,'verified');
+                            if($numberValid) {
+                                if(substr($number,0,1)=='+') {
+                                    $number = substr($number,1);
+                                }
+                                        
+                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                if ($mrs!==FALSE) {
+                                    $response = MobileValidation::getInstance()->verifyEdigearPin($mrs[Core\Model\ASD\USER_MOBILE_REQUEST_ID], $keyCode);
                             
-                        if (isset($response['status']) && $response['status']==200 && isset($response['response'])) {
-                            if ($response['response']['validated']) {
-                                $activated=NoSQL::instance()->mobileActivationByRequestId($this->user->id(), $number, $pin, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
-                                if ($activated) {
-                                    $this->response('verified', 1);
-                                    $this->user->info['verified']=true;
-                                    unset($this->user->pending['mobile']);
-                                    unset($this->user->pending['mobile_call']);
-                                    unset($this->user->pending['mobile_call_stamp']);
-                                    $this->user->update();
-                                }        
-                            }
-                        }
-                    }
-                    else {
-                        $this->error(self::ERR_DATA_INVALID_PHONE, ['en'=>'This phone number is undefined', 'ar'=>'رقم الهاتف هذا غير معرف على مرجان']);
-                    }
-                    $this->success();
-                } // end of pin is positive
-                                                                            
+                                    if (isset($response['status']) && $response['status']==200 && isset($response['response'])) {
+                                        if ($response['response']['validated']) {
+                                            $activated = NoSQL::getInstance()->mobileActivationByRequestId($this->user->info['id'], $number, $keyCode, $mrs[\Core\Model\ASD\USER_MOBILE_REQUEST_ID]);
+                                            if($activated) {
+                                                $this->setData(1,'verified');
+                                                $this->user()->info['verified']=true;
+                                                unset($this->user->pending['mobile']);
+                                                unset($this->user->pending['mobile_call']);
+                                                unset($this->user->pending['mobile_call_stamp']);
+                                                $this->user()->update();
+                                            }                                                
+                                        }
+                                    }
+                                }                                
+                            }                                      
+                        } // end of KeyCode is positive
+                        else {                                                                                    
+                            if($numberValid) {                                    
+                                if(substr($number,0,1)=='+') {
+                                    $number = substr($number,1);
+                                }
+                                    
+                                if(NoSQL::getInstance()->isBlacklistedContacts([strval($number)])) {
+                                    $this->fail('403');
+                                }
+                                else {
+                                    /*check if number is suspended*/
+                                    $time = MCSessionHandler::checkSuspendedMobile($number);
+                                    if($time) {
+                                        $hours = $time / 3600;
+                                        if(ceil($hours)>1){
+                                            $hours = ceil($hours);
+                                            if($lang=='ar'){
+                                                if($hours==2){
+                                                    $hours='ساعتين';
+                                                }
+                                                elseif($hours>2 && $hours<11){
+                                                    $hours=$hours.' ساعات';
+                                                }
+                                                else{
+                                                    $hours = $hours.' ساعة';
+                                                }
+                                            }
+                                            else{
+                                                $hours = $hours.' hours';
+                                            }
+                                        }else{
+                                            $hours = ceil($time / 60);
+                                            if($lang=='ar'){
+                                                if($hours==1){
+                                                    $hours='دقيقة';
+                                                }
+                                                elseif($hours==2){
+                                                    $hours='دقيقتين';
+                                                }
+                                                elseif($hours>2 && $hours<11){
+                                                    $hours=$hours.' دقائق';
+                                                }
+                                                else{
+                                                    $hours = $hours.' دقيقة';
+                                                }
+                                            }else{
+                                                if($hours>1){                                
+                                                    $hours = $hours.' minutes';
+                                                }
+                                                else{                                
+                                                    $hours = $hours.' minute';
+                                                }
+                                            }
+                                        }
+                                        $this->setData($hours,'time');
+                                        $this->fail('402');
+                                    }
+                                }    
+                                    
+                                $sendSms= false;
+                                $keyCode = 0;
 
-                /*check if number is suspended*/
-                $time=MCSessionHandler::checkSuspendedMobile($number);
-                if ($time) {
-                    $hours=$time/3600;
-                    if (ceil($hours)>1) {
-                        $hours=\ceil($hours);
-                        if ($lang==='ar') {
-                            if($hours==2){
-                                $hours='ساعتين';
-                            }
-                            elseif ($hours>2 && $hours<11) {
-                                $hours=$hours.' ساعات';
-                            }
-                            else{
-                                $hours=$hours.' ساعة';
-                            }
-                        }
-                        else{
-                            $hours=$hours.' hours';
-                        }
-                    } 
-                    else {
-                        $hours=ceil($time/60);
-                        if ($lang==='ar') {
-                            if ($hours==1) {
-                                $hours='دقيقة';
-                            }
-                            elseif ($hours==2) {
-                                $hours='دقيقتين';
-                            }
-                            elseif ($hours>2 && $hours<11) {
-                                $hours=$hours.' دقائق';
-                            }
-                            else {
-                                $hours=$hours.' دقيقة';
-                            }
-                        }
-                        else{
-                            if ($hours>1) { 
-                                $hours=$hours.' minutes';
-                            }
-                            else {                                
-                                $hours=$hours.' minute';
-                            }
-                        }
-                    }
-                    $this->response('time', $hours);
-                    $this->success();
-                }
-                                                        
-                $sendSms=false;
-                $pin=0;
-
-                $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);
-                if ($mrs!==false) {
-                    if ($method===0 && $mrs) {                        
-                        $mcMobile=new Core\Lib\MCMobile($mrs);
+                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                if ($mrs!==FALSE) {                                                                               
+                                    if (!$validateByCall && $mrs) {
+                                        $mcMobile = new MCMobile($mrs);
                                                                                 
-                        $expiredDelivery=$mcMobile->getActicationUnixtime()==0 && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
-                        $expiredValidity=$mcMobile->getActicationUnixtime() && ($mcMobile->getActicationUnixtime()+31536000)>time();
-                        $stillValid=$mcMobile->isVerified();
+                                        $expiredDelivery = $mcMobile->getActicationUnixtime()==0 && (time()-$mcMobile->getRquestedUnixtime())>86400 && $mcMobile->getSentSMSCount()<3;
+                                        $expiredValidity = $mcMobile->getActicationUnixtime() && ($mcMobile->getActicationUnixtime()+31536000)>time();
+                                        $stillValid = $mcMobile->isVerified();
                                         
-                        if ($expiredDelivery) {
-                            if (NoSQL::instance()->mobileUpdate($this->user->id(), $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
-                                $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                $pin=$mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
-                                $this->response('expired-delivery', 1);
-                            } 
-                            else {
-                                $pin=0;
-                                $number=0;
-                            }
-                        }
-                        else if ($expiredValidity) {
-                            $this->response('expired-validity', 1);
-                            $pin=\mt_rand(1000, 9999);
-                            if (NoSQL::instance()->mobileUpdate($this->user->id(), $number, [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0, \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$pin, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED=>time()])) {
-                                $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                $this->response('new-sms', 1);
-                            } 
-                            else {
-                                $pin=0;
-                                $number=0;
-                            }
-                        }
-                        else if ($stillValid) {                            
-                            $this->response('verified', 1);
-                            $pin=0;
-                            $number=0;
-                        }
-                        else {
-                            if ($mcMobile->isSMS()) {
-                                $pin=$mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
-                                $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                $this->response('old-sms', 1);
-                            }
-                            else {
-                                $pin=\mt_rand(1000, 9999);
-                                if (NoSQL::instance()->mobileUpdate($this->user->id(), $number, [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0, \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$pin,\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED=>time()])) {
-                                    $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                    $this->response('new-sms', 1);
-                                    $this->response('channel-changed', 1);
-                                } 
-                                else {
-                                    $pin=0;
-                                    $number=0;
-                                }                                                
-                            }
-                        }
-                    } // end of SMS block
-                    else {
-                        // Record not found
-                        $pin=\mt_rand(1000, 9999);
-                        if ($method===1) {   
-                            if (isset($this->user->pending['mobile_call']) && isset($this->user->pending['mobile_call_stamp']) && (time()-$this->user->pending['mobile_call_stamp']<=120)) {
-                                $pin=$this->user->pending['mobile_call'];
-                            }
-                            else {
-                                $ret=MobileValidation::getInstance()->setUID($this->user->id())->setPlatform(MobileValidation::WEB)->requestReverseCLI($number, $response);                                                    
-                                if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE) {
-                                    $this->response('verified', 1);
-                                    $pin=0;
-                                    $number=0;
-                                }
-                                elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201))) {           
-                                    $pin=0;
-                                    $number=0;
-                                }
-                                else {
-                                    $pin=$response['response']['cli_prefix'];
-                                    $this->user->pending['mobile_call_stamp']=time();
-                                }
-                            }
-                        }
-                        else {
-                            if (NoSQL::instance()->mobileInsert([
-                                                        \Core\Model\ASD\USER_UID=> $this->user->id(),
+                                        if ($expiredDelivery) {
+                                            if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, [\Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()])) {
+                                                $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                                $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                            } 
+                                            else {
+                                                $keyCode=0;
+                                                $number=0;
+                                            }
+                                        }
+                                        else if ($expiredValidity) {
+                                            $keyCode=mt_rand(1000, 9999);
+                                            if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, 
+                                                    [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
+                                            {
+                                                $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                            } 
+                                            else {
+                                                $keyCode=0;
+                                                $number=0;
+                                            }
+                                        }
+                                        else if ($stillValid) {
+                                            $this->setData(1,'verified');
+                                            $number = 0;
+                                            $keyCode = 0;
+                                        }
+                                        else {
+                                            if ($mcMobile->isSMS()) {
+                                                $keyCode = $mrs[\Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE];
+                                                $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                            }
+                                            else {
+                                                $keyCode=mt_rand(1000, 9999);
+                                                if (NoSQL::getInstance()->mobileUpdate($this->user->info['id'], $number, 
+                                                        [\Core\Model\ASD\USER_MOBILE_REQUEST_TYPE => 0,  \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE => $keyCode, \Core\Model\ASD\USER_MOBILE_DATE_REQUESTED => time()]))
+                                                {
+                                                    $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                                } 
+                                                else {
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }                                                
+                                            }
+                                        }                                                                                
+                                    } // end of SMS block
+                                    else {
+                                        // Record not found
+                                        $keyCode=mt_rand(1000, 9999);
+                                        if($validateByCall) {   
+                                            if(isset($this->user->pending['mobile_call']) && isset($this->user->pending['mobile_call_stamp']) && (time()-$this->user->pending['mobile_call_stamp']<=120))
+                                            {
+                                                $keyCode = $this->user->pending['mobile_call'];
+                                            }
+                                            else {
+                                                $ret = MobileValidation::getInstance()->
+                                                        setUID($this->user->info['id'])->
+                                                        setPlatform(MobileValidation::WEB)->
+                                                        requestReverseCLI($number, $response);
+                                                    
+                                                if ($ret==MobileValidation::RESULT_ERR_ALREADY_ACTIVE) {
+                                                    $this->setData(1,'verified');
+                                                    $number = 0;
+                                                    $keyCode = 0;
+                                                }
+                                                elseif ($ret!==MobileValidation::RESULT_OK || !(isset($response['status']) && ($response['status']==200||$response['status']==201)))
+                                                {           
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }
+                                                else {
+                                                    $keyCode=$response['response']['cli_prefix'];
+                                                    $this->user->pending['mobile_call_stamp']=time();
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            if (NoSQL::getInstance()->mobileInsert([
+                                                        \Core\Model\ASD\USER_UID=> $this->user->info['id'],
                                                         \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
                                                         \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
                                                         \Core\Model\ASD\USER_MOBILE_FLAG=>1,
-                                                        \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0])) {
-                                $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);
-                                if ($mrs) {
-                                    $sendSms=$mrs[\Core\Model\ASD\SET_RECORD_ID];
-                                } 
+                                                        \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0
+                                                        ])) {
+                                                $mrs = NoSQL::getInstance()->mobileFetch($this->user->info['id'], $number);
+                                                if ($mrs) {
+                                                    $sendSms = $mrs[\Core\Model\ASD\SET_RECORD_ID];
+                                                } 
+                                                else {
+                                                    $keyCode=0;
+                                                    $number=0;
+                                                }
+                                            } 
+                                            else {
+                                                $keyCode=0;
+                                                $number=0;
+                                            }
+                                        }
+                                    }
+                                }
                                 else {
-                                    $pin=0;
+                                    $keyCode=0;
                                     $number=0;
                                 }
-                            } 
-                            else {
-                                $pin=0;
-                                $number=0;
-                            }
-                        }
-                    }
-                }
-                else {
-                    $pin=0;
-                    $number=0;
-                }
                                     
                                 
-                if ($sendSms && $number>0 && $pin>0) {
-                    if (MobileValidation::getInstance()->setPlatform(MobileValidation::WEB)->setUID($this->user->id())->setPin($pin)->sendSMS($number, "{$pin} is your mourjan confirmation code")!==MobileValidation::RESULT_OK) {
-                        $pin=0;
-                        $number=0;
-                    }                               
-                }
+                                if ($sendSms && $number && $keyCode) {
+                                    if ( ($returnie = MobileValidation::getInstance()->
+                                                setPlatform(MobileValidation::WEB)->
+                                                setUID($this->user->info['id'])->
+                                                setPin($keyCode)->
+                                                sendSMS($number, "{$keyCode} is your mourjan confirmation code")) != MobileValidation::RESULT_OK)
+                                    {
+                                        $keyCode=0;
+                                        $number=0;
+                                        //error_log($returnie);
+                                    }                                      
+                                }
                                     
-                $this->response('number', $number);
-                if ($number) {
-                    $this->user->pending['mobile']=$number;
-                    if ($method===1) {
-                        if ($pin>0 && !\preg_match('/XXXX/', $pin)) {
-                            $pin=$pin.' xxx <u>XXXX</u>';
-                        }               
-                        $this->user->pending['mobile_call']=$pin;
-                        $this->response('pre', $pin);
+                                $this->setData($number,'number');
+                                if ($number) {
+                                    $this->user->pending['mobile']=$number;
+                                    if($validateByCall) {
+                                        if($keyCode && !preg_match('/XXXX/',$keyCode)){
+                                            $keyCode=$keyCode.' xxx <u>XXXX</u>';  
+                                        }               
+                                        $this->user->pending['mobile_call']=$keyCode;
+                                        $this->setData($keyCode,'pre');
+                                    }
+                                    else {
+                                        unset($this->user->pending['mobile_call']);
+                                        unset($this->user->pending['mobile_call_stamp']);
+                                    }
+                                }
+                                else {
+                                    unset($this->user->pending['mobile']);
+                                    unset($this->user->pending['mobile_call']);
+                                    unset($this->user->pending['mobile_call_stamp']);
+                                }
+                                $this->user->update();
+                                
+                            }
+                            else {
+                                $this->setData(0,'check');
+                            } 
+                        }
+                        
                     }
                     else {
-                        unset($this->user->pending['mobile_call']);
-                        unset($this->user->pending['mobile_call_stamp']);
-                    }
+                        unset($this->user->pending['mobile']);
+                        $this->user->update();
+                    } 
+                    $this->process();
                 }
-                else {
-                    unset($this->user->pending['mobile']);
-                    unset($this->user->pending['mobile_call']);
-                    unset($this->user->pending['mobile_call_stamp']);
-                }
-                $this->user->update();                                                                                                                      
-                $this->success();
-                
                 break;
                 
                                 
@@ -901,8 +877,7 @@ class Bin extends AjaxHandler {
                     $this->setData($notes, 'shouts');
                 }
                 $this->process();
-                break;
-                
+                break;    
             case 'ajax-propspace':
                 $del = $this->get('del');
                 if ($del && is_numeric($del)) {
@@ -934,7 +909,7 @@ class Bin extends AjaxHandler {
                     if(!in_array($lang,array('ar','en'))){
                         $lang = 'ar';
                     }
-                    $this->urlRouter->language=$lang;   
+                    $this->urlRouter->siteLanguage=$lang;   
                     $this->load_lang(array('main'), $lang);
                     if($this->user->info['id']){
                         if($this->urlRouter->cfg['active_maintenance']){
@@ -1104,32 +1079,28 @@ class Bin extends AjaxHandler {
                     $this->process();
                 }
                 break;
-                
-            case 'balance':
-                $this->authorize();
-                $userId=$this->getGetInt('u');
-                if ($userId>0 && ($this->user->level()===9 || $this->user->id()===$userId)) {
-                    if ($this->user->id()===$userId) {
-                        $this->response('balance', $this->user->getBalance());
+            case 'ajax-balance':
+                if($this->user->info['id']){
+                    $userId = $this->get('u','uint');
+                    if($userId){         
+                        if($this->user->info['level']==9 || $this->user->info['id']==$userId){
+                            $res=$this->user->getStatement($userId, 0, true);
+                            if($res && $res['balance']){
+                                $this->setData($res['balance'],'balance');
+                            }else {
+                                $this->setData(0,'balance');
+                            }                            
+                            $this->process();
+                        }else{                            
+                            $this->fail(103);
+                        }
+                    }else{
+                        $this->fail(102);
                     }
-                    else {
-                        $user=new \Core\Lib\MCUser($userId);
-                        $this->response('balance', $user->getBalance());
-                    }
-                    //$res=$this->user->getStatement($userId, 0, true);
-                    //if ($res && $res['balance']){
-                    //        $this->setData($res['balance'],'balance');
-                    //    }else {
-                    //        $this->setData(0,'balance');
-                    //    }                            
-                    //    $this->process();
-                    $this->success();
-                }
-                else {
-                    $this->error(self::ERR_DATA_INVALID_PARAM);
+                }else{
+                    $this->fail(101);
                 }
                 break;
-                
             case 'ajax-keyword':
                 if($this->user->info['id'] && $this->user->isSuperUser()){
                     $key = $this->get('k');
@@ -1303,144 +1274,279 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
-            case 'stat':
-                \ignore_user_abort(true);
+            case 'ajax-stat':
+                /*
+                if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider|mediapartners|facebookexternalhit/i', $_SERVER['HTTP_USER_AGENT'])) {
+                    return;
+                }*/
                 
+//                if (isset($_POST['a']) && $_POST['a']) {
+//                    $final_req = $req = (is_array($_POST['a']) ? $_POST['a'] : json_decode($_POST['a'],true) );
+//                }
+//                error_log('hii'.json_encode($final_req));
+
+                \ignore_user_abort(true);
+                if ($this->urlRouter->cfg['server_id']<=0 || $this->urlRouter->cfg['server_id']>=99) {
+                    $this->process();
+                    return;
+                }
+
+                /*
+                $crawlers_agents='Google|msnbot|Rambler|Yahoo|AbachoBOT|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|Scrapy';
+                if (\strpos($crawlers_agents , $_SERVER['HTTP_USER_AGENT'])!==false) {
+                    $this->process();
+                    return;                    
+                }
+                */
+                
+                if ( preg_match('/abacho|accona|AddThis|AdsBot|ahoy|AhrefsBot|AISearchBot|alexa|altavista|anthill|appie|applebot|arale|araneo|AraybOt|ariadne|arks|aspseek|ATN_Worldwide|Atomz|baiduspider|baidu|bbot|bingbot|bing|Bjaaland|BlackWidow|BotLink|bot|boxseabot|bspider|calif|CCBot|ChinaClaw|christcrawler|CMC\/0\.01|combine|confuzzledbot|contaxe|CoolBot|cosmos|crawler|crawlpaper|crawl|curl|cusco|cyberspyder|cydralspider|dataprovider|digger|DIIbot|DotBot|downloadexpress|DragonBot|DuckDuckBot|dwcp|EasouSpider|ebiness|ecollector|elfinbot|esculapio|ESI|esther|eStyle|Ezooms|facebookexternalhit|facebook|facebot|fastcrawler|FatBot|FDSE|FELIX IDE|fetch|fido|find|Firefly|fouineur|Freecrawl|froogle|gammaSpider|gazz|gcreep|geona|Getterrobo-Plus|get|girafabot|golem|googlebot|\-google|grabber|GrabNet|griffon|Gromit|gulliver|gulper|hambot|havIndex|hotwired|htdig|HTTrack|ia_archiver|iajabot|IDBot|Informant|InfoSeek|InfoSpiders|INGRID\/0\.1|inktomi|inspectorwww|Internet Cruiser Robot|irobot|Iron33|JBot|jcrawler|Jeeves|jobo|KDD\-Explorer|KIT\-Fireball|ko_yappo_robot|label\-grabber|larbin|legs|libwww-perl|linkedin|Linkidator|linkwalker|Lockon|logo_gif_crawler|Lycos|m2e|majesticsEO|marvin|mattie|mediafox|mediapartners|MerzScope|MindCrawler|MJ12bot|mod_pagespeed|moget|Motor|msnbot|muncher|muninn|MuscatFerret|MwdSearch|NationalDirectory|naverbot|NEC\-MeshExplorer|NetcraftSurveyAgent|NetScoop|NetSeer|newscan\-online|nil|none|Nutch|ObjectsSearch|Occam|openstat.ru\/Bot|packrat|pageboy|ParaSite|patric|pegasus|perlcrawler|phpdig|piltdownman|Pimptrain|pingdom|pinterest|pjspider|PlumtreeWebAccessor|PortalBSpider|psbot|rambler|Raven|RHCS|RixBot|roadrunner|Robbie|robi|RoboCrawl|robofox|Scooter|Scrubby|Search\-AU|searchprocess|search|SemrushBot|Senrigan|seznambot|Shagseeker|sharp\-info\-agent|sift|SimBot|Site Valet|SiteSucker|skymob|SLCrawler\/2\.0|slurp|snooper|solbot|speedy|spider_monkey|SpiderBot\/1\.0|spiderline|spider|suke|tach_bw|TechBOT|TechnoratiSnoop|templeton|teoma|titin|topiclink|twitterbot|twitter|UdmSearch|Ukonline|UnwindFetchor|URL_Spider_SQL|urlck|urlresolver|Valkyrie libwww\-perl|verticrawl|Victoria|void\-bot|Voyager|VWbot_K|wapspider|WebBandit\/1\.0|webcatcher|WebCopier|WebFindBot|WebLeacher|WebMechanic|WebMoose|webquest|webreaper|webspider|webs|WebWalker|WebZip|wget|whowhere|winona|wlm|WOLP|woriobot|WWWC|XGET|xing|yahoo|YandexBot|YandexMobileBot|yandex|yeti|Zeus|Scrapy/i', 
+                        $_SERVER['HTTP_USER_AGENT'])) {
+                    $this->process();
+                    return;                    
+                }
+                /*
+                \preg_match("/^(Mourjan|Dalvik)\/\d+\s/", $_SERVER['HTTP_USER_AGENT'], $appReq);
+                 
+                if (!isset($_POST['app']) && empty($appReq) && \strpos($crawlers_agents , $_SERVER['HTTP_USER_AGENT'])===false) {
+                    $ip=IPQuality::fetch(false);
+                    $is_bot=$ip['bot_status']??0;
+                    $is_crawler=$ip['is_crawler']??0;
+                    if ($is_bot||$is_crawler) {
+                        $this->process();
+                        return;
+                    }
+                }*/
+
                 $clientVisitorId=0;
-                if (isset($_COOKIE['mourjan_user'])) {
-                    $data=\json_decode($_COOKIE['mourjan_user']);
-                    if (\is_object($data) && isset($data->cv) && $data->cv>0) {        
+                if (isset ($_COOKIE['mourjan_user'])) {
+                    $data=json_decode($_COOKIE['mourjan_user']);
+                    if (is_object($data) && isset($data->cv) && $data->cv>0) {        
                         $clientVisitorId=$data->cv;
                     }
                 }
                 
-                if ($this->router->config->serverId<=0 || $this->router->config->serverId>=99) {
-                    return;
-                }
                 
-                //if (isset($_SERVER['HTTP_USER_AGENT']) && preg_match('/bot|crawl|slurp|spider/i', $_SERVER['HTTP_USER_AGENT'])) {
-                //    return;
-                //}
-                
-                $crawlers_agents='Google|msnbot|Rambler|Yahoo|AbachoBOT|accoona|AcioRobot|ASPSeek|CocoCrawler|Dumbot|FAST-WebCrawler|GeonaBot|Gigabot|Lycos|MSRBOT|Scooter|AltaVista|IDBot|eStyle|Scrubby|java';
-                if (\strpos($crawlers_agents , $_SERVER['HTTP_USER_AGENT'])!==false) {                   
-                    return;                    
-                }
-                
-                /*
-                $ip=IPQuality::fetch(false);
-                $is_bot=$ip['bot_status']??0;
-                $is_crawler=$ip['is_crawler']??0;
-                if ($is_bot||$is_crawler) {
-                    return;
-                }
-                */
-                
-                $req=NULL;                 
-                if (isset($this->_JPOST['a']) && !empty($this->_JPOST['a'])) {
-                    $final_req=$req=\is_array($this->_JPOST['a']) ? $this->_JPOST['a'] : \json_decode($this->_JPOST['a'], true);
+                $req=NULL;  
+                $stat_servers = $this->urlRouter->db->getCache()->get("sphinx_servers");
+              
+                if (isset($_POST['a']) && $_POST['a']) {
+                    $final_req = $req = (is_array($_POST['a']) ? $_POST['a'] : json_decode($_POST['a'],true) );
                 }
             
                 if ($req) {
                     $logName='/var/log/mourjan/incoming/'.uniqid('mc_', true).'.stx';
-                    
-                    $countryCode=$referer=''; 
+                    /*
+                     * 
+                    $stat_server = $this->urlRouter->db->getCache()->get("stat_server");
+                    $redis = new Redis();
+                    $ok = 1;
+                    try {
+                        $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
+                        $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);                        
+                        $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
+                        $redis->select($stat_server['index']);
+                    } 
+                    catch (RedisException $e) {
+                        error_log(__CLASS__.'.'.__FUNCTION__.' -> '.$e->getMessage());
+                        $ok=0;
+                    }
+                     * 
+                     */
+                    $countryCode = '';
+                    $referer = ''; 
                     
                     if (!empty($req)) {
                         if (isset($_POST['app'])){
-                            $referer='mourjan-app'; 
-                            $countryCode=(isset($_POST['code']) && \strlen($_POST['code'])===2) ? \strtoupper(trim($_POST['code'])) : '';
+                            $referer = 'mourjan-app'; 
+                            $countryCode = (isset($_POST['code']) && strlen($_POST['code']) == 2) ? strtoupper(trim($_POST['code'])) : '';
                         }
                         else {
-                            if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && \strpos($_SERVER['HTTP_REFERER'], 'mourjan')) {
-                                $referer=\substr($_SERVER['HTTP_REFERER'], 0, 256);
+                            if (isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] && strpos($_SERVER['HTTP_REFERER'], 'mourjan')) {
+                                $referer = substr($_SERVER['HTTP_REFERER'], 0, 256);
                             }
                            
                             if (!isset($this->user->params['user_country'])){
                                 $this->checkUserGeo();
                             }
-                            $countryCode=\strtoupper(trim($this->user->params['user_country']));
-                            if (\strlen($countryCode)!==2) { $countryCode=''; }
-                        }                                    
-                       
+                            $countryCode = strtoupper(trim($this->user->params['user_country']));
+                            if(strlen($countryCode)!=2)$countryCode='';
+                        }  
+                        
                         $result=NULL;
-                        //$batch='';
+                        $batch='';
 
                         foreach ($req as $action => $refs) {
                             switch ($action) {
                                 case 'ad-imp':
                                     foreach ($final_req as $final_action => $final_refs) {
-                                        if ($final_action==='ad-imp') {
+                                        if ($final_action=='ad-imp') {
                                             $uniques=[];
                                             foreach ($final_refs as $id) {
                                                 $uniques[$id]=TRUE;
-                                                if (\count($uniques)>50) {
-                                                    break;
-                                                }
+                                                if (count($uniques)>50) {  break;  }
                                             }
-
+                                            
                                             foreach (array_keys($uniques) as $id) {
-                                                \error_log(\sprintf("%s\tad-imp\t%d\t%s\t%s", \date("Y-m-d H:i:s"), \intval($id), $countryCode, $referer).PHP_EOL, 3, $logName);                                                
+                                                $id = (int)$id;
+                                                /*
+                                                 * 
+                                                $batch.= "select id, impressions from {$this->urlRouter->cfg['search_index']} where id={$id};\n";                                                
+                                                $adData=$this->classifieds->getById($id);
+                                                
+                                                if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) {                                                    
+                                                    if ($ok==1 && $redis->isConnected()) {                    
+                                                        $redis->sAdd('U'.$adData[Classifieds::USER_ID], $id);
+                                                        
+                                                        if (!$redis->hIncrBy('AI'.$id, date("Y-m-d"), 1)) {
+                                                            \error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                            
+                                                        }
+                                                    } 
+                                                    else {
+                                                        \error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/stat.log");
+                                                    }
+                                                    
+                                                    
+                                                    if (0) {
+                                                        \error_log(sprintf("%s\t%s\t%d\t%s\t%s", date("Y-m-d H:i:s"), session_id(), $id, $countryCode, $referer).PHP_EOL, 3, "/var/log/mourjan/dbgstat.log");                                                        
+                                                    }
+                                                }
+                                                * 
+                                                */
+                                                
+                                                \error_log(sprintf("%s\tad-imp\t%d\t%s\t%s", date("Y-m-d H:i:s"), $id, $countryCode, $referer).PHP_EOL, 3, $logName);
                                             }
                                         }
                                     }
                                     break;
                                     
                                 case 'ad-clk':
-                                    if ($refs && \is_numeric($refs)) {
-                                        \error_log(\sprintf("%s\tad-clk\t%d\t%s", \date("Y-m-d H:i:s"), $refs, $countryCode).PHP_EOL, 3, $logName);                                         
+                                    if ($refs && is_numeric($refs)) {
+                                        /*
+                                         *                                         
+                                        $adData=$this->classifieds->getById($refs);                                                
+                                        if (isset($adData[Classifieds::USER_ID]) && $adData[Classifieds::USER_ID]>0) {
+                                            if ($ok==1 && $redis->isConnected()) {                                                    
+                                                $redis->sAdd('U'.$adData[Classifieds::USER_ID], $refs);
+                                                $redis->hIncrBy('AC'.$refs, date("Y-m-d"), 1);
+                                            } 
+                                            else {
+                                                error_log(sprintf("%s\tad-clk\t%d\t%s", date("Y-m-d H:i:s"), $refs, $countryCode).PHP_EOL, 3, "/var/log/mourjan/stat.log");                                                
+                                            }
+                                        }
+                                         * 
+                                         */
+                                        error_log(sprintf("%s\tad-clk\t%d\t%s", date("Y-m-d H:i:s"), $refs, $countryCode).PHP_EOL, 3, $logName); 
                                     }
                                     break;
                                 default:
                                     break;
                             }
-                        }                                                                 
-                    }                                        
+                        }
+                        
+                        /*
+                         * 
+                        if (!empty($batch)) {
+                            foreach ($stat_servers as $stat_server) {
+                                $ss = new SphinxQL($stat_server, $this->urlRouter->cfg['search_index']);
+                                $result=$this->urlRouter->db->ql->search($batch);
+                                foreach($result['matches'] as $row) {
+                                    if (isset($row[0])) { $row=$row[0]; }
+                                    if (!isset($row['id'])) { continue; }
+                                    
+                                    $id=$row['id']+0;    
+                                    $im=$row['impressions']+1;                                                                                        
+                                    $ss->getConnection()->real_query("update {$this->urlRouter->cfg['search_index']} set impressions={$im} where id={$id}");
+                                }
+                                $ss->close();
+                            }
+                        }
+                         * 
+                         */                               
+                    }
+                    
+                    //if ($ok) { $redis->close(); }
+                    
                 }
                 
-                $this->success();               
+                $this->process();
+                if (isset($_POST['l']) && $_POST['l']) {
+                    $req = (is_array($_POST['l']) ? $_POST['l'] : json_decode($_POST['l'],true));
+                    if ($req && is_array($req)) {
+                        if (isset($req['cn']) && is_numeric($req['cn']) && isset($req['c']) && is_numeric($req['c']) && 
+                            isset($req['se']) && is_numeric($req['se']) && $req['se'] && isset($req['pu']) && is_numeric($req['pu'])) {
+                            if (isset($this->user->params['last'])) {
+                                $last = $this->user->params['last'];
+                                if ($last['cn']==$req['cn'] && $last['c']==$req['c'] && $last['se']!=$req['se']) {
+                                    if ($clientVisitorId>0) {
+                                        $message=['cid'=>$clientVisitorId, 'cse'=>$req['se'], 'tse'=>$last['se'], 'cn'=>$req['cn'], 'cc'=>$req['c'], 'cpu'=>$req['pu'], 'tpu'=>$last['pu']];
+                                        //\error_log(\json_encode($message));
+                                    }
+                                    
+                                    error_log(sprintf("%d\t%d\t%d\t%d\t%d\t%d\t%s", $req['se'], $last['se'], $req['cn'], $req['c'], $req['pu'], $last['pu'], date("Y-m-d H:i:s")).PHP_EOL, 3, "/var/log/mourjan/s-follow.log");
+                                    
+                                    /*
+                                    $q='update or insert into section_follow
+                                    (section_id, to_section_id, country_id, city_id, purpose_id, to_purpose_id)
+                                    values (?,?,?,?,?,?)
+                                    matching (section_id,to_section_id,country_id,city_id,purpose_id,to_purpose_id)';
+                                    $this->urlRouter->db->queryResultArray($q, array(
+                                        $req['se'],
+                                        $last['se'],
+                                        $req['cn'],
+                                        $req['c'],
+                                        $req['pu'],
+                                        $last['pu']
+                                    ));
+                                     * 
+                                     */
+                                    $this->user->params['last']=$req;
+                                    $this->user->update();
+                                }
+                            }
+                            else {
+                                $this->user->params['last']=$req;
+                                $this->user->update();
+                            }
+                        }
+                    }
+                }
                 break;
                 
                 
-            case 'ga':
-                $this->authorize(true);
-                $uid=\intval($this->_JPOST['u']??0);
-                if ($uid===0) {
-                    $uid=$this->user->id();
-                }
-                $archive=$this->post('x', 'boolean');
-                $adStats=$this->post('ads', 'boolean');
-                if ($adStats && $this->user->isLoggedIn(9)) {
-                    
-                    $pubId=$this->post('pub', 'int');
-                    $secId=$this->post('sec', 'int');
-                    $countryId=$this->post('cn', 'int');
-                    $cityId=$this->post('c', 'int');
-                    $span=$this->post('span','int');
+            case 'ajax-ga':
+                $uid=$this->post('u', 'uint');
+                $archive = $this->post('x', 'boolean');
+                $adStats = $this->post('ads', 'boolean');
+                if($adStats && $this->user->info['level']==9){
+                    $pubId = $this->post('pub', 'int');
+                    $secId = $this->post('sec', 'int');
+                    $countryId = $this->post('cn', 'int');
+                    $cityId = $this->post('c', 'int');
+                    $span = $this->post('span','int');
                     $data=[];
                     $dt=0;
                     $q='select cast(x.dated as date) as d, sum(x.counter) as c
                         from ad_pub_stat x 
-                        where dated>=current_date'.($span>0?'-'.$span:'');
+                        where dated >= current_date'.($span>0 ? ' -'.$span : '');
                     
                     if ($countryId) { $q.=' and country_id ='.$countryId; }
                     if ($cityId) { $q.=' and city_id ='.$cityId; }
                     if ($secId) { $q.=' and section_id ='.$secId; }
                     $q.=' group by 1';
-                    $res=$this->router->db->queryResultArray($q);
-                    if ($res && \count($res)) {
-                        $i=$curDt=$prevDt=0;
-                        foreach ($res as $rec) {
-                            $curDt=\strtotime($rec['D']);
-                            if ($i===0) {  
-                                $dt=$curDt;                                  
-                            }
-                            else {
+                    $res=$this->urlRouter->db->queryResultArray($q);
+                    if ($res && count($res)) {
+                        $i=0;
+                        $curDt=0;
+                        $prevDt=0;
+                        foreach($res as $rec){
+                            $curDt=strtotime($rec['D']);
+                            if($i==0)$dt=$curDt;
+                            else{
                                 $ddif = $curDt-$prevDt;
-                                if ($ddif>86400) {
+                                if($ddif>86400){
                                     $span = $ddif / 86400;
-                                    for ($k=0; $k<$span-1; $k++){
-                                        $data[]=0;
+                                    for($k=0;$k<$span-1;$k++){
+                                        $data[]=0;   
                                         $i++;
                                     }
                                 }
@@ -1450,44 +1556,53 @@ class Bin extends AjaxHandler {
                             $i++;
                         }
                     }
-                    $this->response('c', $data);
-                    $this->response('d', $dt*1000);
-                    $this->success();                    
+                    $this->setData($data,'c');
+                    $this->setData($dt*1000,'d');
+                    $this->process();
+                    
                 }
-                elseif ($this->user->id()===$uid || $this->user->level()===9) {
-                    $aid=\intval($this->_JPOST['a']??0); 
+                elseif ($this->user->info['id'] && ($this->user->info['id']==$uid || $this->user->info['level']==9)) {
                     
-                    $showInteractions=0;
-                    if($this->user->level()===9 || \in_array($this->user->id(), $this->router->config->get('enabled_interactions'))) {
-                        $showInteractions=1;
+                    $aid = $this->post('a', 'uint');
+                    
+                    $showInteractions = 0;
+                    if($this->user->info['level']==9 || in_array($this->user->info['id'],$this->urlRouter->cfg['enabled_interactions']) ){
+                        $showInteractions = 1;
                     }
+                    $stat_server = $this->urlRouter->db->getCache()->get("stat_server");
+                    $redis = new Redis();
                     
-                    $stat_server=$this->router->db->getCache()->get("stat_server");
-                    $redis=new Redis;                 
                     $redis->connect($stat_server['host'], $stat_server['port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
                     $redis->setOption(Redis::OPT_PREFIX, $stat_server['prefix']);
                     $redis->select($stat_server['index']);
                     
-                    if ($aid>0) {
-                        $count=0;                     
+                    if($aid){
+                        $count=0;
+                        $q='select cast(r.ts as date) as d,count(*) as c
+                        from xref x
+                        left join reqs r on x.ad_id = r.ad_id
+                        where x.ad_id = ? and r.ad_id is not null  
+                        group by 1';
+                        //$res=$db->queryResultArray($q,array($aid));
                         
-                        $res=$redis->hGetAll('AI'.$aid);
-                        \ksort($res, \SORT_STRING);
+                        $res = $redis->hGetAll('AI'.$aid);
+                        ksort($res, SORT_STRING);
                     
-                        $data=$cdata=[];
+                        $data = array();
+                        $cdata = array();
                         $dt=0;
-                        if ($res && \count($res)) {
-                            $i=$curDt=$prevDt=0;
-                            foreach ($res as $date=>$hits) {
-                                $curDt=\strtotime($date);
-                                if ($i===0) {
-                                    $dt=$curDt;
-                                }
-                                else {
-                                    $ddif=$curDt-$prevDt;
-                                    if ($ddif>86400) {
-                                        $span=$ddif/86400;
-                                        for ($k=0; $k<$span-1; $k++) {
+                        if($res && count($res)){
+                            $i=0;
+                            $curDt=0;
+                            $prevDt=0;
+                            foreach($res as $date=>$hits){
+                                $curDt=strtotime($date);
+                                if($i==0)$dt=$curDt;
+                                else{
+                                    $ddif = $curDt-$prevDt;
+                                    if($ddif>86400){
+                                        $span = $ddif / 86400;
+                                        for($k=0;$k<$span-1;$k++){
                                             $data[]=0;   
                                             $i++;
                                         }
@@ -1498,146 +1613,164 @@ class Bin extends AjaxHandler {
                                 $count+=(int)$hits;
                                 $i++;
                             }
-                            
-                            if ($showInteractions) {
-                                $rc=$redis->hGetAll('AC'.$aid);
-                                \ksort($rc, SORT_STRING);
-                                if ($rc && \count($res)) {
-                                    $j=$curDt=0;
+                            if($showInteractions){
+                                $q='select cast(r.ts as date) as d,count(*) as c
+                                from xref x
+                                left join clks r on x.ad_id = r.ad_id
+                                where x.ad_id = ? and r.ad_id is not null  
+                                group by 1';
+                                //$rc=$db->queryResultArray($q,array($aid));
+                                $rc = $redis->hGetAll('AC'.$aid);
+                                ksort($rc, SORT_STRING);
+                                if($rc && count($res)){
+                                    $j=0;
+                                    $curDt=0;
                                     $prevDt=$dt-86400;
-                                    foreach ($rc as $date=>$clks) {
-                                        $curDt=\strtotime($date);
-                                        $ddif=$curDt-$prevDt;
-                                        if ($ddif>86400) {
-                                            $span=$ddif/86400;
-                                            for ($k=0; $k<$span-1; $k++) {
-                                                $cdata[] = 0;   
+                                    foreach($rc as $date=>$clks){
+                                        $curDt=strtotime($date);
+                                        $ddif = $curDt-$prevDt;
+                                        if($ddif>86400){
+                                            $span = $ddif / 86400;
+                                            for($k=0;$k<$span-1;$k++){
+                                                $cdata[]=0;   
                                                 $j++;
                                             }
                                         }
-                                        $prevDt = $curDt;
-                                        $cdata[] = (int)$clks;
+                                        //echo '<br>';
+                                        $prevDt=$curDt;
+                                        $cdata[]=(int)$clks;
                                         $j++;
                                     }
-                                    if ($j<$i) {
-                                        for ($k=$j; $k<$i; $k++) {  $cdata[]=0;  }
+                                    if($j<$i){
+                                        for($k=$j;$k<$i;$k++){
+                                            $cdata[]=0;   
+                                        }
                                     }
-                                }
-                                else{
-                                    foreach ($data as $imp) {  $cdata[]=0;  }
+                                }else{
+                                    foreach($data as $imp){
+                                        $cdata[]=0;
+                                    }
                                 }
                             }
                         }
-                        
-                        $this->response('c', $data);
-                        if (!empty($cdata)) {  $this->response('k', $cdata);  }
-                        $this->response('t', $count);
-                        $this->response('d', $dt*1000);
+                        $this->setData($data,'c');
+                        if(count($cdata))$this->setData($cdata,'k');
+                        $this->setData($count,'t');
+                        $this->setData($dt*1000,'d');
                     }
                     else {
-                        $total=0;
-                        $summary=[];
+                        $total = 0;
+                        $summary = [];
                         if (!$archive) {
-                            $date=new DateTime;
-                            $starting_date=$date->modify('-1 month');
-                            //\error_log($starting_date->format('Y-m-d').PHP_EOL);
+                            $q='select cast(r.ts as date) as d,
+                            count(*) as c
+
+                            from xref x
+                            left join reqs r on x.ad_id = r.ad_id
+
+                            where x.web_user_id = ? and r.ad_id is not null 
+                            and r.ts > dateadd(-1 month to current_date)
+
+                            group by 1';
+                            //$res=$db->queryResultArray($q,array($uid));
+                            $sdate = time()-2592000; // 30 days
+              
+                            $ads = $redis->sMembers('U'.$uid);
+                            $res = [];
                             
-                            $sdate=\time()-2592000; // 30 days              
-                            $ads=$redis->sMembers('U'.$uid);
-                            //\error_log(\var_export($ads, true).PHP_EOL);
-                            $res=[];
-                            
-                            foreach ($ads as $id) {
-                                $impressions=$redis->hGetAll('AI'.$id);
-                                //\error_log(\var_export($impressions, true).PHP_EOL);
+                            foreach ($ads as $id) {                            
+                                $impressions = $redis->hGetAll('AI'.$id);
                                 foreach ($impressions as $date => $value) {
                                     if (isset($summary[$id])) {
                                         $summary[$id]+=$value+0;
-                                    } 
-                                    else {
+                                    } else {
                                         $summary[$id]=$value+0;
                                     }
-                                    $dated=DateTime::createFromFormat('Y-m-d', $date);
-                                    if ($dated<$starting_date) {
-                                        continue;
-                                    }
-                                    //\error_log($dated->format('Y-m-d').PHP_EOL);
-                                    //if (\strtotime($date)<$sdate) {  continue;  }
+                                    if (strtotime($date)<$sdate) continue;
                                     
                                     if (isset($res[$date])) {
                                         $res[$date]+=$value+0;
-                                    } 
-                                    else {
+                                    } else {
                                         $res[$date]=$value+0;
                                     }
-                                }
+                                }                                
                             }
-                            \ksort($res, \SORT_STRING);
-                            if (\count($res)>30) {
+                            ksort($res, SORT_STRING);
+                            if (count($res)>30) {
                                 $nres=[];
-                                $res=\array_slice($res, -30);
+                                $res=array_slice($res, -30);
                             }
                           
                             
-                            $data=$cdata=[];
+                            $data = array();
+                            $cdata = array();
                             $dt=0;
-                            if ($res && \count($res)) {
-                                $i = $curDt = $prevDt = 0;
-                                foreach ($res as $date=>$hits) {
-                                    $curDt=\strtotime($date);
-                                    if ($i===0) {
-                                        $dt=$curDt;
-                                    }
-                                    else {
+                            if($res && count($res)){
+                                $i=0;
+                                $curDt=0;
+                                $prevDt=0;
+                                foreach($res as $date=>$hits){
+                                    $curDt=strtotime($date);
+                                    if($i==0)$dt=$curDt;
+                                    else{
                                         $ddif = $curDt-$prevDt;
-                                        if ($ddif>=86400) {
-                                            $span = (int)$ddif/86400;
-                                            for ($k=0; $k<$span-1; $k++) {
-                                                $data[]=0;
+                                        if($ddif>=86400){
+                                            $span = (int)$ddif / 86400;
+                                            for($k=0;$k<$span-1;$k++){
+                                                $data[]=0;  
                                                 $i++;
                                             }
                                         }
                                     }
                                     $prevDt=$curDt;
-                                    $data[]=(int)$hits;
-                                    $total+=(int)$hits;
+                                    $data[]=(int)$hits;  
+                                    $total += (int)$hits;
                                     $i++;
                                 }
                               
-                                if ($showInteractions) {                                
-                                    /*$q='select cast(r.ts as date) as d,
+                                if($showInteractions){
+                                
+                                    $q='select cast(r.ts as date) as d,
                                     count(*) as c
+
                                     from xref x
                                     left join clks r on x.ad_id = r.ad_id
+
                                     where x.web_user_id = ? and r.ad_id is not null
                                     and r.ts > dateadd(-1 month to current_date)
+
                                     group by 1';
-                                    $rc=$db->queryResultArray($q,array($uid));*/
+                                    //$rc=$db->queryResultArray($q,array($uid));
                                     $rc = [];
                                     foreach ($ads as $id) {                            
                                         $clicks = $redis->hGetAll('AC'.$id);
                                         foreach ($clicks as $date => $value) {
                                             if (isset($rc[$date])) {
                                                 $rc[$date]+=$value+0;
-                                            } 
-                                            else {
+                                            } else {
                                                 $rc[$date]=$value+0;
                                             }
-                                        }
+                                        }                                
                                     }
-                                    \ksort($rc, \SORT_STRING);
-                                    if ($rc && \count($rc)) {
-                                        $j = $curDt = 0;
+                                    ksort($rc, SORT_STRING);
+                                    //error_log(var_export($rc, TRUE));
+                                    //$dt=0;
+                                    if($rc && count($rc)){
+                                        $j=0;
+                                        $curDt=0;
                                         $prevDt=$dt-86400;
-                                        foreach ($rc as $date=>$clicks) {
-                                            $curDt=\strtotime($date);
-                                            if ($curDt<$dt) {  continue;  }
+                                        foreach($rc as $date=>$clicks){
+                                            $curDt=strtotime($date);
+                                            if($curDt<$dt) continue;
                                             $ddif = $curDt-$prevDt;
                                             
-                                            if ($ddif>=86400) {
-                                                $span = (int)$ddif/86400;
-                                                for ($k=0; $k<$span-1; $k++) {
+                                            //echo (int)$ddif / 86400,"\n";
+                                            if($ddif>=86400){
+                                                $span = (int)$ddif / 86400;
+                                                //echo $span,"\n";
+                                                for($k=0;$k<$span-1;$k++){
                                                     $cdata[]=0;
+                                                    //echo $j,"\n";   
                                                     $j++;
                                                 }
                                             }
@@ -1645,187 +1778,92 @@ class Bin extends AjaxHandler {
                                             $cdata[]=(int)$clicks;
                                             $j++;
                                         }
-                                        if ($j<$i) {
-                                            for ($k=$j; $k<$i; $k++) { $cdata[]=0; }
+                                        if($j<$i){
+                                            for($k=$j;$k<$i;$k++){
+                                                $cdata[]=0;   
+                                            }
+                                        }
+                                    }else{
+                                        foreach($data as $imp){
+                                            $cdata[]=0;
                                         }
                                     }
-                                    else {
-                                        foreach ($data as $imp) { $cdata[]=0; }
-                                    }
                                 }
                             }
-                            $this->response('c', $data);
-                            if (\count($cdata)) {  $this->response('k', $cdata);  }
-                            $this->response('d', $dt*1000);
+                            $this->setData($data,'c');
+                            if(count($cdata))$this->setData($cdata,'k');
+                            $this->setData($dt*1000,'d');
                         }
-                        
-                        $this->response('a', ($summary && \count($summary))?$summary:0)->response('t', $total);
+
+                        $q='select x.ad_id,count(*) as c
+                        from xref x
+                        left join reqs r on x.ad_id = r.ad_id
+                        where x.hold='.($archive ? 1 : 0).'  
+                        and x.web_user_id = ?  and r.ad_id is not null 
+                        group by 1';
+                        //$res=$db->queryResultArray($q,array($uid));
+                        if($summary && count($summary)){
+                            //$count=0;
+                            //$data = array();
+                            //foreach($res as $r){
+                                //$count+=(int)$r['C'];
+                            //    $data[$r['AD_ID']]=(int)$r['C'];
+                            //}
+                            $this->setData($summary,'a');                            
+                            //$this->setData($count,'t');
+                        }else{
+                            $this->setData(0,'a');
+                            //$this->setData(0,'t');
+                        }
+                        $this->setData($total,'t');
                     }
+                    $this->process();
                     
                     $redis->close();
-                    $this->success();
-                }
-                else {
-                    $this->error(ERR_INVALID_REQUEST_PARAMS);
-                }
+                }else $this->fail('101');
                 break;
                 
-                
-            case 'menu':
-                $lang=$this->getGetString('sections');
-                if ($lang) {
-                    //if ($lang==='en') { $this->name='name_en'; }
-                    $this->authorize();
-                   
-                    $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
-                                        
-                    $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING);
-                    $path=\parse_url($referer, \PHP_URL_PATH);
-                    if (\strlen($path)>5) { $path=\substr($path, 0, 6); }
-                    $forPostAd=($path==='/post/');
-                    
-                    $sections=$this->router->sections;
-                    //$this->response('router', $sections);
-                    /*
-                    $osecs=[];
-                    switch ($id) {
-                        case 1:
-                            $osecs=[748, 105];
-                            break;
-                        case 2:
-                            $osecs=[75, 117, 1518];
-                            break;
-                        case 3:
-                            $osecs=[29];
-                            break;
-                        case 4:
-                            //$osecs=[29];
-                            break;
-                        case 99:
-                            $osecs=[63];
-                            break;
+            case 'ajax-menu':
+                if (isset($_GET['sections'])) {
+                    $lang=$_GET['sections'];
+                    $nameIdx = ($lang == 'ar' ?1:2);
+                    $result='ROOTS=[';
+                    $i=0;
+                    foreach ($this->urlRouter->roots as $root) {
+                        if ($i) { $result.=','; }
+                        $result.="[{$root[0]},'{$root[$nameIdx]}']";
+                        $i++;
                     }
-
-                    $append=[];
-                    foreach ($osecs as $val) {
-                        if (isset($sections[$val])) {
-                            $append[$val]=$sections[$val];
-                            unset($sections[$val]);
-                        }    
+                    $i=0;
+                    $result.='];SECTIONS=[';
+                    
+                    $nameArray = [];
+                    foreach ($this->urlRouter->sections as $key => $root) {
+                        $nameArray[$key] = $root[$nameIdx];
                     }
-                    */
+                    array_multisort($nameArray, SORT_ASC, SORT_STRING, $this->urlRouter->sections);
                     
-                    \usort($sections, function(array $a, array $b) {return ($a[$this->name]<=>$b[$this->name]);});
-                    /*
-                    foreach ($append as $se => $row) {
-                        $sections[$se]=$row;
-                    }*/
-                    // todo: move differ section to last
-                    
-                    $len=\count($sections);                                        
-                    $result['n']=$sections;
-                    $others=[];
-                    
-                    foreach ($this->router->roots as $root) {
-                        $result['r'][$root[\Core\Data\Schema::BIN_ID]]=['name'=>$root[$this->name], 'sections'=>[], 'purposes'=>[], 'sindex'=>[]];
-                    }                                    
-                         
-                    for ($i=0; $i<$len; $i++) {
-                        if (\in_array($sections[$i][\Core\Data\Schema::BIN_ID], [29, 63, 105, 117])) {  
-                            $others[$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]=$sections[$i];
-                            continue;                            
-                        }
-                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sections'][$sections[$i][\Core\Data\Schema::BIN_ID]]=$sections[$i][$this->name];                                                             
-                        $result['r'][$sections[$i][\Core\Data\Schema::BIN_ROOT_ID]]['sindex'][]=$sections[$i][\Core\Data\Schema::BIN_ID];                                       
+                    foreach ($this->urlRouter->sections as $root) {
+                        if($i)$result.=',';
+                        $result.="[{$root[0]},'{$root[$nameIdx]}','{$root[4]}']";
+                        $i++;
                     }
-                    
-                    foreach ($others as $k=>$v) {                        
-                        $result['r'][$k]['sections'][$v[\Core\Data\Schema::BIN_ID]]=$v[$this->name]; 
-                        $result['r'][$k]['sindex'][]=$v[\Core\Data\Schema::BIN_ID];                            
-                    }                    
-                    
-                    if ($forPostAd===false) {                        
-                        $lnIndex=($lang==='ar'?4:3);
-                        foreach ($this->router->config->get('smart_section_fix') as $SID => $switches) { 
-                             foreach ($switches as $switch){
-                                $result['qs'][$SID][]=[$switch[0], $switch[1] , $switch[2] , $switch[$lnIndex]];
-                            }
-                        }
-                               
-                        foreach ($this->router->config->get('smart_root_fix') as $SID => $switches) {                        
-                            foreach ($switches as $switch) {
-                                $result['qr'][$SID][]=[$switch[0], $switch[1], $switch[2] , $switch[$lnIndex]];
-                            }
-                        }
-                    }
-                    
-                    $nameIdx=($lang==='ar'?1:2);
-                    foreach ($this->router->pageRoots as $Rid => $root) {  
-                        foreach ($root['purposes'] as $Pid => $pu) {
-                            if ($Rid!=999){
-                                if($Rid!=4){
-                                    $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$this->name] ?? $pu['name'];
-                                }
-                                else {
-                                    if ($Pid==5) {
-                                        $result['r'][$Rid]['purposes'][$Pid]=$this->router->purposes[$Pid][$this->name] ?? $pu['name'];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    $this->response('roots', $result['r']);
-                    if (!$forPostAd) {
-                        $this->response('sswitch', $result['qs']);
-                        $this->response('rswitch', $result['qr']);
-                    }
-                    else {
-                        Config::instance()->incLibFile('MCPostPreferences');
-                        $pref = new MCPostPreferences();
-                        $result['prefs']=[];
-                        //$result['prefs']['version']=$pref->getVersion();
-                        //$dataVersion = filter_input(INPUT_GET, 'version', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
-                        //if ($dataVersion != $pref->getVersion()) {
-                        $pref->setup();                        
-                        $this->response('prefs', $pref);
-                        $cndic=$this->router->db->asCountriesDictionary();
-                        $regions=[];
-                        foreach ($cndic as $country_id => $country) {
-                            $regions[$country_id]=['ar'=>$country[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$country[\Core\Data\Schema::BIN_NAME_EN], 'cc'=>[], 'c'=>\strtolower($country[\Core\Data\Schema::COUNTRY_ALPHA_ID])];
-                        }
-                        $ccdic=$this->router->db->asCitiesDictionary();
-                        foreach ($ccdic as $city_id => $city) {
-                            $regions[$city[\Core\Data\Schema::BIN_COUNTRY_ID]]['cc'][$city_id]=['ar'=>$city[\Core\Data\Schema::BIN_NAME_AR], 'en'=>$city[\Core\Data\Schema::BIN_NAME_EN], 'lat'=>$city[\Core\Data\Schema::BIN_LATITUDE], 'lng'=>$city[\Core\Data\Schema::BIN_LONGITUDE]];
-                        }
-                        $this->response('regions', $regions);
-                        $this->response('ip', IPQuality::fetchJson(false));
-                        $aid=\filter_input(\INPUT_GET, 'aid', \FILTER_SANITIZE_NUMBER_INT);
-                        
-                        if ($aid>0) {
-                            $ad = new Core\Model\Ad();
-                            $ad->getAdFromAdUserTableForEditing($aid);
-                            if ($ad->id()>0) {
-                                $this->response('ad', $ad->dataset()->getForEditor());
-                            }                                                       
-                        }
-                    }
-                    
-                    $this->success();
+                    $result.='];';
+                    echo $result;
                 }
-                
-                if ($this->getGetInt('adsense')===1) {
-                    \Config::instance()->incLibFile('GoogleAdSense');
-                    $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
-                    $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
-                    $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today-1d']]);
-                    $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today-1d']]);
-                    $mcAdSense = new MCAdSense;
-                    $res=$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
-                            ->setAccountId("pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
-                    $this->success($res);
+                else {
+                    if (isset($_GET['c'])) {
+                        $c = $this->get('c','boolean');
+                        $this->user->params['hasCanvas'] = $c ? 1 : 0;
+                        $this->user->update();
+                    }
+                    $hash=$this->get('h');
+                    if ($hash) {
+                        $content=eval('?'.'>'.file_get_contents( dirname( $this->urlRouter->cfg['dir'] ) .'/tmp/gen/'.$hash.'99.php').'<'.'?');
+                        echo $content;
+                    }
+                    else $this->fail('101');
                 }
-                $this->error(self::ERR_DATA_INVALID_PARAM);                
                 break;
                 
             case 'ajax-prog':
@@ -1864,7 +1902,7 @@ class Bin extends AjaxHandler {
             case 'ajax-ads':
                 $id=$this->post('id', 'uint');
                 $lang=$this->post('l');
-                if ($id) {
+                if($id){
                     if ($lang=='ar') $lang='ar';
                     else $lang='en';
                     $ad=$this->classifieds->getById($id);
@@ -1909,12 +1947,15 @@ class Bin extends AjaxHandler {
                 if ($id && ($s!==false) && $this->user->info['id']) {
                     if ($this->user->updateFavorite($id, $s)) {
                         $this->process();
-                    }else $this->fail("102");
-                }elseif ($id && $this->user->info['id']==0){
+                    }
+                    else $this->fail("102");
+                }
+                elseif ($id && $this->user->info['id']==0){
                     $this->user->pending['fav']=$id;
                     $this->user->update();
                     $this->process();
-                }else $this->fail('101');
+                }
+                else $this->fail('101');
                 break;
                 
             case 'manifest-mobile':
@@ -1923,16 +1964,16 @@ class Bin extends AjaxHandler {
             case 'ajax-post-se':
                 $id=$this->post('r', 'uint');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;                
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;                
                 if ($id && $this->user->info['id']) {
                     $this->load_lang(array('post'), $lang);
                     $sections=$this->urlRouter->db->queryCacheResultSimpleArray(
-                    "req_sections_{$this->urlRouter->language}_{$id}",
-                    "select s.ID,s.name_".$this->urlRouter->language."
+                    "req_sections_{$this->urlRouter->siteLanguage}_{$id}",
+                    "select s.ID,s.name_".$this->urlRouter->siteLanguage."
                     from section s
                     left join category c on c.id=s.category_id
-                    where c.root_id={$id} 
-                    order by s.NAME_{$this->urlRouter->language}", null, null, $this->urlRouter->cfg['ttl_long']);
+                    where c.root_id={$id} and s.blocked = 0 
+                    order by s.NAME_{$this->urlRouter->siteLanguage}",null, 0, $this->urlRouter->cfg['ttl_long']);
                     $res=array('m'=>'','i'=>array());
                     $res['m']=$this->lang['m_h_s'.$id];
                     foreach ($sections as $section){
@@ -1950,10 +1991,7 @@ class Bin extends AjaxHandler {
                         from country c 
                         where id != 109 
                         order by c.locked desc,c.name_'.$lang;
-                    $cc=$this->urlRouter->db->queryCacheResultSimpleArray(
-                        'country_codes_req_'.$lang,
-                        $q,
-                        null, null, $this->urlRouter->cfg['ttl_long']);
+                    $cc=$this->urlRouter->db->queryCacheResultSimpleArray('country_codes_req_'.$lang, $q);
                     $this->setData($cc,'l');
                     $this->process();
                 }else $this->fail('101');
@@ -2014,7 +2052,7 @@ class Bin extends AjaxHandler {
                 $query=$this->post('q');
                 $title=$this->post('t');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
                 $this->load_lang(array('bin'));
                 if (($section && $country)||$query){
                     $params=array(
@@ -2054,18 +2092,18 @@ class Bin extends AjaxHandler {
             case 'ajax-country-cities':
                 $id=$this->post('i', 'uint');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
                 $fidx=1;
-                if ($this->urlRouter->language=='en') $fidx=2;
+                if ($this->urlRouter->siteLanguage=='en') $fidx=2;
                 $res=array();
                 if ($id && is_numeric($id)){
-                    $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$id}_{$this->urlRouter->language}",
+                    $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$id}_{$this->urlRouter->siteLanguage}",
                         "select c.ID
                         from city c
                         where c.country_id={$id}
                         and c.blocked=0
-                        order by NAME_".  strtoupper($this->urlRouter->language),
-                        null, 0, $this->urlRouter->cfg['ttl_long']);
+                        order by NAME_".  strtoupper($this->urlRouter->siteLanguage));
+                        
                     foreach ($countryCities as $key=>$val){
                         $res[$key]=$this->urlRouter->cities[$key][$fidx];
                     }
@@ -2079,9 +2117,9 @@ class Bin extends AjaxHandler {
                 $country=$this->post('i', 'numeric');
                 $city=$this->post('c', 'numeric');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
                 $fidx=1;
-                if ($this->urlRouter->language=='en') $fidx=2;
+                if ($this->urlRouter->siteLanguage=='en') $fidx=2;
                 if (isset($this->user->pending['post']) && $country && $city){
                     $res=array();
                     $this->user->pending['post']['zloc']='';
@@ -2094,13 +2132,13 @@ class Bin extends AjaxHandler {
                         }
                     }elseif (isset($this->urlRouter->countries[$country])) {
                         if ($city==-1){
-                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$country}_{$this->urlRouter->language}",
+                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$country}_{$this->urlRouter->siteLanguage}",
                             "select c.ID
                             from city c
                             where c.country_id={$country}
                             and c.blocked=0
-                            order by NAME_".  strtoupper($this->urlRouter->language),
-                            null, 0, $this->urlRouter->cfg['ttl_long']);
+                            order by NAME_".  strtoupper($this->urlRouter->siteLanguage));
+                            
                             foreach ($countryCities as $id=>$city){
                                 $adContent['pubTo'][$id]=$id;
                             }
@@ -2132,13 +2170,13 @@ class Bin extends AjaxHandler {
                             $def[4]=$this->getCountryUnit($countryId);
                         }
                         if (count($cities)==1){
-                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->language}",
+                            $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->siteLanguage}",
                             "select c.ID
                             from city c
                             where c.country_id={$countryId}
                             and c.blocked=0
-                            order by NAME_".  strtoupper($this->urlRouter->language),
-                            null, 0, $this->urlRouter->cfg['ttl_long']);
+                            order by NAME_".  strtoupper($this->urlRouter->siteLanguage));
+                            
                             if(count($countryCities)>1) {
                                 $key=array_pop($cities);
                                 if ($key==15)
@@ -2165,9 +2203,9 @@ class Bin extends AjaxHandler {
             case 'ajax-cc-remove':
                 $city=$this->post('i', 'numeric');
                 $lang=$this->post('lang');
-                if ($lang=='en'||$lang=='ar') $this->urlRouter->language=$lang;
+                if ($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
                 $fidx=1;
-                if ($this->urlRouter->language=='en') $fidx=2;
+                if ($this->urlRouter->siteLanguage=='en') $fidx=2;
                 if (isset($this->user->pending['post'])){
                     $adContent=json_decode($this->user->pending['post']['content'],true);
                     if ($city){
@@ -2234,13 +2272,13 @@ class Bin extends AjaxHandler {
                                 $def[4]=$this->getCountryUnit($countryId);
                             }
                             if (count($cities)==1){
-                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->language}",
+                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->siteLanguage}",
                                 "select c.ID
                                 from city c
                                 where c.country_id={$countryId}
                                 and c.blocked=0
-                                order by NAME_".  strtoupper($this->urlRouter->language),
-                                null, 0, $this->urlRouter->cfg['ttl_long']);
+                                order by NAME_".  strtoupper($this->urlRouter->siteLanguage));
+                                
                                 if(count($countryCities)>1)
                                 $sloc=$this->urlRouter->cities[array_pop($cities)][$fidx].' '.$sloc;
                             }
@@ -2282,9 +2320,7 @@ class Bin extends AjaxHandler {
                         $countryId=0;
                         $parentId=0;
                         
-                        $types=$this->urlRouter->db->queryCacheResultSimpleArray(
-                                        'map_types', 'select name,id from gtypes',
-                                        null, 0, $this->urlRouter->cfg['ttl_long']);
+                        $types=$this->urlRouter->db->queryCacheResultSimpleArray('map_types', 'select name,id from gtypes');                                    
 
                         $stmt=$this->urlRouter->db->prepareQuery(
                             "update or insert into gmap (type_id,name_{$lang},short_name_{$lang},latitude,longitude,parent_id) values (?,?,?,?,?,?) matching(type_id,latitude,longitude) returning id"
@@ -2313,8 +2349,10 @@ class Bin extends AjaxHandler {
                         
                         $len=count($locations);
                         
-                        if($isSearch && $len) {
-                            foreach ($locations as $loc) {
+                        if($isSearch && $len)
+                        {
+                            foreach ($locations as $loc)
+                            {
                                 if (isset ($types[$loc['type']])) {
                                     $loc['latitude']=  number_format($loc['latitude'], 8);
                                     $loc['longitude']=  number_format($loc['longitude'], 8);
@@ -2433,7 +2471,209 @@ class Bin extends AjaxHandler {
                         
                     }else{
                         $this->fail('101');
-                    }             
+                    }
+                /*}else{
+                if (isset ($_POST['loc']) && is_array($_POST['loc'])) {
+                    $lang=strtoupper($_POST['lang']);
+                    if (!isset ($this->user->pending['post'])){
+                        $this->user->pending['post']=array(
+                            'id'=>0,
+                            'user'=>  $this->user->info['id'],
+                            'ro'=>0,
+                            'pu'=>0,
+                            'se'=>0,
+                            'rtl'=>0,
+                            'cn'=>0,
+                            'c'=>0,
+                            'dc'=>0,
+                            'dcn'=>0,
+                            'lon'=>0,
+                            'lat'=>0,
+                            'state'=>0,
+                            'content'=>json_encode(array()),
+                            'title'=>'',
+                            'dcni'=>'',
+                            'dci'=>'',
+                            'loc'=>'',
+                            'gloc'=>'',
+                            'tloc'=>'',
+                            'zloc'=>'',
+                            'code'=>''
+                        );
+                    }
+                    $types=$this->urlRouter->db->queryCacheResultSimpleArray(
+                        'map_types',
+                        'select name,id from gtypes',
+                        null, 0, $this->urlRouter->cfg['ttl_long']);
+
+                    $stmt=$this->urlRouter->db->prepareQuery(
+                        "update or insert into gmap (type_id,name_{$lang},short_name_{$lang},latitude,longitude,parent_id) values (?,?,?,?,?,?) matching(type_id,latitude,longitude) returning id"
+                    );
+                    $cityStmt=$this->urlRouter->db->prepareQuery(
+                        "update or insert into city
+                        (name_{$lang},latitude,longitude,parent_id,country_id) values (?,?,?,?,?)
+                        matching(latitude,longitude) returning id,blocked"
+                    );
+
+                    $locations=$_POST['loc'];                    
+                    $parentId=0;
+                    $countryId=0;
+                    $cityId=0;
+                    $level=0;
+                    $gLocation='';
+                    $tLocation='';
+                    $localCities=array();
+                    $adLocation=array();
+                    $newCountry=false;
+                    $lastLat=0;
+                    $lastLong=0;
+                    $forceDefCity=0;
+                    $len=count($locations);
+                    for($k=1;$k<$len;$k++){
+                        if ($locations[$k]['type']==$locations[$k-1]['type']) {
+                            unset ($locations[$k-1]);
+                        }
+                    }
+                    $adContent=json_decode($this->user->pending['post']['content'],true);
+                    foreach ($locations as $loc){
+                        if (isset ($types[$loc['type']])) {
+                            $loc['latitude']=  number_format($loc['latitude'], 8);
+                            $loc['longitude']=  number_format($loc['longitude'], 8);
+                            $type=$types[$loc['type']][1];
+                            if ($type==5) {
+                                $miniStmt=$this->urlRouter->db->prepareQuery("update or insert into country
+                                        (name_{$lang},id_2,latitude,longitude)
+                                        values
+                                        (?,?,?,?) matching(id_2) returning id,code,blocked");
+                                if($miniStmt->execute(array($loc['name'],$loc['short'],$loc['latitude'],$loc['longitude']))){
+                                    $tmp=$miniStmt->fetch(PDO::FETCH_NUM);
+                                    $countryId=$tmp[0];
+                                    if ($tmp[2]) $forceDefCity=1;
+                                    if ($countryId==2){
+                                        if ($lang=='AR') $loc['name']='الإمارات';
+                                        else $loc['name']='Emirates';
+                                    }
+                                    $this->user->pending['post']['cn']=$countryId;
+                                    $this->user->pending['post']['dcn']=$countryId;
+                                    $this->user->pending['post']['dcni']=strtolower(trim($loc['name']));
+                                    $this->user->pending['post']['code']=strtolower(trim($loc['short'])).'|+'.$tmp[1];
+                                    $adContent['fields']['pc1']=$adContent['fields']['pc2']=$adContent['fields']['pc3']=$this->user->pending['post']['code'];
+                                    $this->user->pending['post']['content']=json_encode($adContent);
+                                }
+                            }else{
+                                if($level != $type && in_array($type,array(6,7,8,9,10,11,12)) && $countryId){
+                                    $level=$type;
+                                    $loc['name']=preg_replace('/\(.*\)?/', '', $loc['name']);
+                                    $loc['short']=preg_replace('/\(.*\)?/', '', $loc['short']);
+                                    $short=$loc['short'];
+                                    if ($lastLat!=$loc['latitude'] || $lastLong!=$loc['longitude']) {
+                                    if ($cityStmt->execute(array($loc['name'],$loc['latitude'],$loc['longitude'], $cityId, $countryId))) {
+                                        $lastLat=$loc['latitude'];
+                                        $lastLong=$loc['longitude'];
+                                        $tmp=$cityStmt->fetch(PDO::FETCH_NUM);
+                                        $cityId=$tmp[0];
+                                        if ($tmp[1]==0 || $forceDefCity){
+                                            $forceDefCity=0;
+                                            $this->user->pending['post']['dc']=$tmp[1];
+                                            $this->user->pending['post']['dci']=$loc['name'];
+                                        }
+
+                                        if ($type==6 || $type==10) $tLocation=$short;
+
+                                        if($tmp[1] && !in_array($short, $localCities)) {
+                                            if ($type>6) {
+                                                $loc['name']=preg_replace('/\(.*\)?/', '', $loc['name']);
+                                                $adLocation[]=$loc['name'];
+                                            }
+                                            $localCities[]=$short;
+                                            if (in_array($type, array(6,7,8,10))) {
+                                                $gLocation=$short;
+                                            }
+                                        }
+                                        
+                                        $this->user->pending['post']['c']=$cityId;
+                                    }}
+                                }
+                                elseif (in_array($type,array(2,3)) && $countryId){
+                                    $adLocation[]=$loc['name'];
+                                }
+                            }
+                            if ($stmt->execute(array($type,$loc['name'],$loc['short'],$loc['latitude'],$loc['longitude'],$parentId))) {
+                                $tmp=$stmt->fetch(PDO::FETCH_NUM);
+                                $parentId=$tmp[0];
+                            }
+                        }
+                    }
+                    if (!$countryId || !$cityId){                        
+                        if (!isset($adContent['pubTo']))$adContent['pubTo']=array();
+                        $this->user->pending['post']['dcn']=0;
+                        $this->user->pending['post']['dcni']='';
+                        $this->user->pending['post']['dc']=0;
+                        $this->user->pending['post']['dci']='';
+                        $this->user->pending['post']['gloc']='';
+                        $this->user->pending['post']['tloc']='';
+                        $this->user->pending['post']['loc']='';
+                        $this->user->pending['post']['lat']=0;
+                        $this->user->pending['post']['lon']=0;
+                        if (!count($adContent['pubTo'])) {
+                            if (!$this->user->pending['post']['dcn']){
+                                $this->user->pending['post']['c']=0;
+                                $this->user->pending['post']['cn']=0;
+                                $countryId=0;
+                                $cityId=0;
+                            }
+                            unset($adContent['pubTo']);                        
+                        }else {
+                            foreach ($adContent['pubTo'] as $cty=>$val) {
+                                $this->user->pending['post']['cn']=$countryId=$this->urlRouter->cities[$cty][6];
+                                $this->user->pending['post']['c']=$cityId=$cty;
+                                break;
+                            }
+                        }
+                        if(isset($adContent['pubTo']) && count($adContent['pubTo'])) {
+                            $countries=array();
+                            $cities=array();
+                            foreach ($adContent['pubTo'] as $cty=>$val) {
+                                $countries[$countryId]=$countryId;
+                                $cities[$cty]=$cty;
+                            }
+                            if (count($countries)==1){
+                                $countryId=array_pop($countries);
+                                $sloc=$this->urlRouter->countries[$countryId][$fidx];
+                                $this->user->pending['post']['code']=$this->urlRouter->countries[$countryId][3].'|+'.$this->urlRouter->countries[$countryId][7];
+                            }
+                            if (count($cities)==1){
+                                $countryCities=$this->urlRouter->db->queryCacheResultSimpleArray("cities_{$countryId}_{$this->urlRouter->siteLanguage}",
+                                "select c.ID
+                                from city c
+                                where c.country_id={$countryId}
+                                and c.blocked=0
+                                order by NAME_".  strtoupper($this->urlRouter->siteLanguage),
+                                null, 0, $this->urlRouter->cfg['ttl_long']);
+                                if(count($countryCities)>1)
+                                    $sloc=$this->urlRouter->cities[array_pop($cities)][$fidx].' '.$sloc;
+                            }
+                            $sloc=trim($sloc);
+                            $this->user->pending['post']['zloc']=$sloc;
+                        }else {
+                            $this->user->pending['post']['zloc']=$sloc;
+                        }
+                    }else {
+                        if (count($adLocation))$adLocation=implode(' ', array_reverse($adLocation));
+                        $this->user->pending['post']['zloc']='';
+                        $this->user->pending['post']['gloc']=ucfirst(strtolower($gLocation));
+                        $this->user->pending['post']['tloc']=ucfirst(strtolower($tLocation));
+                        if ($adLocation=="") $adLocation=$this->user->pending['post']['tloc'];
+                        $this->user->pending['post']['loc']=ucfirst(strtolower($adLocation));
+                        $this->user->pending['post']['lat']=$loc['latitude'];
+                        $this->user->pending['post']['lon']=$loc['longitude'];
+                    }
+                    $this->user->update();
+                    $data=array('cn'=>$countryId,'c'=>$cityId);
+                    $this->setData($data,'loc');
+                    $this->process();
+                    
+                }else $this->fail();}*/
                 break;
                 
             case "ajax-pending":
@@ -2455,213 +2695,91 @@ class Bin extends AjaxHandler {
                 $this->process();
                 break;
                 
-                
-            case 'adsave':
-                $this->authorize(true);                
-                if (!isset($this->_JPOST['o'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                
-                
-                $_ad=\is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
-                if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                             
-                //$this->router->logger()->info('_JPOST[o]', $_ad);                              
-                
-                $ad = new Core\Model\Ad();
-                $content = new Core\Model\Content();
-                $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
-                        ->setSectionID($_ad['se']??0)
-                        ->setPurposeID($_ad['pu']??0)
-                        ->setApp($_ad['app']??'', $_ad['app_v']??'')
-                        ->setVersion($_ad['version']??Core\Model\Content::VERSION_NUMBER)
-                        ->setIpAddress($_ad['ip']??IPQuality::getClientIP())
-                        ->setIpScore($_ad['ipfs']??0);
-                
-                if (isset($_ad['cui']) && \is_array($_ad['cui'])) {                 
-                    if (isset($_ad['cui']['p']) && \is_array($_ad['cui']['p'])) {
-                        foreach ($_ad['cui']['p'] as $phone) {
-                            $content->addPhone($phone['c']??0, $phone['i']??'', $phone['r']??'', $phone['t']??0, $phone['v']??'');
-                        }
-                    }
-                }
-                
-                $content->setEmail($_ad['cui']['e']??'')
-                        ->setUserLanguage($_ad['hl']??'ar')
-                        ->setNativeText($_ad['other']??'')
-                        ->setForeignText($_ad['altother']??'')
-                        ->setPictures($_ad['pics']??[])
-                        ->setRegions($_ad['pubTo']??[])
-                        ->setCoordinate($_ad['lat']??0, $_ad['lon']??0)
-                        ->setLocation($_ad['loc']??'');
-     
-                if ($content->getID()>0) {
-                    $oad = new Core\Model\Ad();
-                    $oad->getAdFromAdUserTableForEditing($content->getID());
-                    if ($oad->id()>0) {
-                        $content->setUID($oad->uid());
-                        if ($content->getUID()!==$this->user()->id()) {
-                            $content->setUserAgent($oad->dataset()->getUserAgent())
-                                    ->setUserLanguage($oad->dataset()->getUserLanguage())
-                                    ->setIpAddress($oad->dataset()->getIpAddress())
-                                    ->setIpScore($oad->dataset()->getIpScore())
-                                    ->setQualified($oad->dataset()->isQualified())
-                                    ;
-                            
-                        }
-                    }
-                }
-                                
-                if ($content->getUID()===0) { $content->setUID($this->user()->id()); }
-                
-                if ($this->user()->id()===$content->getUID()) {
-                    $content->setUserLevel($this->user()->level())->setIpAddress(IPQuality::getClientIP());                        
-                }
-                
-                $content->setBudget($_ad['budget']??0)->setUserLocation();
-                $content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
-                
-                Config::instance()->incLibFile('MCSaveHandler');
-                $normalizer = new MCSaveHandler();    
-                $normalized = $normalizer->getFromContentObject($_ad, false);
-                
-                if ($normalized!==false) {
-                    $content->setAttributes($normalized['attrs']);
-                    $this->router->logger()->info('attributes', $normalized['attrs']);
-                }
-                
-                $ad->setDataSet($content)->check();
-                
-                //$this->router->logger()->info('New', $content->getData());
-                $this->router->logger()->info('Version 3', $content->getAsVersion(3));
-                
-                if ($content->save(0)) {
-                    $ad->getAdFromAdUserTableForEditing($content->getID());
-                    $this->resp['result']=$ad->dataset()->getForEditor();                    
-                    $this->success();
-                }
-                else {
-                    $this->error(self::ERR_SYS_FAILURE, ['message'=>'??']);
-                }
-                
-                if (1) { return; }
-                
-                $this->error(self::ERR_SYS_MAINTENANCE);
-                
-                if (!isset($ad['other'])) { $ad['other']=''; }
-                if (!isset($ad['user']) || !$ad['user']) { $ad['user']=$this->user()->id(); }
-                if ($this->user()->level()!==9 || $this->user()->id()==$ad['user']) { $ad['userLvl']=$this->user()->level(); }
-                if (!isset($ad['pubTo'])) { $ad['pubTo']=[]; }
-                if ($ad['id']==0 && preg_match('/^undefined/', $ad['other'])) { $this->router->logToFile($err_file, '>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'); }                
-                if ($ad['se']>0 && $ad['pu']==0) { $ad['pu']=5; }    
-                if (!isset($ad['mobile'])) $ad['mobile']=0;
-                $ad['user'] = \intval($ad['user']);
-                $regions = \array_values($ad['pubTo']);
-                //error_log('regions '.\var_export($regions, true).PHP_EOL. \var_export($this->router->cities, true));
-                $ad['regsions']=[];
-                $cityId = 0;
-                $countryId = 0;
-                $currentCid = 0;
-                $isMultiCountry = false;
-                foreach ($regions as $publishingTo) {
-                    if (!\is_numeric($publishingTo)) { continue; }
-                    $ad['regions'][]=\intval($publishingTo);
-                    if ($publishingTo>0 && isset($this->router->cities[$publishingTo][4])) {
-                        if ($cityId===0) { $cityId = \intval($this->router->cities[$publishingTo][4]); }
-                        if (!$isMultiCountry && $currentCid>0 && $currentCid!=$this->router->cities[$publishingTo][4]) {
-                            $isMultiCountry = true;
-                        }
-                        $currentCid = $this->router->cities[$publishingTo][4];
-                    }                
-                }
-                if ($cityId>0) { $countryId=\intval($this->router->cities[$cityId][4]); }
-                if ($ad['user']===$this->user()->id()) {
-                    $ipQuality=IPQuality::fetch($ad['mobile']===1);
-                    $this->router->logToFile($err_file, \json_encode($ipQuality, JSON_PRETTY_PRINT));
-                    $ad['agent']=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
-                    $ad['userLOC']=''; //parse $ipQuality
-                    $ad['profile']=$adUser=$this->user()->getProfile();
-                }
-                else {
-                    $ad['profile']=new \Core\Lib\MCUser($ad['user']);
-                }
-                
-                $error_path = "/var/log/mourjan/editor.log";
-                                            
-                //if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
-                //    $this->user->loadAdToSession($ad['id']);
-                //}
+            case "ajax-adsave":
+                if ($this->user->info['id'] && isset($_POST['o'])) {                        
+                    $error_path = "/var/log/mourjan/editor.log";
+                    $ad=(is_array($_POST['o']) ? $_POST['o'] : json_decode($_POST['o'],true) );
+                    //error_log('--------------------------------------------------------------------------------------------------------'.PHP_EOL,3,$error_path);                    
                         
-                //$sContent=json_decode($this->user->pending['post']['content'], true);                        
-                //if (isset($sContent['ip'])) { $ad['ip']=$sContent['ip']; }
-                //if (isset($sContent['userLOC'])) { $ad['userLOC']=$sContent['userLOC']; }
-                //if (isset($sContent['agent'])) { $ad['agent']=$sContent['agent']; }
-                //if (isset($sContent['state'])) { $ad['state']=$sContent['state']; }
-                    
-                //if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/', $ad['other']))) && isset($sContent['other'])) {
-                //    $ad['other']=$sContent['other'];
-                    //if (!isset($ad['rawOther']) && isset($sContent['rawOther'])) {
-                    //    $ad['rawOther']=$sContent['rawOther'];
-                    //}
-                //}
+                    if (!is_array($ad)) { $ad = array(); }                        
+                    if (!isset($ad['id'])) { $ad['id']=0; }                        
+                    if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) 
+                                || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
+                        $this->user->loadAdToSession($ad['id']);
+                    }
+                        
+                    $sContent=json_decode($this->user->pending['post']['content'], true);
+                        
+                    if (isset($sContent['ip'])) { $ad['ip']=$sContent['ip']; }
+                    if (isset($sContent['userLOC'])) { $ad['userLOC']=$sContent['userLOC']; }
+                    if (isset($sContent['agent'])) { $ad['agent']=$sContent['agent']; }
+                    if (isset($sContent['state'])) { $ad['state']=$sContent['state']; }
+                    if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/',$ad['other']))) && isset($sContent['other'])) {
+                        $ad['other']=$sContent['other'];
+                        if (!isset($ad['rawOther']) && isset($sContent['rawOther'])) {
+                            $ad['rawOther']=$sContent['rawOther'];
+                        }
+                    }
+                    /*$plugins=(isset($_POST['plugs']) && $_POST['plugs'] ? $_POST['plugs'] : '');
+                    if($plugins){
+                        error_log(PHP_EOL.$plugins.PHP_EOL,3,$error_path);
+                    }*/
+                    if ($ad['id']==0 && preg_match('/^undefined/',$ad['other'])) {
+                        error_log(PHP_EOL.'>>>>>>>>>>UNDEFINED<<<<<<<<<<<<'.PHP_EOL,3,$error_path);
+                    }
 
-                //if (!isset($ad['rtl']) && isset($sContent['rtl'])) {
-                //    $ad['rtl']=$sContent['rtl'];
-                //}
-                    
-                //if (!isset($ad['loc']) && isset($sContent['loc'])) {
-                //    $ad['loc']=$sContent['loc'];
-                //}
-                    
-                //if ($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])) {
-                //    $ad['altother']=$sContent['altother'];
-                //    if (!isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])) {
-                //        $ad['rawAltOther']=$sContent['rawAltOther'];
-                //    }
-                //}
-                    
-                //if ($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])) {
-                //    $ad['altRtl']=$sContent['altRtl'];
-                //}
-                    
-                //if (isset($sContent['pics'])) { $ad['pics']=$sContent['pics']; }
-                    
-                //if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }                    
-                //if (isset($sContent['pic_idx'])) { $ad['pic_idx']=$sContent['pic_idx']; }
-                    
-                //if (!isset($ad['video']) && isset($sContent['video'])) { $ad['video']=$sContent['video']; }
-                if ($ad['user']==$this->user()->id() && isset($this->user->params['mobile']) && $this->user->params['mobile']) {
-                    $ad['mobile']=1;
-                } 
-                else {
-                    $ad['mobile']=0;
-                }
+                    if (!isset($ad['rtl']) && isset($sContent['rtl'])) {
+                        $ad['rtl']=$sContent['rtl'];
+                    }
+                    if (!isset($ad['loc']) && isset($sContent['loc'])) {
+                        $ad['loc']=$sContent['loc'];
+                    }
+                    if ($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])) {
+                        $ad['altother']=$sContent['altother'];
+                        if (!isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])) {
+                            $ad['rawAltOther']=$sContent['rawAltOther'];
+                        }
+                    }
+                    if ($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])) {
+                        $ad['altRtl']=$sContent['altRtl'];
+                    }
+                    if (isset($sContent['pics'])) { $ad['pics']=$sContent['pics']; }
+                    if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }
+                    if (isset($sContent['pic_idx'])) { $ad['pic_idx']=$sContent['pic_idx']; }
+                    if (!isset($ad['video']) && isset($sContent['video'])) { $ad['video']=$sContent['video']; }
+                    if ($ad['user']==$this->user->info['id'] && isset($this->user->params['mobile']) && $this->user->params['mobile']) {
+                        $ad['mobile']=1;
+                    } else {
+                        $ad['mobile']=0;
+                    }
                                                                         
-                //if (!$ad['id']) { 
-                //    $this->user->pending['post']['user']=$this->user()->id();                         
-                //}
-                    
-                //if (!$ad['user']) {
-                //    $ad['user']=$this->user()->id();
-                //}
+                    if (!$ad['id']) { $this->user->pending['post']['user']=$this->user->info['id']; }
                         
-                //$this->user->pending['post']['ro']=$ad['ro'];
-                $sectionId = $ad['se'];
-                $purposeId = $ad['pu'];
-                //$this->user->pending['post']['rtl']=$ad['rtl'];
-                //$this->user->pending['post']['lat']=$ad['lat'];
-                //$this->user->pending['post']['lon']=$ad['lon'];
-                                       
-                          
-                if ($ad['profile']->isBlocked()) { $this->error(self::ERR_USER_BLOCKED); }
-                /*                       
-                if (count($ad['pubTo'])) {
-                    foreach ($ad['pubTo'] as $key => $val) {
-                            if (!\is_numeric($key)) {
+                    $this->user->pending['post']['ro']=$ad['ro'];
+                    $sectionId = $this->user->pending['post']['se']=$ad['se'];
+                    $purposeId = $this->user->pending['post']['pu']=$ad['pu'];
+                    $this->user->pending['post']['rtl']=$ad['rtl'];
+                    $this->user->pending['post']['lat']=$ad['lat'];
+                    $this->user->pending['post']['lon']=$ad['lon'];
+                    $this->user->pending['post']['title']='';
+                        
+                    $cityId=$countryId=$currentCid=0;
+                    $isMultiCountry=false;
+                                                
+                    $mcUser=new MCUser($this->user->pending['post']['user']);
+                    if ($mcUser->isBlocked()) { $this->fail('101'); }
+                        
+                    if (count($ad['pubTo'])) {
+                        foreach ($ad['pubTo'] as $key => $val) {
+                            if (!is_numeric($key)) {
                                 unset($ad['pubTo'][$key]);
                                 continue;
                             }
                             if (!$cityId && $cityId!=64) { $cityId=$key; }
                             if ($cityId==64) {
                                 if (isset($ad['pubTo']['64'])) {            
-                                    unset($ad['pubTo']['64']);                                     
+                                    unset($ad['pubTo']['64']); 
+                                    
                                 }
                                 elseif (isset($ad['pubTo'][64])) {
                                     unset($ad['pubTo'][64]);
@@ -2669,42 +2787,47 @@ class Bin extends AjaxHandler {
                                 $cityId=0;
                                 $key = 0;
                             }
-                            
                             if ($key && isset($this->urlRouter->cities[$key][4])) {
                                 if ($currentCid && $currentCid != $this->urlRouter->cities[$key][4]) {
                                     $isMultiCountry = true;
                                 }
                                 $currentCid = $this->urlRouter->cities[$key][4];
                             }
+                        }
                     }
-                }
+                                        
+                    $dxb=isset($ad['pubTo']['14'])||isset($ad['pubTo'][14]);
+                    $auh=isset($ad['pubTo']['4'])||isset($ad['pubTo'][4])||isset($ad['pubTo']['6'])||isset($ad['pubTo'][6]);
+                    $shg=isset($ad['pubTo']['333'])||isset($ad['pubTo'][333]);
+                    $ajm=isset($ad['pubTo']['436'])||isset($ad['pubTo'][436]);
+                    $fjr=isset($ad['pubTo']['812'])||isset($ad['pubTo'][812]);
+                    $rak=isset($ad['pubTo']['815'])||isset($ad['pubTo'][815]);
+                    $uaq=isset($ad['pubTo']['2609'])||isset($ad['pubTo'][2609]);
                     
-                if ($cityId) { $countryId=$this->router->cities[$cityId][4]; }
-                 * 
-                 */
-                
-                $ad['c']=$cityId;
-                $ad['cn']=$country;
-                
-                //$this->user->pending['post']['c']=$cityId;
-                //$this->user->pending['post']['cn']=$countryId;                        
-                    
-                $requireReview = 0;                        
-                $validator = libphonenumber\PhoneNumberUtil::getInstance();
+                    if ($dxb && $ad['ro']==1 && ($purposeId==1||$purposeId==2||$purposeId==8) && $sectionId!=106 && $sectionId!=162 ) {
                         
-                //if ($this->user()->level()!==9 || $this->user()->id()==$ad['user']) { $ad['userLvl']=$this->user()->level(); }
-                /*
-                if ($this->user()->id()==$ad['user']) {
-                    $ip=IPQuality::getClientIP();
-                    $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
+                    }
+                    
+                    if ($cityId) { $countryId=$this->urlRouter->cities[$cityId][4]; }
+                    $this->user->pending['post']['c']=$cityId;
+                    $this->user->pending['post']['cn']=$countryId;                        
+                    
+                    $requireReview=0;                        
+                    $validator=libphonenumber\PhoneNumberUtil::getInstance();
+                        
+                    if ($this->user->info['level']!=9) { $ad['userLvl']=$this->user->info['level']; }
+                    
+                    if ($this->user->info['id']==$this->user->pending['post']['user']) {
+                        $ip=IPQuality::getClientIP();
+                        $ad['agent']=$_SERVER['HTTP_USER_AGENT'];
                         $ad['ip']=$ip;   
-                        $geo = $this->router->getIpLocation($ip);
+                        $geo=$this->urlRouter->getIpLocation($ip);
                         $XX='';
                             
                         if ($geo && isset($geo['country'])) {
-                            $ad['userLOC'] = isset($geo['city']['names']['en']) ? $geo['city']['names']['en'].', ' : '';
-                            $ad['userLOC'].=$geo['country']['iso_code'];
-                            $ad['userLOC'].=': '. implode(" ,",$geo['location']);                                
+                            //$ad['userLOC'] = isset($geo['city']['names']['en']) ? $geo['city']['names']['en'].', ' : '';
+                            //$ad['userLOC'].=$geo['country']['iso_code'];
+                            //$ad['userLOC'].=': '. implode(" ,",$geo['location']);                                
                             $XX = $geo['country']['iso_code'];                                
                         }
                         else $ad['userLOC']=0;
@@ -2722,127 +2845,86 @@ class Bin extends AjaxHandler {
                                                     'LY', 'MA', 'QA', 'SA', 'SD', 'SY', 'TN', 'TR', 'OM'])) {
                             $requireReview = 995;
                         }
-                }
-                */
-                
-                if ($ad['profile']->isMobileVerified()) {
-                    $uNum=$ad['profile']->getMobileNumber();
-                    $XX='';
-                    if ($uNum) {
-                        $uNum = $validator->parse('+'.$uNum, 'LB');
-                        $TXX = $validator->getRegionCodeForNumber($uNum);
-                        if ($TXX) { $XX=$TXX; }
                     }
-                    if (!$XX || !\in_array($XX, ['AE', 'BH', 'DZ', 'YE', 'EG', 'IQ', 'JO', 'KW', 'LB', 'LY', 'MA', 'QA', 'SA', 'SD', 'SY', 'TN', 'TR', 'OM'])) {
-                        $requireReview = 995;
+                        
+                    $publish=(isset($_POST['pub']) && $_POST['pub'] ? (int)$_POST['pub'] : 0);
+                    if ($publish!=1 && ($publish!=2 || ($publish==2 && $this->user->info['level']!=9)))$publish=0;
+                    $tmpPublish=$publish;
+                        
+                    if ($this->user->info['level']==9 && $ad['user']!=$this->user->info['id'] && $this->user->pending['post']['state']==1 && $publish==0) {
+                        $publish=1;
                     }
-                }
-                
-                
-                $publish=\intval($this->_JPOST['pub']??0);
-                if ($publish!==1 && ($publish!==2 || ($publish===2 && $this->user()->level()!==9))) { $publish=0; }
-                $tmpPublish=$publish;
                         
-                if ($this->user()->level()===9 && $ad['user']!=$this->user()->id() && $ad['state']==1 && $publish===0) {
-                    $publish=1;
-                }
-                        
-                //switching all rental cars to rental services
-                if ($publish===1 && $ad['ro']==2 && $ad['pu']==2) {
-                    $ad['ro']=4;
-                    $ad['pu']=5;
-                    $ad['se']=431;
-                }
-                        
-                $ad['rtl'] = $this->isRTL($ad['other']) ? 1 : 0;
-                        
-                if (isset($ad['altother']) && $ad['altother']) {                            
-                    $ad['altRtl'] = $this->isRTL($ad['altother']) ? 1 : 0;                            
-                    if ($ad['rtl'] == $ad['altRtl']) {
-                        $ad['extra']['t']=2;
-                        unset($ad['altRtl']);
-                        unset($ad['altother']);
+                    //switching all rental cars to rental services
+                    if ($publish==1 && $ad['ro']==2 && $ad['pu']==2) {
+                        $this->user->pending['post']['ro']=$ad['ro']=4;
+                        $this->user->pending['post']['pu']=$ad['pu']=5;
+                        $this->user->pending['post']['se']=$ad['se']=431;
                     }
+                      
+                    $ad['rtl'] = $this->isRTL($ad['other']) ? 1 : 0;
+                        
+                    if (isset($ad['altother']) && $ad['altother']) {                            
+                        $ad['altRtl'] = $this->isRTL($ad['altother']) ? 1 : 0;                            
+                        if ($ad['rtl'] == $ad['altRtl']) {
+                            $ad['extra']['t']=2;
+                            unset($ad['altRtl']);
+                            unset($ad['altother']);
+                        }
                             
-                    if (isset($ad['altRtl']) && $ad['altRtl']) {
-                        $tmp=$ad['other'];
-                        $ad['other']=$ad['altother'];
-                        $ad['altother']=$tmp;
-                        $ad['rtl']=1;
-                        $ad['altRtl']=0;  
+                        if (isset($ad['altRtl']) && $ad['altRtl']) {
+                            $tmp=$ad['other'];
+                            $ad['other']=$ad['altother'];
+                            $ad['altother']=$tmp;
+                            $ad['rtl']=1;
+                            $ad['altRtl']=0;  
                                 
-                        if (isset($ad['rawOther']) && isset($ad['rawAltOther'])) { 
-                            $tmp=$ad['rawOther'];
-                            $ad['rawOther']=$ad['rawAltOther'];
-                            $ad['rawAltOther']=$tmp;
+                            if (isset($ad['rawOther']) && isset($ad['rawAltOther'])) { 
+                                $tmp=$ad['rawOther'];
+                                $ad['rawOther']=$ad['rawAltOther'];
+                                $ad['rawAltOther']=$tmp;
+                            }
                         }
                     }
-                }
                         
-                //$this->user->pending['post']['rtl']=$ad['rtl'];
+                    $this->user->pending['post']['rtl']=$ad['rtl'];
                         
-                if (isset($ad['loc']) && $ad['loc']) { $ad['sloc']=$ad['loc']; }
+                    if (isset($ad['loc']) && $ad['loc']) { $ad['sloc']=$ad['loc']; }
                                                 
-                if ($publish===1) {  
-                    $sections = $this->router->db->getSections();
-                    if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId) {
-                        $ad['ro']=$sections[$sections[$sectionId][5]][4];
-                        $ad['se']=$sections[$sectionId][5];
-                        $ad['pu']=$sections[$sectionId][9];
-                    }                                                        
-                }
+                    if ($publish==1) {                  
+                        $sections = $this->urlRouter->db->getSections();
+                        if (isset($sections[$sectionId]) && $sections[$sectionId][5] && $sections[$sectionId][8]==$purposeId) {
+                            $this->user->pending['post']['ro']=$ad['ro']=$sections[$sections[$sectionId][5]][4];
+                            $this->user->pending['post']['se']=$ad['se']=$sections[$sectionId][5];
+                            $this->user->pending['post']['pu']=$ad['pu']=$sections[$sectionId][9];
+                        }                                                        
+                    }
                         
-                $wrongPhoneNumber = false;
+                    $wrongPhoneNumber = false;
                         
-                if ($publish===1 && isset($ad['cui']['p']) && \count($ad['cui']['p'])) {
-                    $numbers = [];
-                    foreach ($ad['cui']['p'] as $number) {
-                        if (isset($number['v']) && \trim($number['v'])!=='') {
-                            $parseError = false;
-                            try {
-                                $num = $validator->parse($number['v'], $number['i']);
-                            }
-                            catch (Exception $e) {
-                                $parseError = true;
-                            }
-                            $isValid = false;
-                            if (!$parseError) {
-                                if ($validator->isValidNumber($num)) {
-                                    $mType = $validator->getNumberType($num);
-                                    $isValid = true;
+                    if ($publish==1 && isset($ad['cui']['p']) && count($ad['cui']['p'])) {
+                        $numbers = [];
+                        foreach ($ad['cui']['p'] as $number) {
+                            if (isset($number['v']) && trim($number['v'])!='') {
+                                $parseError = false;
+                                try {
+                                    $num = $validator->parse($number['v'], $number['i']);
                                 }
-                                else {
-                                    if (\strlen($number['r']) > 15) {
-                                        $corrected = false;
-                                        $tmp2 = '';
-                                        for ($i=6, $l = (\strlen($number['r'])/2)+5; $i < $l; $i++) {
-                                            $tmp = \substr($number['r'], 0, $i);
-                                            $num = $validator->parse($tmp, $number['i']);
-                                            if ($validator->isValidNumber($num)) {
-                                                $tNum = [   'v' =>  $validator->format($num, libphonenumber\PhoneNumberFormat::E164),
-                                                            't' =>  1,
-                                                            'c' =>  $number['c'],
-                                                            'r' =>  $tmp,
-                                                            'i' => $number['i']
-                                                        ];
-                                                $mType = $validator->getNumberType($num);
-                                                switch ($mType) {
-                                                    case 3:
-                                                    case 0:
-                                                        $tNum['t'] = 7;
-                                                        break;
-                                                    case 5:
-                                                    case 2:
-                                                    case 1:
-                                                        $tNum['t'] = 1;
-                                                        break;
-                                                    default:
-                                                        $tNum = null;
-                                                        break;
-                                                }
-                                                if ($tNum) { $numbers[] = $tNum; }
-
-                                                $tmp = substr($number['r'], strlen($tmp));
+                                catch (Exception $e) {
+                                    $parseError = true;
+                                }
+                                $isValid = false;
+                                if (!$parseError) {
+                                    if ($validator->isValidNumber($num)) {
+                                        $mType = $validator->getNumberType($num);
+                                        $isValid = true;
+                                    }
+                                    else {
+                                        if (strlen($number['r']) > 15) {
+                                            $corrected = false;
+                                            $tmp2 = '';
+                                            for ($i=6, $l = (strlen($number['r'])/2)+5; $i < $l; $i++) {
+                                                $tmp = substr($number['r'], 0, $i);
                                                 $num = $validator->parse($tmp, $number['i']);
                                                 if ($validator->isValidNumber($num)) {
                                                     $tNum = [   'v' =>  $validator->format($num, libphonenumber\PhoneNumberFormat::E164),
@@ -2866,257 +2948,319 @@ class Bin extends AjaxHandler {
                                                             $tNum = null;
                                                             break;
                                                     }
-                                                        
                                                     if ($tNum) { $numbers[] = $tNum; }
+
+                                                    $tmp = substr($number['r'], strlen($tmp));
+                                                    $num = $validator->parse($tmp, $number['i']);
+                                                    if ($validator->isValidNumber($num)) {
+                                                        $tNum = [   'v' =>  $validator->format($num, libphonenumber\PhoneNumberFormat::E164),
+                                                                    't' =>  1,
+                                                                    'c' =>  $number['c'],
+                                                                    'r' =>  $tmp,
+                                                                    'i' => $number['i']
+                                                                ];
+                                                        $mType = $validator->getNumberType($num);
+                                                        switch ($mType) {
+                                                            case 3:
+                                                            case 0:
+                                                                $tNum['t'] = 7;
+                                                                break;
+                                                            case 5:
+                                                            case 2:
+                                                            case 1:
+                                                                $tNum['t'] = 1;
+                                                                break;
+                                                            default:
+                                                                $tNum = null;
+                                                                break;
+                                                        }
+                                                        
+                                                        if ($tNum) { $numbers[] = $tNum; }
+                                                    }
+                                                    $corrected = true;
+                                                    break;
                                                 }
-                                                $corrected = true;
-                                                break;
                                             }
-                                        }
                                             
-                                        if ($corrected) { continue; }
-                                    }                                        
-                                    else {
-                                        $num = $validator->parse($number['r'], $number['i']);
-                                        if ($validator->isValidNumber($num)) {
-                                            $isValid = true;
-                                            $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
-                                            $number['i'] = $validator->getRegionCodeForNumber($num);
-                                            $number['c'] = $validator->getCountryCodeForRegion($number['i']);
-                                            $mType = $validator->getNumberType($num);
+                                            if ($corrected) { continue; }
                                         }
+                                        
                                         else {
-                                            if (\strlen($this->user->params['user_country'])==2) {
-                                                $num = $validator->parse($number['r'], \strtoupper($this->user->params['user_country']));
-                                                if ($validator->isValidNumber($num)) {
-                                                    $isValid = true;
-                                                    $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
-                                                    $number['i'] = $validator->getRegionCodeForNumber($num);
-                                                    $number['c'] = $validator->getCountryCodeForRegion($number['i']);
-                                                    $mType = $validator->getNumberType($num);
+                                            $num = $validator->parse($number['r'], $number['i']);
+                                            if ($validator->isValidNumber($num)) {
+                                                $isValid = true;
+                                                $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
+                                                $number['i'] = $validator->getRegionCodeForNumber($num);
+                                                $number['c'] = $validator->getCountryCodeForRegion($number['i']);
+                                                $mType = $validator->getNumberType($num);
+                                            }
+                                            else {
+                                                if (strlen($this->user->params['user_country'])==2) {
+                                                    $num = $validator->parse($number['r'],  strtoupper($this->user->params['user_country']));
+                                                    if ($validator->isValidNumber($num)) {
+                                                        $isValid = true;
+                                                        $number['v'] = $validator->format($num, libphonenumber\PhoneNumberFormat::E164);
+                                                        $number['i'] = $validator->getRegionCodeForNumber($num);
+                                                        $number['c'] = $validator->getCountryCodeForRegion($number['i']);
+                                                        $mType = $validator->getNumberType($num);
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
-                            }
                                 
-                            if ($isValid) {
-                                $ot = $number['t'];
-                                switch ($mType) {
-                                    case 3:
-                                    case 0:
-                                        if (!($ot >= 7 && $ot <= 9)) {
-                                            $number['t'] = 7;
-                                        }
-                                        break;
-                                    case 1:
-                                        if (!(($ot >= 1 && $ot < 6) || $ot == 13)) {
-                                            $number['t'] = 1;
-                                        }
-                                        break;
-                                    case 5:
-                                    case 2:
-                                        if (!(($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)) {
-                                            $number['t'] = 1;
-                                        }
-                                        break;
-                                    default:
-                                        break;
-                                }                                            
-                                $numbers[] = $number;
+                                if ($isValid) {
+                                    $ot = $number['t'];
+                                    switch ($mType) {
+                                        case 3:
+                                        case 0:
+                                            if (!($ot >= 7 && $ot <= 9)) {
+                                                $number['t'] = 7;
+                                            }
+                                            break;
+                                        case 1:
+                                            if (!(($ot >= 1 && $ot < 6) || $ot == 13)) {
+                                                $number['t'] = 1;
+                                            }
+                                            break;
+                                        case 5:
+                                        case 2:
+                                            if (!(($ot >= 1 && $ot <= 9 && $ot != 6) || $ot == 13)) {
+                                                $number['t'] = 1;
+                                            }
+                                            break;
+                                        default:
+                                            break;
+                                    }                                            
+                                    $numbers[] = $number;
+                                }
                             }
                         }
-                    }
                         
-                    if (\count($numbers)) {
-                        $ad['cui']['p'] = $numbers;
+                        if (count($numbers)) {
+                            $ad['cui']['p'] = $numbers;
                                     
-                        if (isset ($ad['other']) && $ad['other']) {
-                            $other=$ad['other'];
-                            $other=\preg_replace('/\x{200B}.*/u', '', $other);
-                            $adRTL=\preg_match('/[\x{0621}-\x{064a}]/u', $other);
-                            $ad['other']=$other;
-                            $ad['other'].="\xE2\x80\x8B".$this->user->parseUserAdTime($ad['cui'],$ad['cut'],$adRTL);
-                        }
+                            if (isset ($ad['other']) && $ad['other']) {
+                                $other=$ad['other'];
+                                $other=preg_replace('/\x{200B}.*/u', '', $other);
+                                $adRTL=preg_match('/[\x{0621}-\x{064a}]/u', $other);
+                                $ad['other']=$other;
+                                $ad['other'].="\xE2\x80\x8B".$this->user->parseUserAdTime($ad['cui'],$ad['cut'],$adRTL);
+                            }
                             
-                        if (isset ($ad['altother']) && $ad['altother']) {
-                            $altOther=$ad['altother'];
-                            $altOther=\preg_replace('/\x{200B}.*/u', '', $altOther);
-                            $altRTL=\preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
-                            $ad['altother']=$altOther;
-                            $ad['altother'].="\xE2\x80\x8B".$this->user->parseUserAdTime($ad['cui'],$ad['cut'],$altRTL);
-                        }
+                            if (isset ($ad['altother']) && $ad['altother']) {
+                                $altOther=$ad['altother'];
+                                $altOther=preg_replace('/\x{200B}.*/u', '', $altOther);
+                                $altRTL=preg_match('/[\x{0621}-\x{064a}]/u', $altOther);
+                                $ad['altother']=$altOther;
+                                $ad['altother'].="\xE2\x80\x8B".$this->user->parseUserAdTime($ad['cui'],$ad['cut'],$altRTL);
+                            }
                                     
-                        //check is local number
-                        if ($requireReview && $countryId && !$isMultiCountry && trim($ad['cui']['e'])==='') {
-                            $countryCode = '+'.$this->router->countries[$countryId]['code'];
-                            $differentCodes = false;
-                            foreach ($numbers as $number) {
-                                if (\substr($number['v'], 0, \strlen($countryCode)) != $countryCode) {
-                                    $differentCodes = true;
+                            //check is local number
+                            if ($requireReview && $countryId && !$isMultiCountry && trim($ad['cui']['e'])=='') {
+                                $countryCode = '+'.$this->urlRouter->countries[$countryId]['code'];
+                                $differentCodes = false;
+                                foreach ($numbers as $number) {
+                                    if (substr($number['v'], 0, strlen($countryCode)) != $countryCode) {
+                                        $differentCodes = true;
+                                    }
+                                }
+                                if (!$differentCodes) {
+                                    $requireReview = 0;
                                 }
                             }
-                            if (!$differentCodes) { $requireReview = 0; }
+                        }
+                        else {
+                            $wrongPhoneNumber = true;
                         }
                     }
-                    else {
-                        $wrongPhoneNumber = true;
+                        
+                    $this->user->pending['post']['content']=json_encode($ad);
+                        
+                    $json_error = json_last_error();
+                        
+                    if ($json_error==5) {
+                        if (isset($ad['userLOC'])) {
+                            $ad['userLOC']=$ad['ip'];
+                            $this->user->pending['post']['content']=json_encode($ad);
+                            $json_error = json_last_error();
+                        }
                     }
-                }
                         
-                $this->user->pending['post']['content']=json_encode($ad);
-                        
-                $json_error = json_last_error();
-                        
-                if ($json_error==5) {
-                    if (isset($ad['userLOC'])) {
-                        $ad['userLOC']=$ad['ip'];
-                        $this->user->pending['post']['content']=json_encode($ad);
-                        $json_error = json_last_error();
+                    $isSCAM = 0;                        
+                    if ($publish==1 && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
+                        $blockedEmailPatterns = addcslashes(implode('|', $this->urlRouter->cfg['restricted_email_domains']),'.');
+                        $isSCAM = preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
                     }
-                }
                         
-                $isSCAM = 0;                        
-                if ($publish===1 && isset($ad['cui']['e']) && \strlen($ad['cui']['e'])>0) {
-                    $blockedEmailPatterns = \addcslashes(\implode('|', $this->router->config->get('restricted_email_domains')),'.');
-                    $isSCAM = \preg_match('/'.$blockedEmailPatterns.'/ui', $ad['cui']['e']);
-                }
+                    if (!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
+                        $requireReview = preg_match('/\+.*@/', $ad['cui']['e']);
+                        if (!$requireReview) {
+                            $requireReview = preg_match('/hotel/', $ad['cui']['e']);
+                        }
+                        else {
+                            $requireReview = 998;
+                        }
+                        if (!$requireReview) {
+                            $requireReview = !in_array($ad['ro'], [1,2,99]) && preg_match('/\..*\..*@/', $ad['cui']['e']);
+                            if ($requireReview) {
+                                $requireReview = 996;
+                            }
+                        }
+                        else {
+                            $requireReview = 997;
+                        }
+                    }
                         
-                if (!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
-                    $requireReview = \preg_match('/\+.*@/', $ad['cui']['e']);
-                    if (!$requireReview) {
-                        $requireReview = \preg_match('/hotel/', $ad['cui']['e']);
-                    }
-                    else {
-                        $requireReview = 998;
-                    }
-                    if (!$requireReview) {
-                        $requireReview = \preg_match('/\..*\..*@/', $ad['cui']['e']);
-                        if ($requireReview) { $requireReview = 996; }
-                    }
-                    else {
-                        $requireReview = 997;
-                    }
-                }
+                    if ($publish==1 && isset($ad['budget']) && is_numeric($ad['budget']) && $ad['budget']>0) {
+                        $publish = 4;
+                    } 
                         
-                if ($publish===1 && isset($ad['budget']) && \is_numeric($ad['budget']) && $ad['budget']>0) {
-                    $publish = 4;
-                }
-                        
-                $adId = $this->user->pending['post']['id'];                        
-                if ($publish===1) {
-                    $dbAd = $this->user->getPendingAds($adId, 0, 0, true);
-                    if (isset($dbAd[0]['ID']) && $dbAd[0]['ID']) {
-                        $dbAd=$dbAd[0];
-                        $current_time = \time();
-                        $isFeatured = isset($dbAd['FEATURED_DATE_ENDED']) && $dbAd['FEATURED_DATE_ENDED'] ? ($current_time < $dbAd['FEATURED_DATE_ENDED']) : false;
-                        $isFeatureBooked = isset($dbAd['BO_DATE_ENDED']) && $dbAd['BO_DATE_ENDED'] ? ($current_time < $dbAd['BO_DATE_ENDED']) : false;
-                        if ($isFeatured || $isFeatureBooked) { $publish = 4; }
-                    }                 
-                }
+                    $adId = $this->user->pending['post']['id'];                        
+                    if ($publish==1) {
+                        $dbAd = $this->user->getPendingAds($adId,0,0,true);
+                        if (isset($dbAd[0]['ID']) && $dbAd[0]['ID']) {
+                            $dbAd=$dbAd[0];
+                            $current_time = time();
+                            $isFeatured = isset($dbAd['FEATURED_DATE_ENDED']) && $dbAd['FEATURED_DATE_ENDED'] ? ($current_time < $dbAd['FEATURED_DATE_ENDED']) : false;
+                            $isFeatureBooked = isset($dbAd['BO_DATE_ENDED']) && $dbAd['BO_DATE_ENDED'] ? ($current_time < $dbAd['BO_DATE_ENDED']) : false;
+                            if ($isFeatured || $isFeatureBooked) { $publish = 4; }
+                        }                 
+                    }
                                                 
-                //$this->user()->update();
-                //$this->user()->saveRawAdContent($ad);
-                $savedId=0;
-                if (!$isSCAM) {                        
-                    $savedId = $this->user()->saveAd($publish);
-                    $this->logAdmin($this->user->pending['post']['id'], $publish);
-                }
-                        
-                $result=array(
-                        'id'=>$this->user->pending['post']['id'],
-                        'user'=>$this->user->pending['post']['user'],
-                        'state'=>$ad['state'],
-                        'text'=> $ad['other'],
-                        'trsl'=> isset($ad['altother']) ? $ad['altother'] : ''
-                    );
-                        
-                $section_id = $this->user->pending['post']['se'];                        
-                $adObject = json_decode($this->user->pending['post']['content'], true);
-                        
-                if (($publish===1||$publish===4) && $this->user()->level()!==9) {
-                    unset($this->user->pending['post']);
                     $this->user->update();
-                }
-                        
-                $this->response('info', $result);
-                $this->resonse('ad', $adObject);
-                $this->process();
-                        
-                if ($isSCAM) {
-                    if ($mcUser->isMobileVerified()) {
-                        $this->user->block($this->user->info['id'], $mcUser->getMobileNumber(), 'scam detection by system based on certain email keywords');
+                    $this->user->saveRawAdContent($ad);
+                    if (!$isSCAM) {
+                        $this->user->saveAd($publish);
+                        $this->logAdmin($this->user->pending['post']['id'], $publish);
                     }
-                    else {
-                        $this->user->setLevel($this->user->info['id'], 5);
+                        
+                    $result=array(
+                            'id'=>$this->user->pending['post']['id'],
+                            'user'=>$this->user->pending['post']['user'],
+                            'state'=>$ad['state'],
+                            'text'=> $ad['other'],
+                            'trsl'=> isset($ad['altother']) ? $ad['altother'] : ''
+                        );
+                        
+                    $section_id = $this->user->pending['post']['se'];                        
+                    $adObject = json_decode($this->user->pending['post']['content'], true);
+                        
+                    if (($publish==1||$publish==4) && $this->user->info['level']!=9) {
+                        unset($this->user->pending['post']);
+                        $this->user->update();
                     }
-                }
-                elseif ($requireReview) {
-                    $this->user->referrToSuperAdmin($adId, $requireReview);
-                }
-                else {                            
-                    $status = 0;
-                    if ($publish==1 && $this->user->info['level']!=9 && $adId) {
+                        
+                    $this->setData($result,'I');
+                    $this->setData($adObject,'ad');
+                    $this->process();
+                        
+                    if ($isSCAM) {
                         if ($mcUser->isMobileVerified()) {
-                            $status = $mcUser->isSuspended() ? 1 : 0;
+                            $this->user->block($this->user->info['id'], $mcUser->getMobileNumber(), 'scam detection by system based on certain email keywords');
                         }
                         else {
-                            $status = $this->user->detectDuplicateSuspension($ad['cui']);
-                        }                                
-                        if ($status == 1) { 
-                            if ($ad['rtl']) {
-                                $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
-                            }
-                            else {
-                                $msg = 'your account is suspended due to repetition';
-                            }
-                            $this->user->rejectAd($adId, $msg);
+                            $this->user->setLevel($this->user->info['id'], 5);
                         }
-                        else if(in_array($section_id,array(190,1179,540,1114))) {
-                            $dupliactePending = $this->user->detectIfAdInPending($adId, $section_id, $ad['cui']);
-                            if ($dupliactePending) {
-                                if ($ad['rtl']) {
-                                    $msg = 'هنالك اعلان مماثل في لائحة الانتظار وبالنتظار موافقة محرري الموقع';
+                    }else{
+                        $halt = false;
+                        if (isset($adObject['cui']['e']) && $adObject['cui']['e']) {
+                            $email = trim($adObject['cui']['e']);
+                            $result=$this->urlRouter->db->queryResultArray(
+                                "select * from bl_email where email = '$email'", 
+                                null);
+                            if($result && isset($result[0]['EMAIL']) && $result[0]['EMAIL']){
+                                $halt = true;
+                            }
+                        }
+                        if(isset($adObject['cui']['p']) && is_array($adObject['cui']['p']) && count($adObject['cui']['p'])){
+                            $numbers = '';
+                            foreach($adObject['cui']['p'] as $num){
+                                if($numbers){
+                                    $numbers.=',';
                                 }
-                                else {
-                                    $msg = 'There is another similar ad pending Editors\' approval';
-                                }
-                                $this->user->rejectAd($adId,$msg);
+                                $numbers.=$num['v'];
+                            }
+                            $result=$this->urlRouter->db->queryResultArray(
+                                "select * from bl_phone where telephone in ($numbers)", 
+                                null);
+                            if($result && isset($result[0]['TELEPHONE']) && $result[0]['TELEPHONE']){
+                                $halt = true;
                             }
                         }
-                    }
-                    else if (($publish==1||$publish==4) && $wrongPhoneNumber && $adId) {
-                        if ($ad['rtl']) {
-                            $msg = 'يرجى تصحيح رقم الهاتف أو تحديد رمز المنطقة إن لزم';
-                        }
-                        else {
-                            $msg = 'please correct the phone number or specify the area code if applicable';
-                        }
-                        $this->user->rejectAd($adId,$msg);
-                    }
-                    else if ($publish==4 && $isMultiCountry) {
-                        if ($ad['rtl']) {
-                            $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
-                        }
-                        else {
-                            $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
-                        }
-                        $this->user->rejectAd($adId, $msg);
-                    }
+                        if($halt){
+                            $device_lang = $this->post('hl');
+                            if (!in_array($device_lang,array('ar','en'))) { $device_lang = 'ar'; }
+                            if($device_lang=='ar' || $ad['rtl']){
+                                $msg = 'احدى وسائل التواصل المدرجة في الاعلان محظورة من استخدام خدمات مرجان';
+                            }else{
+                                $msg = 'One of the contact info included in ad is blocked from using mourjan services';
+                            }
+                            $this->user->rejectAd($adId,$msg); 
+                        }else{
 
-                    if ($ad['rtl']) {
-                        $this->router->language='ar';
-                        $this->lnIndex=0;
+                            if ($requireReview) {
+                                $this->user->referrToSuperAdmin($adId, $requireReview);
+                            }
+                            else {                            
+                                $status = 0;
+                                if ($publish==1 && $this->user->info['level']!=9 && $adId) {
+                                    if ($mcUser->isMobileVerified()) {
+                                        $status = $mcUser->isSuspended() ? 1 : 0;
+                                    }
+                                    else {
+                                        $status = $this->user->detectDuplicateSuspension($ad['cui']);
+                                    }
+
+                                    if ($status == 1) { 
+                                        if ($ad['rtl']) {
+                                            $msg = 'لقد تم ايقاف حسابك بشكل مؤقت نظراً للتكرار';
+                                        }
+                                        else {
+                                            $msg = 'your account is suspended due to repetition';
+                                        }
+                                        $this->user->rejectAd($adId, $msg);
+                                    }
+                                    else if(in_array($section_id,array(190,1179,540,1114))) {
+                                        $dupliactePending = $this->user->detectIfAdInPending($adId, $section_id, $ad['cui']);
+                                        if ($dupliactePending) {
+                                            if ($ad['rtl']) {
+                                                $msg = 'هنالك اعلان مماثل في لائحة الانتظار وبالنتظار موافقة محرري الموقع';
+                                            }
+                                            else {
+                                                $msg = 'There is another similar ad pending Editors\' approval';
+                                            }
+                                            $this->user->rejectAd($adId,$msg);
+                                        }
+                                    }
+                                }
+                                else if (($publish==1||$publish==4) && $wrongPhoneNumber && $adId) {
+                                    if ($ad['rtl']) {
+                                        $msg = 'يرجى تصحيح رقم الهاتف أو تحديد رمز المنطقة إن لزم';
+                                    }
+                                    else {
+                                        $msg = 'please correct the phone number or specify the area code if applicable';
+                                    }
+                                    $this->user->rejectAd($adId,$msg);
+                                }
+                                else if ($publish==4 && $isMultiCountry) {
+                                    if ($ad['rtl']) {
+                                        $msg = 'عذراً ولكن لا يمكن تمييز الاعلان في اكثر من بلد واحد';
+                                    }
+                                    else {
+                                        $msg = 'Sorry, you cannot publish premium ads targetting more than ONE country';
+                                    }
+                                    $this->user->rejectAd($adId, $msg);
+                                }
+
+                            }
+                        }
                     }
-                    else {
-                        $this->lnIndex=1;
-                        $this->router->language='en';
-                    }
-                    $this->load_lang(array('main'));                        
-                }                               
-                break;
+                }
+                else $this->fail('101');
                 
+                break;
                 
             case "ajax-logo":                
                 require_once("lib/class.upload.php");
@@ -3370,7 +3514,161 @@ class Bin extends AjaxHandler {
                 }
                 break;
                 
-            case "ajax-upload":               
+            case "ajax-upload":
+                require_once("lib/class.upload.php");
+                $image_ok=false;
+                $thumb_ok=false;
+                $mobile_ok=false;
+                $widget_ok=false;
+                $handle=null;
+                if ($this->user->info['id'] && isset($_FILES['pic']) && isset($this->user->pending['post']['id']) && $this->user->pending['post']['id']) {
+
+                    $id=$this->user->pending['post']['id'];
+                    $adContent=json_decode($this->user->pending['post']['content'],true);
+                    if (isset ($adContent['pics']) && count($adContent['pics'])>4) {
+                        //do nothing
+                    }else {
+                    $picIndex=0;
+                    if (isset ($adContent['pic_idx'])) {
+                        $picIndex=$adContent['pic_idx'];
+                    }
+                    $path=$this->urlRouter->cfg['dir'].'/web/repos/';
+                    $tempName=$_FILES['pic']['tmp_name'];
+                    $_size=@getimagesize($tempName);                  
+                    if (is_array($_size) && $_size[0] && $_size[1]) {
+                    $handle = new Upload($_FILES['pic']);
+                    if ($handle->uploaded) {
+                        $filename = $id."_".$picIndex++;
+                        $handle->file_new_name_body   = $filename;
+                        $handle->file_overwrite   = true;
+                        $handle->Process($path.'l/');
+                        if ($handle->processed) {
+                            $image_ok = true;
+                            $extension='.'.$handle->file_src_name_ext;
+                            list($image_width, $image_height) = getimagesize($path.'l/'.$filename.$extension);
+                        }else {
+                            @unlink($tempName);
+                        }
+                        if ($image_ok) {
+                            $handle->file_new_name_body   = $filename;
+                            $handle->file_overwrite   = true;
+                            $handle->image_resize         = true;
+                            if ($image_width>120) {
+                                $handle->image_ratio_y        = true;
+                                $handle->image_x              = 120;
+                            }else{
+                                $handle->image_ratio_y        = true;
+                                $handle->image_x              = $image_width;
+                            }
+                            $handle->Process($path.'s/');
+                            if ($handle->processed) {
+                                $thumb_ok=true;
+                            }
+                            
+                            $handle->file_new_name_body   = $filename;
+                            $handle->file_overwrite   = true;
+                            $handle->image_resize         = true;
+                            if ($image_width>300) {
+                                $handle->image_ratio_y        = true;
+                                $handle->image_x              = 300;
+                            }else{
+                                $handle->image_ratio_y        = true;
+                                $handle->image_x              = $image_width;
+                            }
+                            $handle->Process($path.'m/');
+                            if ($handle->processed) {
+                                $mobile_ok=true;
+                            }
+
+                            $handle->file_new_name_body   = $filename;
+                            $handle->file_overwrite   = true;
+                            $handle->image_resize         = true;
+                            if ($image_width>648) {
+                                $handle->image_ratio_y        = true;
+                                $handle->image_x              = 648;
+                            }else{
+                                $handle->image_ratio_y        = true;
+                                $handle->image_x              = $image_width;
+                            }
+                            $handle->Process($path.'d/');
+                            if ($handle->processed) {
+                                list($image_width, $image_height) = getimagesize($path.'d/'.$filename.$extension);
+                                $widget_ok=true;
+                            }
+                        }
+
+                    }
+                    else {
+                        @unlink($tempName);
+                    }
+                    
+                    }
+                    elseif($tempName) {
+                       @unlink($tempName);
+                    }
+                    
+                    }
+                }
+
+                if ($image_ok && $thumb_ok && $mobile_ok && $widget_ok) {
+                    $filename .= $extension;
+
+                    if ($this->urlRouter->cfg['server_id']>1){
+                        $ssh = ssh2_connect('h1.mourjan.com', 22);
+                        if (ssh2_auth_password($ssh, 'mourjan-sync', 'GQ71BUT2')) {
+                            if (!ssh2_scp_send($ssh, $path.'l/'.$filename, '/var/www/mourjan/web/repos/l/'.$filename, 0664)) {
+                                $image_ok = FALSE;
+                                @unlink($path.'l/'.$filename);
+                            }
+                            elseif (!ssh2_scp_send($ssh, $path.'s/'.$filename, '/var/www/mourjan/web/repos/s/'.$filename, 0664)) {
+                                $image_ok = FALSE;
+                                @unlink($path.'l/'.$filename);
+                                @unlink($path.'s/'.$filename);
+                            }
+                            elseif (!ssh2_scp_send($ssh, $path.'d/'.$filename, '/var/www/mourjan/web/repos/d/'.$filename, 0664)) {
+                                $image_ok = FALSE;
+                                @unlink($path.'d/'.$filename);
+                                @unlink($path.'l/'.$filename);
+                                @unlink($path.'s/'.$filename);
+                            }
+                            elseif (!ssh2_scp_send($ssh, $path.'m/'.$filename, '/var/www/mourjan/web/repos/m/'.$filename, 0664)) {
+                                $image_ok = FALSE;
+                                @unlink($path.'m/'.$filename);
+                                @unlink($path.'d/'.$filename);
+                                @unlink($path.'l/'.$filename);
+                                @unlink($path.'s/'.$filename);
+                            }
+                        } else {
+                            $image_ok=FALSE;
+                        }
+                    }
+                }
+
+                if ($image_ok && $thumb_ok && $mobile_ok && $widget_ok) {
+                    if (!isset($adContent['pics'])) {
+                        $adContent['pics']=array();
+                    }
+                    $adContent['pics'][$filename]=array($image_width,$image_height);
+                    $adContent['pic_idx']=$picIndex;
+                    $isDefault=false;
+                    if (count($adContent['pics'])==1) {
+                        $adContent['pic_def']=$filename;
+                        $isDefault=true;
+                    }
+                    if(isset($adContent['extra']['p']))$adContent['extra']['p']=1;
+
+                    $this->user->pending['post']['content']=json_encode($adContent);
+                    $this->user->update();
+                    $this->user->saveAd();
+                    ?><script type="text/javascript" language="javascript" defer>top.uploadCallback(<?= '"'.$filename.'"' ?>);</script><?php
+                }
+                else {
+                    if ($handle)
+                        error_log(__CLASS__.'::'.__FUNCTION__.' '.$handle->error);
+                    else 
+                        error_log(__CLASS__.'::'.__FUNCTION__.' no user session');
+                    ?><script type="text/javascript" language="javascript" defer>top.uploadCallback();</script><?php
+                }
                 break;
                 
             case "ajax-ilogo":
@@ -3585,7 +3883,7 @@ class Bin extends AjaxHandler {
                         $this->user->pending['post']['content']=json_encode($adContent);
                         $this->user->update();
                         $this->user->saveAd();
-                        $this->setData($adContent['pic_def'],'def');
+                        if (isset($adContent['pic_def'])) { $this->setData($adContent['pic_def'],'def'); }
                         $this->process();
                     }
                     else { $this->fail('102'); }
@@ -3593,304 +3891,312 @@ class Bin extends AjaxHandler {
                 else { $this->fail('101'); }
                 break;
                 
-            case 'approve':
-                $this->authorize(true, 9);
-                $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
-                if ($contentType!=='application/json') { $this->error(self::ERR_DATA_INVALID_META); }
-                
-                $id=$this->_JPOST['i']??0;
-                $rtp=$this->_JPOST['rtp']??0;
-                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                                                                                   
-                if ($rtp>0) {
-                    $record = $this->router->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
-                    $adUser = new \Core\Lib\MCUser($record[0]['WEB_USER_ID']);
-                    if (!$adUser->isMobileVerified()) { $this->error(self::ERR_SYS_UNKNOWN); }
-                    
-                    $mobile_number = $adUser->getMobileNumber();
-                    $content = \json_decode($record[0]['CONTENT'],true);                                
-                    if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
-                        $len= isset($content['attrs']['phones']['n'])?\count($content['attrs']['phones']['n']):0;
-                        NoSQL::instance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
-                
-                        for ($i=0; $i<$len; $i++) {
-                            $to=$content['attrs']['phones']['n'][$i];
-                            if ($to!=$mobile_number && !isset($numbers[$to])) {            
-                                $type = $content['attrs']['phones']['t'][$i]??0;
-                                if ($type==1) {                                                                                                                                
-                                    //error_log("rtp {$to}");
-                                    $bins=['RTP'=>1];                                        
-                                    if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
-                                        $user_lang = $content['hl']??'en';
-                                        if ($rtp==2) {//rejected and pending                                                  
-                                            if ($user_lang==='ar') {
-                                                $msg = "تم الرفض بانتظار ارسال رسالة نصية تحتوي على " .
-                                                        $bins['code'] . 
-                                                        " من +" .
-                                                        $to . 
-                                                        " الى +" .
-                                                        $bins['to'] . 
-                                                        ". بعد ارسال الرسالة، يرجى الانتظار بضع دقائق واعادة النشر.";
-                                            }
-                                            else {                                                                                          
-                                                $msg = 'Rejected and pedning your action of sending an SMS message containing ' .
-                                                        $bins['code'] . ' from +' . $to . ' to +' . $bins['to'] . 
-                                                        '. After sending the message, please wait a couple of minutes and re-publish your ad.';
-                                            }
-
-                                            if ($this->user->rejectAd($id, $msg)) {
-                                                    $this->logAdmin($id, 3);
-                                                    $this->success(['message'=>$msg]);
-                                            }                                            
-                                            else { 
-                                                $this->error(self::ERR_SYS_FAILURE);
-                                            }
-                                        }
-                                        elseif ($rtp==1) {//approved and pending                                                        
-                                            if ($user_lang==='ar') {
-                                                    $msg = "تمت الموافقة وبانتظار ارسال رسالة نصية تحتوي على " .
+            case 'ajax-approve':
+                if ($this->user->info['id'] && $this->user->info['level']==9 && isset($_POST['i'])) {
+                    $id=$_POST['i'];
+                    $rtp=$_POST['rtp']??0;
+                    if (is_numeric($id)) {
+                        
+                        $record = $this->router()->db->queryResultArray("select web_user_id, content from ad_user where id={$id}");
+                        $ad = $content = json_decode($record[0]['CONTENT'],true); 
+                        
+                        $rejected = 0;
+                        if ($rtp) {
+                            $adUser = new MCUser($record[0]['WEB_USER_ID']);
+                            if ($adUser->isMobileVerified()) {
+                                $mobile_number = $adUser->getMobileNumber();                               
+                                if (isset($content['attrs']) && isset($content['attrs']['phones'])) {
+                                    error_log( json_encode($content['attrs']['phones']) );
+                                    $len=$content['attrs']['phones']['n']?count($content['attrs']['phones']['n']):0;
+                                    NoSQL::getInstance()->mobileVerfiedRelatedNumber($mobile_number, $numbers);
+                                    
+                                    for ($i=0; $i<$len; $i++) {
+                                        $to=$content['attrs']['phones']['n'][$i];
+                                        if ($to!=$mobile_number && !isset($numbers[$to])) {
+                                           
+                                            $type = $content['attrs']['phones']['t'][$i]??0;
+                                            if ($type==1) {
+                                                error_log("rtp {$to}");
+                                                $bins=['RTP'=>1];
+                                                if (MobileValidation::getInstance()->sendEdigearRTPRequest($to, $record[0]['WEB_USER_ID'], $mobile_number, $bins)) {
+                                                    if ($rtp==2) {//rejected and pending
+                                                    
+                                                        $user_lang = $content['hl']??"en";
+                                                        if ($user_lang=="ar") {
+                                                            $msg = "تم الرفض بانتظار ارسال رسالة نصية تحتوي على " .
+                                                                    $bins['code'] . 
+                                                                    " من +" .
+                                                                    $to . 
+                                                                    " الى +" .
+                                                                    $bins['to'] . 
+                                                                    ". بعد ارسال الرسالة، يرجى الانتظار بضع دقائق واعادة النشر.";
+                                                        }
+                                                        else {                                                                                          
+                                                            $msg = 'Rejected and pedning your action of sending an SMS message containing ' .
+                                                                    $bins['code'] . 
+                                                                    " from +" .
+                                                                    $to . 
+                                                                    " to +" .
+                                                                    $bins['to'] . 
+                                                                    ". After sending the message, please wait a couple of minutes and re-publish your ad.";
+                                                        }
+                                                        $rejected = true;
+                                                                                            
+                                                        if($this->user->rejectAd($id, $msg)) {
+                                                            $this->process();
+                                                            $this->logAdmin($id, 3);
+                                                        }
+                                                        else { $this->fail('105'); }
+                                                    }
+                                                    elseif($rtp == 1) {//approved and pending
+                                                        
+                                                        $lastCode = '';
+                                                        
+                                                        $user_lang = $content['hl']??"en";
+                                                        if ($user_lang=="ar") {
+                                                            $msg = "تمت الموافقة وبانتظار ارسال رسالة نصية تحتوي على " .
                                                                     $bins['code'] . 
                                                                     " من +" .
                                                                     $to . 
                                                                     " الى +" .
                                                                     $bins['to'] . 
                                                                     " ليتم النشر.";
+                                                        }
+                                                        else {                                                            
+                                                            $msg = 'Approved but pending your action of sending an SMS message containing ' .
+                                                                    $bins['code'] . 
+                                                                    " from +" .
+                                                                    $to . 
+                                                                    " to +" .
+                                                                    $bins['to'] . 
+                                                                    " before publishing.";
+                                                        }
+                                                        $rejected = true;
+                                                        
+                                                        if($this->user->approveAd($id, $msg)) {
+                                                            $this->process();
+                                                            $this->logAdmin($id, 2);
+                                                        }
+                                                        else { $this->fail('104'); }
+                                                        
+                                                    }                                                    
+                                                }                                              
                                             }
-                                            else {                                                            
-                                                $msg = 'Approved but pending your action of sending an SMS message containing ' .
-                                                        $bins['code'] . ' from +' . $to . ' to +' . $bins['to'] . ' before publishing.';
-                                            }
-                                            if ($this->user->approveAd($id, $msg)) {
-                                                    $this->logAdmin($id, 2);
-                                                    $this->success(['approved'=>1, 'message'=>$msg]);
-                                            }                                            
-                                            else { 
-                                                $this->error(self::ERR_SYS_FAILURE);
-                                            }                                                                                                    
                                         }
                                     }
                                 }
-                            }
-                        }                    
-                    }
-                }
-                
-                if ($this->user()->approveAd($id)) {
-                    $this->logAdmin($id, 2);
-                    $this->success();                    
-                }
-                else { 
-                    $this->error(self::ERR_SYS_FAILURE);                    
-                }                                    
-                break;
-                
-                
-            case 'help':
-                $this->authorize(true, 9);
-                $id=\filter_var($this->_JPOST['i'], FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]])+0;
-                if (!(\is_int($id) || $id<=0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                
-                if ($this->user->referrToSuperAdmin($id, $this->user->id())) {
-                    $redis=new Redis;
-                    $data=['cmd'=>'superAdmin', 'data'=>['id'=>$id]];
-                    if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
-                        $redis->publish('editorial', json_encode($data));
-                    }
-                    $this->success();
-                }
-                else {
-                    $this->error(self::ERR_SYS_FAILURE);    
-                }               
-                break;
-                
-            
-            // Make Premium
-            case 'mpre':
-                $this->authorize(true);
-                if (!isset($this->_JPOST['id'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!isset($this->_JPOST['uk'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!isset($this->_JPOST['mc'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                $ad_id=\filter_var($this->_JPOST['id'], \FILTER_VALIDATE_INT)+0;
-                $coins=\filter_var($this->_JPOST['mc'], \FILTER_VALIDATE_INT)+0;
-                $u_key=\filter_var($this->_JPOST['uk'], \FILTER_SANITIZE_STRING);
-                
-                if ($ad_id>0 && $coins>0 && $this->user->id()===$this->user->decodeId($u_key)) {
-                    $this->router->db->setWriteMode();
-                    $result=$this->router->db->queryResultArray("
-                            select a.id, b.id as bo_id, a.state 
-                            from ad_user a 
-                            left join t_ad_bo b on b.ad_id=a.id and b.blocked=0 
-                            where a.id=? and a.web_user_id=?",
-                            [$ad_id, $this->user->id()]);
-                    if (\is_array($result) && \count($result)>0) {
-                        if ($result[0]['STATE']==7) {
-                            $pass=true;
-                            if ($result[0]['BO_ID']) {
-                                $rs=$this->router->db->queryResultArray(
-                                        "update t_ad_bo set blocked=1 where id=? returning blocked",
-                                        [$result[0]['BO_ID']], true);
-                                $pass=(\is_array($rs) && isset($rs[0]['BLOCKED']));
-                            }
-                            
-                            if ($pass===true) {
-                                $irs=$this->router->db->queryResultArray(
-                                        "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, BLOCKED) VALUES (?, ?, ?, 0) RETURNING ID", 
-                                        [$ad_id, 1, $coins], true);
-
-                                if (\is_array($irs) && isset($irs[0]['ID'])) { 
-                                    $this->success();
-                                }
-                                else {
-                                    $this->error(self::ERR_SYS_FAILURE, ['en'=>'Failed to place PREMIUM order!', 'ar'=>'فشلت عملية طلب التمييز!']);
-                                }
-                            }
-                            else {
-                                $this->error(self::ERR_SYS_FAILURE);
                             }
                         }
-                        else {
-                            $this->error(self::ERR_SYS_FAILURE, ['en'=>'This ad is not published!', 'ar'=>'هذا الاعلان غير منشور!']);
+                        $forceEdit = false;
+                        //force edit if multiple cities selected on real estate and cars
+                        if(count($ad['pubTo']) > 1 && ($ad['ro']==1 || $ad['ro']==2) && $ad['se'] > 0 
+                                && $ad['se']!=748 //international real estate
+                                && $ad['se']!= 1518 //car import
+                                && in_array($ad['pu'], [1,2,8])
+                                ){
+                                    $forceEdit = true;
                         }
-                    }
-                    else {
-                        $this->error(self::ERR_USER_UNAUTHORIZED);
-                    }
-                }
-                else {
-                    $this->error(self::ERR_DATA_INVALID_PARAM);
-                }
-                break;
-                
-                
-            // stop premium listing
-            case 'spre':
-                $this->authorize(true);
-                if (!isset($this->_JPOST['id'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!isset($this->_JPOST['uk'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                $ad_id=\filter_var($this->_JPOST['id'], \FILTER_VALIDATE_INT)+0;
-                $u_key=\filter_var($this->_JPOST['uk'], \FILTER_SANITIZE_STRING);
-                //$ad_id=\filter_var('id')  filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) + 0;
-                //$user = filter_input(INPUT_POST, 'uk', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                //$lang = filter_input(INPUT_POST, 'hl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'ar']]);
-                $lang=$this->router->language;
-                if ($ad_id>0 && $this->user->id()===$this->user->decodeId($u_key)) {
-                    $this->router->db->setWriteMode();   
-                    $result=$this->router->db->queryResultArray("
-                            select a.id, 
-                            IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', featured.ended_date)) feature_end 
-                            from ad_user a 
-                            left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
-                            where a.id=? and a.web_user_id=?",
-                            [$ad_id, $this->user->id()]);
-                    if (\is_array($result) && \count($result)>0) {
-                        $rs=$this->router->db->queryResultArray("update t_ad_bo set blocked=1 where ad_id=? and blocked!=1", [$ad_id], true);
-                        if ($rs) {
-                            $expire=$result[0]['FEATURE_END']-time();
-                            $dated='';
-                            if ($expire>0) {
-                                $d=\floor($expire/3600);
-                                if ($d) {
-                                    if ($lang==='ar') {
-                                        if ($d==1) {
-                                            $dated='ساعة';
-                                        }
-                                        else if ($d==2) {
-                                            $dated='ساعتين';
-                                        }
-                                        else if ($d<11) {
-                                            $dated=$d.' ساعات';
-                                        }
-                                        else{
-                                            $dated=$d.' ساعة';
-                                        }
-                                    }
-                                    else {
-                                        if ($d==1) {
-                                            $dated='1 hour';
-                                        }
-                                        else {
-                                            $dated=$d.' hours';
-                                        }
-                                    }
+                        if($forceEdit){
+                            $this->setData(1,'edit');
+                            $this->process();
+                        }else{
+                            if ($rejected !== true){
+                                if($this->user->approveAd($id)) {
+                                    $this->process();
+                                    $this->logAdmin($id, 2);
                                 }
-                                $d=\floor(($expire%3600)/60);
-                                if ($d>0) {
-                                    if (!empty($dated)) {
-                                        $dated.=($lang==='ar')?' و':' and ';
-                                    }
-                                    if ($lang==='ar') {
-                                        if ($d==1) {
-                                            $dated.='دقيقة';
-                                        }
-                                        else if ($d==2) {
-                                            $dated.='دقيقتين';
-                                        }
-                                        else if($d<11) {
-                                            $dated.=$d.' دقائق';
-                                        }
-                                        else {
-                                            $dated.=$d.' دقيقة';
-                                        }
-                                    }
-                                    else {
-                                        if ($d==1) {
-                                            $dated.='1 minute';
-                                        }
-                                        else {
-                                            $dated.=$d.' minutes';
-                                        }
-                                    }
-                                }
+                                else { $this->fail('103'); }
                             }
-                            $this->response('end', $dated);
-                            $this->success();
-                        }
-                        else {
-                            $this->error(self::ERR_SYS_FAILURE);
                         }
                     }
-                    else {
-                        $this->error(self::ERR_SYS_FAILURE);
-                    }
+                    else { $this->fail('102'); }
                 }
-                else {
-                    $this->error(self::ERR_DATA_INVALID_PARAM);
-                }
+                else { $this->fail('101'); }
                 break;
                 
-            case 'reject':
-                $this->authorize(true, 9);
-                $id=$this->_JPOST['i'] ?? 0;
-                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                $msg=\trim($this->_JPOST['msg']??'');
-                $msg=preg_replace('/(?:dv|dev)\.mourjan/', 'www.mourjan', $msg);
-                $warn=$this->_JPOST['w'];
-                if ($this->user()->rejectAd($id, $msg, 0)) {
-                    $this->logAdmin($id, 3, $msg);
-                    $this->success();
-                }
-                else { 
-                    $this->error(self::ERR_SYS_FAILURE);
-                }
-                break;
-                
-            case 'ajax-ahold':
-                if ($this->user()->isLoggedIn() && isset ($_POST['i'])) {
+            case 'ajax-help':
+                if ($this->user->info['id'] && $this->user->info['level']==9 && isset ($_POST['i'])) {
                     $id=$_POST['i'];
                     if (is_numeric($id)) {
-                        if ($this->user->holdAd($id)) {
-                            $this->process();
-                            $this->logAdmin($id, 9);
+                        if ($this->user->referrToSuperAdmin($id, $this->user->info['id'])) {
+                            $this->process();                            
+                            try {            	
+                                $redis = new Redis();
+                                $data = ['cmd'=>'superAdmin', 'data'=>['id'=>$id]];
+                                if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
+                                    $redis->publish('editorial', json_encode($data));
+                                }
+                            } 
+                            catch (RedisException $re) {}
+                            
                         }
-                        else {
-                            $this->fail('103');
-                        }
+                        else $this->fail('103');
                     }
                     else $this->fail('102');
                 }
                 else $this->fail('101');
                 break;
                 
+            case 'ajax-mpre':
+                $ad_id = filter_input(INPUT_POST, 'i', FILTER_VALIDATE_INT) + 0;
+                $coins = filter_input(INPUT_POST, 'c', FILTER_VALIDATE_INT) + 0;
+                $user = filter_input(INPUT_POST, 'u', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+
+                $this->urlRouter->db->setWriteMode();  
+                IF($ad_id && $coins && $this->user->info['id'] == $this->user->decodeId($user)){
+
+                    $result = $this->urlRouter->db->queryResultArray("
+                            select a.id, bo.id as bo_id, a.state   
+                            from ad_user a 
+                            left join t_ad_bo bo on bo.ad_id = a.id and bo.blocked = 0 
+                            where a.id = ? and a.web_user_id = ?  
+                            ",[$ad_id, $this->user->info['id']]);
+                    
+                    if($result && count($result)){
+                        if($result[0]['STATE'] == 7){
+                            $pass = true;
+                            if($result[0]['BO_ID']){
+                                $rs = $this->urlRouter->db->queryResultArray("
+                                update t_ad_bo set blocked = 1 where id = ? returning blocked 
+                                ",[$result[0]['BO_ID']],true);
+                                if($rs && isset($rs[0]['BLOCKED'])){
+                                    $pass = true;
+                                }else{
+                                    $pass = false;
+                                }
+                            }
+                            if($pass){
+                                $result = $this->urlRouter->db->queryResultArray(
+                                "INSERT INTO T_AD_BO (AD_ID, OFFER_ID, CREDIT, BLOCKED) VALUES ".
+                                "(?, ?, ?, 0) RETURNING ID", [$ad_id, 1, $coins], TRUE);
+
+                                if($result && isset($result[0]['ID'])){ 
+                                    $this->process();
+                                }else{
+                                    $this->fail('500');
+                                }
+                            }else{
+                                $this->fail('500');
+                            }
+                        }else{
+                            $this->fail('404');
+                        }
+                    }
+                }else{
+                    $this->fail('401');
+                }
+                break;
+            case 'ajax-spre':
+                $ad_id = filter_input(INPUT_POST, 'i', FILTER_VALIDATE_INT) + 0;
+                $user = filter_input(INPUT_POST, 'u', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $lang = filter_input(INPUT_POST, 'hl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'ar']]);
+                IF($ad_id && $this->user->info['id'] == $this->user->decodeId($user)){
+                    if(!in_array($lang,array('en','ar'))){
+                        $lang = 'ar';
+                    }
+                    $this->urlRouter->db->setWriteMode();   
+                    $result = $this->urlRouter->db->queryResultArray("
+                            select a.id, 
+                            IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', featured.ended_date)) feature_end 
+                            from ad_user a 
+                            left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
+                            where a.id = ? and a.web_user_id = ?  
+                            ",[$ad_id, $this->user->info['id']]);
+                    if($result && count($result)){
+                        $rs = $this->urlRouter->db->queryResultArray("
+                                update t_ad_bo set blocked = 1 where ad_id = ?
+                                ",[$ad_id],true);
+
+                        if($rs && count($rs)){
+                            $expire = $result[0]['FEATURE_END'] - time();
+                            $dated ='';
+                            if($expire > 0){
+                                $d = floor( $expire / 3600);
+                                if($d){
+                                    if($lang == 'ar'){
+                                        if($d == 1){
+                                            $dated = 'ساعة';
+                                        }else if($d==2){
+                                            $dated = 'ساعتين';
+                                        }else if($d < 11){
+                                            $dated = $d.' ساعات';
+                                        }else{
+                                            $dated = $d.' ساعة';
+                                        }
+                                    }else{
+                                        if($d == 1){
+                                            $dated = '1 hour';
+                                        }else{
+                                            $dated = $d.' hours';
+                                        }
+                                    }
+                                }
+                                $d = floor( ($expire%3600) /60);
+                                if($d){
+                                    if($dated!=''){
+                                        if($lang == 'ar'){
+                                            $dated .= ' و';
+                                        }else{
+                                            $dated .= ' and ';
+                                        }
+                                    }
+                                    if($lang == 'ar'){
+                                        if($d == 1){
+                                            $dated .= 'دقيقة';
+                                        }else if($d==2){
+                                            $dated .= 'دقيقتين';
+                                        }else if($d < 11){
+                                            $dated .= $d.' دقائق';
+                                        }else{
+                                            $dated .= $d.' دقيقة';
+                                        }
+                                    }else{
+                                        if($d == 1){
+                                            $dated .= '1 minute';
+                                        }else{
+                                            $dated .= $d.' minutes';
+                                        }
+                                    }
+                                }
+                            }
+                            $this->setData($dated, 'end');
+                            $this->process();
+                        }else{
+                            $this->fail('500');
+                        }
+                    }else{
+                        $this->fail('404');
+                    }
+                }else{
+                    $this->fail('401');
+                }
+                break;
+            case 'ajax-reject':
+                if ($this->user->info['level']==9 && isset ($_POST['i'])) {
+                    $msg=trim($_POST['msg']);
+                    $id=$_POST['i'];
+                    $warn=$_POST['w'];
+                    if (is_numeric($id)){
+                        if ($this->user->rejectAd($id,$msg,0)) {
+                            $this->process();
+                            $this->logAdmin($id,3,$msg);
+                        }else $this->fail('103');
+                    }else $this->fail('102');
+                }else $this->fail('101');
+                break;
+            case 'ajax-ahold':
+                if ($this->user->info['id'] && isset ($_POST['i'])) {
+                    $id=$_POST['i'];
+                    if (is_numeric($id)){
+                        if ($this->user->holdAd($id)) {
+                            $this->process();
+                            //$this->logAdmin($id, 9, 'bin ahold');
+                        }else {
+                            $this->fail('103');
+                        }
+                    }else $this->fail('102');
+                }else $this->fail('101');
+                break;
             case 'ajax-arenew':
                 if ($this->user->info['id'] && isset ($_POST['i'])) {
                     $id=$_POST['i'];
@@ -3903,11 +4209,19 @@ class Bin extends AjaxHandler {
                             if ($ad && isset($ad[0]['ID']) && $ad[0]['ID']) {
                                 $ad=$ad[0];
                                 $section_id = $ad['SECTION_ID'];
+                                $purpose_id = $ad['PURPOSE_ID'];
                                 $ad = json_decode($ad['CONTENT'], TRUE);
+                                $root_id = $ad['ro'];
+                                
+                                $cityId = 0;
+                                foreach ($ad['pubTo'] as $key => $val){
+                                    $cityId = $key;
+                                    break;
+                                }
                             
                                 //$userData = MCSessionHandler::getUser($this->user->info['id']);
                                 //$mcUser = new MCUser($userData);
-                                $mcUser = new \Core\Lib\MCUser($this->user->info['id']);
+                                $mcUser = new MCUser($this->user->info['id']);
                                 
                                 if($mcUser->isMobileVerified()){
                                     $status = $mcUser->isSuspended() ? 1:0;
@@ -3933,6 +4247,26 @@ class Bin extends AjaxHandler {
                                         }
                                         $this->user->rejectAd($id,$msg);
                                     }
+                                }elseif($root_id == 1 && $purpose_id > 0 && $section_id > 0 
+                                && in_array($purpose_id, $this->reraPu)
+                                && $cityId == 14     
+                                && !(isset($this->reraEx[$section_id]) && $this->reraEx[$section_id] == $purpose_id)){
+                                    $brn =isset($ad['rera']['brn']) ? isset($ad['rera']['brn']) : 0;
+                                    $orn =isset($ad['rera']['orn']) ? isset($ad['rera']['orn']) : 0;
+                                    $permit =isset($ad['rera']['permit']) ? isset($ad['rera']['permit']) : 0;
+                                    $landlordName =isset($ad['rera']['reraName']) ? isset($ad['rera']['reraName']) : '';
+                                    $deed =isset($ad['rera']['deed']) ? isset($ad['rera']['deed']) : '';
+                                    $predeed =isset($ad['rera']['preDeed']) ? isset($ad['rera']['preDeed']) : '';
+                                    if( !(($orn && $brn && $permit) || ($landlordName && ($deed || $predeed)))){                                        
+                                        $renew= false;
+                                        if($ad['rtl']){
+                                            $msg = 'يرجى تعديل الاعلان لاضافة المعلومات الخاصة بمؤسسة التنظيم العقاري ريرا';
+                                        }else{
+                                            $msg = 'Please edit the ad to add missing RERA information';
+                                        }
+                                        error_log('renewal RERA reject '.$id);
+                                        $this->user->rejectAd($id,$msg);                                    
+                                    }
                                 }
                             }
                         }
@@ -3947,82 +4281,119 @@ class Bin extends AjaxHandler {
                 }else $this->fail('101');
                 break;
                 
-            case 'pay':
-                $this->authorize(true);
-                if (!isset($this->_JPOST['product'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!isset($this->_JPOST['currency'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                
-                $product_id=\filter_var($this->_JPOST['product'], \FILTER_SANITIZE_NUMBER_INT)+0;
-                $currency_id=\filter_var($this->_JPOST['currency'], \FILTER_SANITIZE_STRING);
-                
-                $lang=$this->router->language;                    
-                $product=$this->router->db->queryResultArray("select ID, PRODUCT_ID, MCU, USD_PRICE, AED_PRICE from product where id=? and web=1 and blocked=0", [$product_id], true);
-                
-                if (isset($product[0]['ID']) && $product[0]['ID']===$product_id) {
-                    $product=$product[0];
-                                        
-                    $product['USD_PRICE']=\number_format($product['USD_PRICE'], 2);
-                    $price=\number_format($product[$currency_id.'_PRICE'], 2);
-
-                    $orderId='';
-                    $order=$this->router->db->queryResultArray(
+            case 'ajax-pay':
+                if ($this->user->info['id'] && isset ($_POST['i'])) {
+                    $id=$this->post('i','numeric');
+                    $lang = $this->post('hl');
+                    $country = $this->post('cc');                    
+                    if (is_numeric($id)){
+                        $product=$this->urlRouter->db->queryResultArray("select ID, PRODUCT_ID, MCU, USD_PRICE, AED_PRICE from product where id=? and web=1 and blocked=0", array($id), true);
+                        if(isset($product[0]['ID']) && $product[0]['ID']){
+                            $product=$product[0];
+                            $currency=($country==='AE')?'AED':'USD';
+                            //$amount=number_format($product[$currency.'_PRICE'], 2);
+                            $amount=round($product[$currency.'_PRICE']+0.0, 2);
+                           
+                            $product['MCU']=(int)$product['MCU'];
+                            $orderId='';
+                            $order=$this->urlRouter->db->queryResultArray(
                                 "insert into t_order (uid, currency_id, amount, debit, credit, usd_value, server_id, flag) values (?, ?, ?, ?, ?, ?, ?, ?) returning id",
-                                [$this->user->id(), $currency_id, $price, 0, $product['MCU'], $product['USD_PRICE'], $this->router->config->serverId, $this->router->isMobile?1:0], true);
-                    
-                    if (isset($order[0]['ID']) && $order[0]['ID']) {
-                        $orderId=$this->user->id().'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile']?1:0);   
+                                [
+                                    $this->user->info['id'],
+                                    $currency,
+                                    $amount,
+                                    0,
+                                    $product['MCU'],
+                                    $product['USD_PRICE'],
+                                    $this->urlRouter->cfg['server_id'],
+                                    $this->router()->isMobile ? 1 : 0
+                                ], true);
+                            
+                            if(isset($order[0]['ID']) && $order[0]['ID']) {
+                                $orderId=$this->user->info['id'].'-'.$order[0]['ID'].'-'.( isset($this->user->params['mobile']) && $this->user->params['mobile'] ? 1:0);   
                                 
-                        $this->router->config->incLibFile('PayfortIntegration');                        
-                        $objFort=new PayfortIntegration;
-                        $objFort->setCurrency($currency_id)
-                                ->setAmount($price)
-                                ->setLanguage($lang)
-                                ->setCustomerEmail($this->user->info['email'])
-                                ->setItemName(\intval($product['MCU']).($lang!=='ar'?' mourjan premium days':' ايام مرجان بريميوم'))
-                                ->setMerchantReference($orderId)
-                                ->setAsPurchaseRequest();
-                        
-                        
-                        //$objFort->currency=$currency_id;
-                        //$objFort->setAmount($price);
-                        //$objFort->setCustomerEmail($this->user->info['email']);
-                        //$objFort->setItemName($product['MCU'].($lang!=='ar'?' mourjan premium days':' ايام مرجان بريميوم'));
-                        //$objFort->setMerchantReference($orderId);
-                        //$objFort->setLanguage($lang);
-                        //$objFort->setCommand('PURCHASE');
+                                require_once $this->urlRouter->cfg['dir'].'/core/lib/PayfortIntegration.php';
                                 
-                        if (($token=NoSQL::instance()->getUserPayfortToken($this->user->id()))!=false) {
-                            \error_log('Payfort tocken '.$token.PHP_EOL);
-                            $objFort->token_name=$token;
-                        }
+                                $objFort=new PayfortIntegration();
+                                /*
+                                $objFort = new MCPayfort();
+                                $objFort->setAmount($product['USD_PRICE'])
+                                        ->setLanguage($lang)
+                                        ->setCommand('PURCHASE')
+                                        ->setCustomerEmail($this->user->info['email'])
+                                        ->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'))
+                                        ->setMerchantReference($orderId);
+                                        
+                                */
+                               
+                                $objFort->setAmount($amount);
+                                $objFort->setCurrency($currency);
+                                $objFort->setCustomerEmail($this->user->info['email']);
+                                $objFort->setItemName($product['MCU'].($lang!='ar' ? ' mourjan gold':' ذهبية مرجان'));
+                                $objFort->setMerchantReference($orderId);
+                                $objFort->setLanguage($lang);
+                                $objFort->setCommand('PURCHASE');
                                 
-                        $form=$objFort->getRedirectionData('');
-                        //$formData='';
-                        $formFields=[];
-                        foreach ($form['params'] as $k=>$v) {
-                            //$formData.='<input type="hidden" name="'.$k.'" value="'.$v .'">';
-                            $formFields[]=['name'=>$k, 'value'=>$v];
-                        }                     
-                        
-                        
-                        //$this->response('fields', $formData);
-                        $this->response('params', $formFields);
-                        $this->response('url', $form['url']);
-                        $this->success();
+                                if (($token= NoSQL::getInstance()->getUserPayfortToken($this->user->info['id']))!=FALSE) {
+                                    //$objFort->token_name = $token;
+                                    //$objFort->setTokenName($token);                                    
+                                }
                                 
-                    }
-                    else {
-                        $this->error(self::ERR_SYS_FAILURE);
-                    }
-                    
-                    $this->error(self::ERR_SYS_FAILURE);
-                }
-                else {
-                    $this->error(self::ERR_DATA_INVALID_PARAM);
-                }
-                                    
+                                $form = $objFort->getRedirectionData('');
+                                $formData = '';
+                                foreach($form['params'] as $k => $v){
+                                    $formData .= '<input type="hidden" name="' . $k . '" value="' . $v . '">';
+                                }
+                                
+                                //\error_log(PHP_EOL.$formData.PHP_EOL);
+                                $this->setData($formData, "D");
+                                $this->setData($form['url'], "U");
+                                /*
+                                $product['MCU'] = (int)$product['MCU'];
+                                $passPhrase = $this->urlRouter->cfg['payfor_pass_phrase_out'];
+                                $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
+                                $access_code = $this->urlRouter->cfg['payfor_access_code'];
+                                $webscr = $sandbox ? $this->urlRouter->cfg['payfor_url_test'] : $this->urlRouter->cfg['payfor_url'];
+                                $return_url = $this->urlRouter->cfg['host'] . '/buyu/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '');
+                                $merchant_id = $this->urlRouter->cfg['payfor_merchant_id'];
+
+                                $requestParams = [
+                                    'access_code' => $access_code ,
+                                    'amount' => $product['USD_PRICE'],
+                                    'currency' => 'USD',
+                                    'customer_email' => $this->user->info['email'],
+                                    'merchant_reference' => '1-3',
+                                    'order_description' =>  $product['MCU'].(1 ? ' mourjan gold':' ذهبية مرجان'),
+                                    'language' => $lang,
+                                    'merchant_identifier' => $merchant_id,
+                                    'command' => 'PURCHASE',
+                                    'return_url'=>$return_url,
+                                    'dynamic_descriptor' => $product['MCU']. ' mourjan gold'
+                                ];
+
+                                ksort($requestParams);
+
+                                $signature = '';
+                                foreach ($requestParams as $a => $b) {
+                                    $signature .= $a . '=' .$b;
+                                }
+                                $signature = $passPhrase.$signature.$passPhrase; 
+                                
+                                $signature = hash('sha256', $signature);  
+                                
+                                
+
+                                $this->setData($signature, "S");
+                                $this->setData($orderId, "O");
+                                 * 
+                                 */
+                                $this->process();
+                                
+                            }else $this->fail('104');                            
+                        }else $this->fail('103');
+                    }else $this->fail('102');
+                }else $this->fail('101');
                 break;
-                
                 
             case 'ajax-adel':
                 if ($this->user->info['id'] && isset ($_POST['i'])) 
@@ -4053,16 +4424,16 @@ class Bin extends AjaxHandler {
                 
             case "ajax-sections":
                 $rootId=$this->post('ro', 'uint');
-                $language=strtolower($this->post('sl', 'filter'));
-                if ($rootId && $language) {
+                $siteLanguage=strtolower($this->post('sl', 'filter'));
+                if ($rootId && $siteLanguage) {
                     $sections=$this->urlRouter->db->queryCacheResultSimpleArray(
-                    "req_sections_{$language}_{$rootId}",
-                    "select s.ID,s.name_".$language."
+                    "req_sections_{$siteLanguage}_{$rootId}",
+                    "select s.ID,s.name_".$siteLanguage."
                     from section s
                     left join category c on c.id=s.category_id
-                    where c.root_id={$rootId} and s.id not in (19,29,63,105,114)
-                    order by s.NAME_{$language}",
-                    null, 0, $this->urlRouter->cfg['ttl_long']);
+                    where c.root_id={$rootId} and s.blocked = 0 and s.id not in (19,29,63,105,114)
+                    order by s.NAME_{$siteLanguage}");
+                    
 
                     $countPerColumn=ceil(count($sections)/5);
                     $res='<ul>';
@@ -4365,7 +4736,6 @@ class Bin extends AjaxHandler {
                                     $this->fail($this->lang['wrongInfo']);
                                 }
                                 break;
-                                
                             case 'contact':
                                 if (isset($fields['c']) && isset($fields['m']) && isset($fields['n']) && is_numeric($fields['n'])){
                                     if (!isset($this->user->info['options']))
@@ -4585,99 +4955,135 @@ class Bin extends AjaxHandler {
                     }else $this->fail('102');
                 }else $this->fail('101');
                 break; 
-                
-            case 'account':
-                $this->authorize(true);
-                $this->load_lang(['account'], $this->router->language);          
-                $notifications=$this->user->info['options']['nb']??['ads'=>1,'coms'=>1, 'news'=>1];
-                
-                /*
-                $name=\filter_var($this->_JPOST['name'], FILTER_SANITIZE_STRING);
-                $email=\filter_var($this->_JPOST['email'], FILTER_VALIDATE_EMAIL);
-                if (!$email) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                $feed=\filter_var($this->_JPOST['msg'], \FILTER_SANITIZE_STRING);
-                */
-                
-                $keys=\array_keys($this->_JPOST);
-                foreach ($keys as $key) {
-                    switch ($key) {
-                        case 'lang':
-                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_STRING);
-                            if (\in_array($value, ['ar', 'en'])) {
-                                $this->user->info['options']['lang']=$value;
-                                $this->user->update();
-                                $this->user->updateOptions();
-                                $this->response($key, $value);
-                            }
-                            break;
-                            
-                        case 'name':
-                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_STRING);
-                            if (NoSQL::instance()->setUserBin($this->user->id(), \Core\Model\ASD\USER_FULL_NAME , $value)) {
-                                $this->user->info['name']=$value;
-                                $this->user->update();
-                                $this->response($key, $value);
-                            }                            
-                            break;
-                            
-                        case 'email':
-                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_EMAIL);
-                            $status=IPQuality::getEMailStatus($value);
-                            if ($status['disposable']===1) {
-                                $this->response('email', 'Disposable email is not accepted');
-                                $this->error(self::ERR_DATA_INVALID_EMAIL);
-                            }
-                            if ($status['honeypot']===1) {
-                                $this->response('email', 'Honeypot email is not accepted');
-                                $this->error(self::ERR_DATA_INVALID_EMAIL);
-                            }
-                            if ($status['valid']!==1) {
-                                $this->response('email', 'Invalid email is not accepted');
-                                $this->error(self::ERR_DATA_INVALID_EMAIL);
-                            }
-                            
-                            require_once $this->dir.'/bin/utils/MourjanMail.php';
-                            $lang=$this->user->info['options']['lang']?$this->user->info['options']['lang']:$this->router->language;
-                            $sessionKey=\md5($this->sid.$this->user->id().$this->user->info['provider'].time());                                            
-                            $sKey=$this->user->encodeRequest('email_verify', [$this->user->id()]);
-                            $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-                            
-                            $mailer=new MourjanMail($lang);
-                            if ($mailer->sendEmailValidation($value, $verifyLink, $this->user->info['name'])) {
-                                $this->user->info['options']['email']=$value;
-                                $this->user->info['options']['emailKey']=$sessionKey;
-                                $this->user->update();
-                                $this->user->updateOptions();
-                                $this->response($key, $value);
-                                $this->response('hint', \preg_replace('/{email}/', $value, $this->lang['emailSent']));  
-                            } 
-                            else {
-                                $this->error(self::ERR_SYS_FAILURE, ['more'=>$this->lang['systemErr']]);
-                            }                            
-                            break;
-                            
-                        case 'ads':
-                        case 'coms':
-                        case 'news':  
-                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_NUMBER_INT)+0;
-                            $this->response($key, $value);
-                            $notifications[$key]=$value;
-                            $this->user->info['options']['nb']=$notifications;
-                            if ($this->user->updateOptions()) {
-                                $this->user->update();
-                            }
-                            break;
-                        
-                        default:
-                            break;
-                    }
-                }                
-                $this->success();                             
-                
+            case 'ajax-account':
+                $lang=$this->post('lang');
+                if ($lang!=='en' && $lang!=='ar') $lang='ar';
+                $this->load_lang(array('account'), $lang);
+                if ($this->user->info['id']) {
+                    $form=$this->post('form');
+                    $fields=$this->post('fields', 'array');
+                    if ($form && is_array($fields)){
+                        switch($form){
+                            case 'lang':
+                                if (isset($fields['lang']) && in_array($fields['lang'],array('en','ar')) ) {
+                                    if (isset($this->user->info['options']['lang']) && $this->user->info['options']['lang']==$fields['lang']){
+                                        $result=array();
+                                        $result['lang']=array('value',$fields['lang'],($fields['lang']=='ar' ? 'العربية' : 'English' ));
+                                        $this->setData($result,'fields');
+                                        $this->process();
+                                    }else {
+                                        $this->user->info['options']['lang']=$fields['lang'];
+                                        $this->user->update();
+                                        $this->user->updateOptions();
+                                        $result=array();
+                                        $result['lang']=array('value',$fields['lang'],($fields['lang']=='ar' ? 'العربية' : 'English' ));
+                                        $this->setData($result,'fields');
+                                        $this->process();
+                                    }
+                                }else {
+                                    $this->fail('103');
+                                }
+                                break;
+                            case 'name':
+                                if (isset($fields['name']) && mb_strlen($fields['name'])>2 && !preg_match('/[0-9]|[\,\.\'\{}\[\]\@\#\$\%\^\&\*\-\_\+\=\(\)\~\`\?\/\\\]/', $fields['name']) ) {
+                                    if ($this->user->info['name']==$fields['name']){
+                                        $result=array();
+                                        $result['name']=array('value',$fields['name']);
+                                        $this->setData($result,'fields');
+                                        $this->process();
+                                    }else {
+                                        if ($this->urlRouter->db->queryResultArray('update web_users set user_name=? where id=?',array($fields['name'],$this->user->info['id']), true)) {
+                                            $result=array();
+                                            $result['name']=array('value',$fields['name']);
+                                            $this->setData($result,'fields');
+                                            $this->user->info['name']=$fields['name'];
+                                            $this->user->update();
+                                            $this->process();
+                                        }else $this->fail($this->lang['systemErr']);
+                                    }
+                                }else {
+                                    $fields['name']=$this->lang['validName'];
+                                    $this->setData($fields,'fields');
+                                    $this->fail($this->lang['wrongInfo']);
+                                }
+                                break;
+                            case 'email':
+                                if ($this->user->info['id']){
+                                    if(isset($fields['email']) && preg_match('/[a-z0-9!#$%&\'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+\/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+(?:[A-Z]{2}|com|org|net|edu|gov|mil|biz|info|mobi|name|aero|asia|jobs|museum)\b/', $fields['email']) ) {
+                                        if ($this->user->info['email']!=$fields['email']) {
+                                            require_once $this->dir.'/bin/utils/MourjanMail.php';
+                                            
+                                            $sessionKey=md5($this->sid.$this->user->info['id'].$this->user->info['provider'].time());
+                                            
+                                            $sKey=$this->user->encodeRequest('email_verify',array($this->user->info['id']));
+                                            $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
+                                            
+                                            $mailer=new MourjanMail($this->urlRouter->cfg, ( isset($this->user->info['options']['lang']) && $this->user->info['options']['lang'] ? $this->user->info['options']['lang'] : $this->urlRouter->siteLanguage) );
+                                            if ($mailer->sendEmailValidation($fields['email'],$verifyLink,$this->user->info['name'])){
+                                                $this->user->info['options']['email']=$fields['email'];
+                                                $this->user->info['options']['emailKey']=$sessionKey;
+                                                $this->user->update();
+                                                $this->user->updateOptions();
+                                                $result=array();
+                                                $result['email']=array('value', $fields['email'], '<ok>'.preg_replace('/{email}/', $fields['email'],$this->lang['emailSent']).'</ok>');
+                                                $this->setData($result,'fields');
+                                                $this->process();
+                                            }else $this->fail($this->lang['systemErr']);
+                                        }else {
+                                            unset($this->user->info['options']['email']);
+                                            unset($this->user->info['options']['emailKey']);
+                                            $this->user->update();
+                                            $this->user->updateOptions();
+                                            $result=array();
+                                            $result['email']=array('value', $fields['email']);
+                                            $this->setData($result,'fields');
+                                            $this->process();
+                                        }
+                                    }else {
+                                        $fields['email']=$this->lang['validEmail'];
+                                        $this->setData($fields,'fields');
+                                        $this->fail($this->lang['wrongInfo']);
+                                    }
+                                }else $this->fail('101');
+                                break;
+                            case 'notifications':
+                                $old=$notifications=array('ads'=>1,'coms'=>1, 'news'=>1,'third'=>1);
+                                if (isset($this->user->info['options']['nb']) && is_array($this->user->info['options']['nb'])) $old=$notifications=array_merge($notifications,$this->user->info['options']['nb']);
+                                if (isset($fields['ads']) && $fields['ads']) $notifications['ads']=1;
+                                else $notifications['ads']=0;
+                                if (isset($fields['news']) && $fields['news']) $notifications['news']=1;
+                                else $notifications['news']=0;
+                                if (isset($fields['third']) && $fields['third']) $notifications['third']=1;
+                                else $notifications['third']=0;
+                                if (isset($fields['coms']) && $fields['coms']) $notifications['coms']=1;
+                                else $notifications['coms']=0;
+                                $this->user->info['options']['nb']=$notifications;
+                                if ($this->user->updateOptions()) {                                    
+                                    $this->user->update();
+                                    $result=array();
+                                    $result['ads']=array('checked', ($notifications['ads'] ? 'checked' : ''));
+                                    $result['coms']=array('checked', ($notifications['coms'] ? 'checked' : ''));
+                                    $result['news']=array('checked', ($notifications['news'] ? 'checked' : ''));
+                                    $result['third']=array('checked', ($notifications['third'] ? 'checked' : ''));
+                                    $this->setData($result,'fields');
+                                    $this->process();
+                                }else {
+                                    $this->user->info['options']['nb']=$old;
+                                    $this->user->update();
+                                    $this->fail($this->lang['systemErr']);
+                                }
+                                break;
+                            default:
+                                $this->fail('102');
+                                break;
+                        }
+                    }else $this->fail('101');
+                }else $this->fail($this->lang['sessionTO']);
                 break;
 
             case 'ajax-support':
-                if ($this->user->info['id']) {
+                if ($this->user->info['id'])
+                {
                     $lang=$this->post('lang');
                     $this->load_lang(array('post'),$lang);
                     $name=$this->user->info['name'];
@@ -4720,25 +5126,18 @@ class Bin extends AjaxHandler {
                 }else $this->fail('101');
                 break;
 
-            case 'contact':                
-                if (!isset($this->_JPOST['lang'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
-                if (!isset($this->_JPOST['name'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
-                if (!isset($this->_JPOST['email'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
-                if (!isset($this->_JPOST['msg'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }  
-                
-                $lang=$this->_JPOST['lang'];
-                $this->router->language=$lang;
-                $name=\filter_var($this->_JPOST['name'], FILTER_SANITIZE_STRING);
-                $email=\filter_var($this->_JPOST['email'], FILTER_VALIDATE_EMAIL);
-                if (!$email) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                //$email=\filter_var($this->_JPOST['email'], \FILTER_SANITIZE_EMAIL);
-                $feed=\filter_var($this->_JPOST['msg'], \FILTER_SANITIZE_STRING);
-                $this->load_lang(array('contact'), $lang);
+            case 'ajax-contact':
+                $lang = $this->post('lang');
+                $this->load_lang(array('contact'),$lang);
                 $subject = 'User Feedback';
+                $name = $this->post('name', 'filter');
+                $email = $this->post('email', 'filter');
+                $feed = $this->post('msg', 'filter');
                 			           
-                $geo = $this->router->getIpLocation();
-                $mobile = (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
+                $geo = $this->urlRouter->getIpLocation();
+                $mobile= (isset($this->user->params['mobile'])) ? $mobile=$this->user->params['mobile'] : 0;
                 $geostr = "";
+                
                 if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
                     $geostr.= $geo['country']['names']['en'];
                 }
@@ -4746,24 +5145,25 @@ class Bin extends AjaxHandler {
                 if (isset($geo['location']) && isset($geo['location']['time_zone'])) {
                     $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
                 }
+                
                 if ($mobile) {
                     $geostr.= " - Mobile";
                 }
 
                 $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                if ($this->user()->isLoggedIn()) {
-                    $msg.="<td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user()->id()}' target=_blank>{$name}</a></td>";
+                if ($this->user->info['id']) {
+                    $msg.="<td><b>Name</b></td><td><a href='https://www.mourjan.com/myads/?u={$this->user->info['id']}' target=_blank>{$name}</a></td>";
                 }
                 else {
                     $msg.="<td><b>Name</b></td><td>{$name}</td>";
                 }
                 $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
                 if (isset($this->user->params['country']) && $this->user->params['country']>0) {
-                    if (isset($this->router->countries[$this->user->params['country']])) {
-                        $msg.="<td><b>Target</b></td><td>{$this->router->countries[$this->user->params['country']]['uri']}";
+                    if (isset($this->urlRouter->countries[$this->user->params['country']])) {
+                        $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
                         if (isset($this->user->params['city']) && $this->user->params['city']>0) {
-                            if (isset($this->router->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
-                                $msg.=" - {$this->router->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
+                            if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
+                                $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                             }
                             else {
                                 $msg.=" - {$this->user->params['city']}";
@@ -4776,22 +5176,24 @@ class Bin extends AjaxHandler {
                             $msg.=" - {$this->user->params['city']}";
                         }
                     }
-
                     $msg.="</td></tr>";
-                } else $msg.="</tr>";
+                } 
+                else { 
+                    $msg.="</tr>";                    
+                }
                 $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
                 $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
                 $msg.="<td><b>Email:</b></td><td colspan='3'>".$email."</td></tr>";
                 $msg.="<tr><td colspan='6'>{$feed}</td></tr>";
                 $msg.="</table>";
 
-                $res=$this->sendMail("Mourjan Support", Config::instance()->get('admin_email'), $name, $email, $subject, $msg, Config::instance()->get('smtp_contact'));
-                if ($res) {
-                    $this->resp['result']=$this->lang['msgOk'];                    
-                    $this->success();     
+                $res=$this->sendMail("Mourjan Support", $this->urlRouter->cfg['admin_email'], $name, $email, $subject, $msg, $this->urlRouter->cfg['smtp_contact']);
+                if (!$res) {
+                    $this->fail($this->lang['errSys']);
                 }
-                else {                                                  
-                    $this->error(self::ERR_SYS_FAILURE, ['en'=>$this->lang['errSys'],'ar'=>$this->lang['errSys']]);
+                else {
+                    $this->msg=$this->lang['msgOk'];
+                    $this->process();
                 }
                 break;
 
@@ -4826,7 +5228,7 @@ class Bin extends AjaxHandler {
                         from section s",
                         null, 0, $this->urlRouter->cfg['ttl_long'], true);*/
                         
-                        $this->urlRouter->db->getSections(true);
+                        $this->urlRouter->db->getSections();
 
                         $this->process();
                     }else $this->fail("102");
@@ -4851,14 +5253,14 @@ class Bin extends AjaxHandler {
                         null, 0, $this->urlRouter->cfg['ttl_long'], true);
                          * 
                          */
-                        $this->urlRouter->db->getSections(true);
+                        $this->urlRouter->db->getSections();
 
                         $this->urlRouter->db->queryCacheResultSimpleArray(
                         "req_sections_en_{$rootId}",
                         "select s.ID,s.name_en
                         from section s
                         left join category c on c.id=s.category_id
-                        where c.root_id={$rootId} and s.id not in (19,29,63,105,114)
+                        where c.root_id={$rootId} and s.blocked = 0 and s.id not in (19,29,63,105,114)
                         order by s.NAME_EN",
                         null, 0, $this->urlRouter->cfg['ttl_long'], true);
 
@@ -4867,7 +5269,7 @@ class Bin extends AjaxHandler {
                         "select s.ID,s.name_ar
                         from section s
                         left join category c on c.id=s.category_id
-                        where c.root_id={$rootId} and s.id not in (19,29,63,105,114) 
+                        where c.root_id={$rootId} and s.blocked = 0 and s.id not in (19,29,63,105,114) 
                         order by s.NAME_AR",
                         null, 0, $this->urlRouter->cfg['ttl_long'], true);
 
@@ -4877,168 +5279,425 @@ class Bin extends AjaxHandler {
                 }else $this->fail();
                 break;
                 
-            case 'report':
-                $this->authorize(true);
-                $mobile = (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
-                $id = $this->_JPOST['id'] ?? 0;                
-                if (!is_int($id)) { $id=0; }                                
-                if ($id<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                                                
-                if ($this->user()->level()===9) {                    
-                    if ($this->router->db->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})")===TRUE) {
-                        $this->logAdmin($id, 9);
-                        $this->success();
-                    }
-                    else {
-                        $this->error(self::ERR_SYS_FAILURE);
-                    }
-                }
+            case 'ajax-report':                
+                $mobile= (isset($this->user->params['mobile']) && $this->user->params['mobile'])? 1 : 0;
+                $id=$this->post('id', 'int');
+                $name = $this->post('name', 'filter');
+                $userEmail = $this->post('email', 'filter');
                 
-                $flag = $this->_JPOST['flag'] ?? -1;
-                if (!is_int($flag)) { $flag=-1; }
-                $name = \filter_var($this->_JPOST['name']??'', \FILTER_SANITIZE_STRING);
-                $userEmail = \filter_var($this->_JPOST['email']??'', \FILTER_SANITIZE_EMAIL);
+                $flag = -1;
                 $helpTopic=4;
-                //if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
-                //    $flag=$this->post('flag', 'int');
-                //}
-                $feed= \trim(\filter_var($this->_JPOST['msg'] ?? '', \FILTER_SANITIZE_STRING));
-                switch ($flag) {
-                    case 0:
-                        $subject = 'Expired/Sold/Rented';
-                        break;
-                    case 1:
-                        $subject = 'Wrong Phone Number/Email';
-                        break;
-                    case 2:
-                        $subject = 'Miscategorized';
-                        break;
-                    case 3:
-                        $subject = 'Immoral';
-                        break;
-                    case 4:
-                        $subject = 'Spam/Overpost';
-                        break;
-                    default:
-                        $subject = 'Abusive Ad Report';
-                        break;
+                if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
+                    $flag=$this->post('flag', 'int');
                 }
+                if ($id && isset($this->user->info['level']) && $this->user->info['level']==9) {                    
+                    $this->urlRouter->db->queryResultArray("EXECUTE PROCEDURE SP\$HOLD_AD({$id})");
+                    $this->logAdmin($id, 9, 'hold by admin report');
+                    $this->process();
+                }
+                elseif($id) {
+                    $feed='';
+                    switch($flag){
+                        case 0:
+                            $subject = 'Expired/Sold/Rented';
+                            break;
+                        case 1:
+                            $subject = 'Wrong Phone Number/Email';
+                            break;
+                        case 2:
+                            $subject = 'Miscategorized';
+                            break;
+                        case 3:
+                            $subject = 'Immoral';
+                            break;
+                        case 4:
+                            $subject = 'Spam/Overpost';
+                            break;
+                        default:
+                            $subject = 'Abusive Ad Report';
+                            break;
+                    }
+                    $feed=$this->post('msg', 'filter');
                     
-                $geo = $this->router->getIpLocation();
+                    $feed=trim($feed);
+                    $geo = $this->urlRouter->getIpLocation();
                 
-                $geostr = '';
-                if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])) {
-                    $geostr.= $geo['country']['names']['en'];
-                }
+                    $geostr = "";
+                    if (isset($geo['country']) && isset($geo['country']['names']) && isset($geo['country']['names']['en'])){
+                        $geostr.= $geo['country']['names']['en'];
+                    }
 
-                if (isset($geo['location']) && isset($geo['location']['time_zone'])) {
-                    $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
-                }
-                if ($mobile) {
-                    $geostr.= " - Mobile";
-                }
+                    if (isset($geo['location']) && isset($geo['location']['time_zone'])){
+                        $geostr.= " - {$geo['location']['time_zone']} [{$geo['location']['latitude']}, {$geo['location']['longitude']}]";
+                    }
+                    if ($mobile){
+                        $geostr.= " - Mobile";
+                    }
 
-                $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
-                if (isset($this->user->info['id']) && $this->user->info['id']>0) {
-                    $name=$this->user->info['name'];
-                    $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
-                }
-                $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
-                if (isset($this->user->params['country'])) {
-                        if (isset($this->urlRouter->countries[$this->user->params['country']])) {
+                    $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
+                    if (isset($this->user->info['id']) && $this->user->info['id']>0){
+                        $name=$this->user->info['name'];
+                        $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
+                    }
+                    $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
+                    if (isset($this->user->params['country']))
+                    {
+                        if (isset($this->urlRouter->countries[$this->user->params['country']]))
+                        {
                             $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
-                            if (isset($this->user->params['city']) && $this->user->params['city']>0) {
-                                if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
+                            if (isset($this->user->params['city']) && $this->user->params['city']>0)
+                            {
+                                if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]))
+                                {
                                     $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                                 }
-                                else {
+                                else
+                                {
                                     $msg.=" - {$this->user->params['city']}";
                                 }
                             }
                         }
-                        else {
+                        else
+                        {
                             $msg.="<td><b>Target</b></td><td>{$this->user->params['country']}";
-                            if (isset($this->user->params['city'])) {
+                            if (isset($this->user->params['city']))
+                            {
                                 $msg.=" - {$this->user->params['city']}";
                             }
                         }
 
                         $msg.="</td></tr>";
-                } 
-                else {
-                    $msg.="</tr>";
-                }
-                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
-                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
-                $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
-                $msg.="</table>";
+                    } else $msg.="</tr>";
+                    $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
+                    $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                    $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
+                    $msg.="</table>";
                   
-                $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
-                $this->success();
-               
+                    $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
+                    $this->process();
+                }else{
+                    $this->fail('101');
+                }
                 break;
                 
-                
-            case 'ususpend':
-                $this->authorize(true, 9);
-                $id=\intval(\filter_var($this->_JPOST['i'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
-                $hours=\intval(\filter_var($this->_JPOST['v'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
-                $reason=\filter_var($this->_JPOST['m'], \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                
-                if ($id<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if ($hours<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-
-                $mcUser=new \Core\Lib\MCUser($id);
-                if ($mcUser->isMobileVerified()) {
-                    $this->check($this->user()->suspend($id, $hours, $mcUser->getMobileNumber(), $reason)===true);
-                }
-                else {
-                    $this->check($this->user()->suspend($id, $hours)===true);
-                }            
-                
-                break;
-                
-            case 'ublock':
-                $this->authorize(true, 9);
-                $id=$this->_JPOST['i']??0;
-                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                $msg=\trim($this->_JPOST['msg']??'');
-                if ($msg==='') { $msg='Scam Detection'; };
-                if (!\preg_match('/by admin/ui', $msg)) {
-                    $msg.=' by admin '.$this->user()->id();
-                }
-                $msg.=' date:'.\date("d.m.y");
-                
-                $mcUser=new \Core\Lib\MCUser($id);
-                if ($mcUser->isMobileVerified()) {
-                    $this->check(($this->user()->block($id, $mcUser->getMobileNumber(), $msg)===1));
-                }
-                else {
-                    if ($msg) {
-                        $options = NoSQL::instance()->getOptions($id);
-                        if ($options) {
-                            if (!isset($options['block']))$options['block']=array();
-                                $options['block'][]=$msg;
-                                if ($this->user->updateOptions($id, $options)) {
-                                    //$this->user->setReloadFlag($id);
-                                }
-                                else { $this->error(self::ERR_SYS_FAILURE); }
+            case 'ajax-ususpend':
+                if ($this->user->info['level']==9 && isset ($_POST['i'])) 
+                {
+                    $id=$_POST['i'];
+                    $hours=(int)$_POST['v'];
+                    $reason = isset($_POST['m']) && $_POST['m'] ? $_POST['m'] : 0;
+                    if (is_numeric($id) && $hours)
+                    {
+                        //$userData = MCSessionHandler::getUser($id);
+                        //$mcUser = new MCUser($userData);
+                        $mcUser = new MCUser($id);
+                        if($mcUser->isMobileVerified())
+                        {
+                            if($this->user->suspend($id,$hours,$mcUser->getMobileNumber(), $reason)){
+                                $this->process();
+                            }else{
+                                $this->fail('104');
+                            }
                         }
-                        else { $this->error(self::ERR_DATA_INVALID_META); }
+                        else
+                        {
+                            if($this->user->suspend($id,$hours))
+                            {
+                                $this->process();
+                            }
+                            else
+                            {
+                                $this->fail('104');
+                            }
+                        }
+                    }else $this->fail('102');
+                }else $this->fail('101');
+                break;
+                
+            case 'ajax-ublock':
+                if ($this->user->info['level']==9 && isset($_POST['i'])) 
+                {
+                    $id=$_POST['i'];
+                    $msg=trim($_POST['msg']);
+                    if($msg=='')$msg='Scam Detection';
+                    if(!preg_match('/by admin/ui',$msg))
+                    {
+                        $msg .= ' by admin '.$this->user->info['id'];
                     }
-                    $this->check(($this->user()->setLevel($id, 5)===true));
-                }                
+                    $msg.=' date:'.date("d.m.y");
+
+                    if (is_numeric($id))
+                    {
+                        $mcUser = new MCUser($id);
+                        if($mcUser->isMobileVerified())
+                        {
+                            if($this->user->block($id, $mcUser->getMobileNumber(), $msg))
+                            {
+                                $this->process();
+                            }
+                            else
+                            {
+                                $this->fail('103');
+                            }
+                        }else{
+                            if($msg)
+                            {
+                                $options = NoSQL::getInstance()->getOptions($id);// $this->user->getOptions($id);
+                                if($options) 
+                                {
+                                    //$options =  json_decode($options,true);
+                                    if(!isset($options['block']))$options['block']=array();
+                                    $options['block'][]=$msg;
+                                    if($this->user->updateOptions($id, $options)) 
+                                    {
+                                        //$this->user->setReloadFlag($id);
+                                    }
+                                    else $this->fail('105');
+                                }else $this->fail('104');
+                            }
+                            if ($this->user->setLevel($id,5)) 
+                                    $this->process();
+                            else $this->fail('103');
+                        }
+                    }else $this->fail('102');
+                }else $this->fail('101');
                 break;
                 
             case 'ajax-video-upload':
-            case 'video-upload':                
+            case 'video-upload':
+                if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
+                    $action=$this->post('action','uint');
+                    $lang=  $this->post('lang');
+                    if($lang=='en'||$lang=='ar') $this->urlRouter->siteLanguage=$lang;
+                    $this->load_lang(array('post'));
+                    require_once 'Zend/Loader.php';
+                    Zend_Loader::loadClass('Zend_Gdata_YouTube');
+                    Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
+                    Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+                    
+                    $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);//, null, null, null, null, $this->urlRouter->cfg['host']);
+
+                    $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
+                    $yt->setMajorProtocolVersion(2);
+                    
+                    switch($action){
+                        case 0:
+                        default:
+                            $adContent=json_decode($this->user->pending['post']['content'],true);
+                            
+                            $newVideoEntry = new Zend_Gdata_YouTube_VideoEntry();
+                            /*$title='';
+                            if ($this->user->pending['post']['title']) {
+                                $title=$this->user->pending['post']['title'];
+                                $title=  preg_replace('/[.,;-_+=$%^&@!?،؛{}|`~]/', '', $title);
+                            }
+                            if ($title=='')*/
+                            $title='Mourjan video '.$this->user->pending['post']['id'];
+                            /*if (isset($adContent['text']) && $adContent['text']!='') {  
+                                $content=preg_replace('/[.,;-_+=$%^&@!?/\،؛{}|`~]/', '', $adContent['text']);
+                                $newVideoEntry->setVideoDescription($content);
+                            }else {*/
+                            $newVideoEntry->setVideoDescription($title);
+                            //}
+                            $newVideoEntry->setVideoTitle($title);
+
+                            //make sure first character in category is capitalized
+                            $videoCategory = $adContent['ro']==2 ? 'Autos':'People';
+                            $newVideoEntry->setVideoCategory($videoCategory);
+
+                            // convert videoTags from whitespace separated into comma separated
+                            //$videoTagsArray = explode(' ', trim($videoTags));
+                            //$newVideoEntry->setVideoTags(implode(', ', $videoTagsArray));
+                            try {
+                                $tokenArray = $yt->getFormUploadToken($newVideoEntry);
+                            } catch (Zend_Gdata_App_HttpException $httpException) {
+                                error_log($httpException->getRawResponseBody());
+                                $this->fail($httpException->getRawResponseBody());
+                            } catch (Zend_Gdata_App_Exception $e) {
+                                error_log($e->getMessage());
+                                $this->fail($e->getMessage());
+                            }
+                            if (isset($tokenArray['token'])) {
+                                $tokenValue = $tokenArray['token'];
+                                $postUrl = $tokenArray['url'];
+                                $nextUrl = $this->urlRouter->cfg['host'].'/video-upload-ready/'.($lang!='ar' ? $lang.'/':'');
+                                
+                                //if (isset($this->user->params['mobile']) && $this->user->params['mobile']){
+                                    $form='<form onsubmit="if(FLK){upVid(this);return false}" target="vupload" action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">';
+                                    $form.='<ul><li class="nobd"><div class="ipt"><input onchange="setVideo(this)" class="nsh" name="file" type="file"/><input name="token" type="hidden" value="'.$tokenValue.'"/></div></li>';
+                                    $form.='<li class="liw hid"><b class="ah">'.$this->lang['video_file_format'].'</b></li>';
+                                    $form.='<li class="nobd hid"><b class="load h_43"></b></li>';
+                                    $form.='<li><b class="ah ctr act2">';
+                                    $form.='<input class="bt ok off" value="'.$this->lang['upload'].'" type="submit" />';
+                                    $form.='<span onclick="cVUp(this,1)" class="bt cl">'.$this->lang['cancel'].'</span>';
+                                    $form.='</b></li></ul>';
+                                    $form.='</form><iframe class="hid" name="vupload" src="/web/blank.html"></iframe>';
+                                /*}else{
+                                    $form='<form onsubmit="updVo()" target="vupload" action="'.$postUrl.'?nexturl='.$nextUrl.'" method="post" enctype="multipart/form-data">';
+                                    $form.='<input class="rc vin" name="file" type="file"/>';
+                                    $form.='<input name="token" type="hidden" value="'.$tokenValue.'"/>';
+                                    $form.='<input class="rc bt bta" value="'.$this->lang['upload'].'" type="submit" />';
+                                    $form.='</form>';
+                                }*/
+                                /*$form=array(
+                                    'action'=>$postUrl.'?nexturl='.$nextUrl,
+                                    'token'=>$tokenValue
+                                );*/
+                                $this->setData($form,'form');
+                                $this->process();
+                            }else $this->fail(102);
+                            break;
+                    }
+                    
+                }else $this->fail('101');
                 break;
-                
             case 'ajax-upload-ready':
-            case 'video-upload-ready':               
+            case 'video-upload-ready':
+                $result='';
+                $pass=0;
+                $rtl=0;
+                if (isset($this->user->pending['post']['rtl'])) $rtl = $this->user->pending['post']['rtl'];
+                if ($rtl) $this->urlRouter->siteLanguage='ar';
+                $this->load_lang(array('post'));
+                
+                $videoId=$this->get('id');
+                $status=$this->get('status');
+                if ($status=='200' && $videoId) {
+                    require_once 'Zend/Loader.php';
+                    Zend_Loader::loadClass('Zend_Gdata_YouTube');
+                    Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
+                    Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+
+                    $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
+                    $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
+                    //$yt->setMajorProtocolVersion(2);
+                    $pass=1;
+                    try {
+                        $entry = $yt->getFullVideoEntry($videoId);
+                        $videoUrl = htmlspecialchars($this->findFlashUrl($entry));  
+                        $firstThumbnail = htmlspecialchars($entry->mediaGroup->thumbnail[0]->url);
+                        $state=$entry->getVideoState();
+                        if (is_object($state)){
+                            $name=$state->getName();
+                            if ($name!='processing') {
+                                $pass=0;
+                            }
+                        }
+                        $result = "<div class='sh vtd'><img class='vth' src='". $firstThumbnail ."' width='130' height='97' /><span class='play' href='".$videoUrl."&autoplay=1'></span><span onclick='vdel(this)' class='mx'></span></div>";
+                        
+                    } catch (Zend_Gdata_App_HttpException $httpException) {
+                        error_log($httpException->getRawResponseBody());
+                        $pass=0;
+                    } catch (Zend_Gdata_App_Exception $e) {
+                        error_log($e->getMessage());
+                        $pass=0;
+                    }                   
+                    if ($pass){
+                        $adContent=json_decode($this->user->pending['post']['content'],true);
+                        if (isset($adContent['video'])) $this->deleteVideo ($adContent['video'],$yt);
+                        $adContent['video']=array($videoId,$videoUrl,$firstThumbnail);
+                        $this->user->pending['post']['content']=json_encode($adContent);
+                        $this->user->update();
+                        $this->user->saveAd();
+                    }else {
+                        $result=$this->lang['uploadFail'];
+                    }
+                }else {
+                    $result=$this->lang['uploadFail'];
+                }
+                ?><script type="text/javascript">document.domain='mourjan.com';top.updVd(<?= $pass ?>,"<?= $result ?>");</script><?php
                 break;
-                
-                
+            case 'ajax-upload-check':
+            case 'video-upload-check':
+                if ($this->user->info['id'] && isset($this->user->pending['post']['id'])){
+                    $lang='ar';
+                    $tLang=$this->post('lang');
+                    if($tLang=='ar'||$tLang=='en')$lang=$tLang;
+                    $this->urlRouter->siteLanguage=$lang;
+                    $this->load_lang(array('post'));
+                    $adContent=json_decode($this->user->pending['post']['content'],true);
+                    if (isset($adContent['video']) && $adContent['video'][0]){
+                        require_once 'Zend/Loader.php';
+                        Zend_Loader::loadClass('Zend_Gdata_YouTube');
+                        Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
+                        Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+
+                        $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
+                        $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
+                        $pass=1;
+                        $append=true;
+                        try {
+                            $entry = $yt->getFullVideoEntry($adContent['video'][0]);
+                            $videoUrl = htmlspecialchars($this->findFlashUrl($entry));  
+                            $firstThumbnail = htmlspecialchars($entry->mediaGroup->thumbnail[0]->url);
+                            $state = $entry->getVideoState();
+                            if (is_object($state)){
+                                $name=$state->getName();
+                                if ($name=='processing') {
+                                    $this->setData(1,'P');
+                                    $append=false;
+                                }else {
+                                    $pass=0;
+                                    $this->deleteVideo($adContent['video'][0]);
+                                }
+                            }
+                        } catch (Zend_Gdata_App_HttpException $httpException) {
+                            error_log($httpException->getRawResponseBody());
+                            $pass=0;
+                        } catch (Zend_Gdata_App_Exception $e) {
+                            error_log($e->getMessage());
+                            $pass=0;
+                        } 
+                        if ($pass) {
+                            //if ($append && isset($this->user->params['mobile']) && $this->user->params['mobile']){
+                            if ($append){
+                                $matches=null;
+                                $vId=preg_match('/\/v\/([a-zA-Z0-9]*?)\?/', $videoUrl, $matches);
+
+                                $vurl=$videoUrl;
+                                $os=0;
+                                if ($vId) {
+                                    $vId=$matches[1];
+                                    $os=preg_match('/(android|iphone)/i', $_SERVER['HTTP_USER_AGENT'], $matches);
+                                    if($os){
+                                        $os=strtolower($matches[1]);
+                                        switch($os){
+                                            case 'iphone':
+                                                $vurl='youtube:'.$vId;
+                                                break;
+                                            case 'android':
+                                                $vurl='vnd.youtube:'.$vId;
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                 }
+                                $this->setData("<a class='ctr ah' target='blank' href='".$vurl."&autoplay=1'><span title='".$this->lang['removeVideo']."' onclick='delV(this)' class='pz pzd'></span><img src='". $firstThumbnail ."' width='250' height='200' /><span class='play'></span></a>", 'video');
+                            }
+                            $this->process();
+                        }else {
+                            $this->fail(stripcslashes($this->lang['uploadFail']));
+                        }
+                    }else $this->fail(102);
+                }else $this->fail(101);
+                break;
+            case 'ajax-video-delete':
+            case 'video-delete':
+                if ($this->user->info['id'] && isset($this->user->pending['post']['id'])) {
+                    $adContent=json_decode($this->user->pending['post']['content'],true);
+                    $pass=false;
+                    if (isset($adContent['video'])) {
+                        if ($this->deleteVideo($adContent['video'])) {
+                            unset($adContent['video']);
+                            $this->user->pending['post']['content']=json_encode($adContent);
+                            $this->user->update();
+                            $this->user->saveAd();
+                            $this->process();
+                        }else $this->fail(103);
+                    }else $this->process();
+                }else $this->fail(101);
+                break;
             case 'ajax-video-link':
             case 'video-link':
                 $videoId=$this->post('id');
@@ -5137,188 +5796,209 @@ class Bin extends AjaxHandler {
                       }
                 }else $this->fail('101');
                 break;
-                
-            case 'password':
-                if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
-                $pass=\trim($this->_JPOST['v']??'');
-                $lang=$this->_JPOST['l']??'ar';
-                if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
-                
-                if (0) {
-                    $this->response('password', $pass);
-                    if (isset($this->user->pending['password_new'])) { $this->response('new', true); }
-                    if (isset($this->user->pending['password_reset'])) { $this->response('reset', true); }
-                }
-                
-                //\error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL, 3, "/var/log/mourjan/password.log");
+            case 'ajax-password':
+                $pass=$this->post('v');
+                error_log("PASSWORD: <{$pass}>".(isset($this->user->pending['password_new']) ? ' | NEW':'').(isset($this->user->pending['password_reset']) ? ' | RESET':'').PHP_EOL, 3, "/var/log/mourjan/password.log");
                     
-                if (empty($pass)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if (!isset($this->user->pending['password_new']) && !isset($this->user->pending['password_reset'])) { $this->error(self::ERR_USER_UNAUTHORIZED); }
-                if (!isset($this->user->pending['user_id'])) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                
-                $redirect='/'.(isset($this->user()->pending['password_new']) ? 'welcome':'password').'/'.($lang==='ar'?'':$lang.'/');
-                if ($this->user()->updatePassword($pass)) {
-                    $ok=$lang==='ar'?'تهانينا! تم تغيير كلمة السر بنجاح.':'Congratulations! Your password has been changed successfully.';
-                    $this->response('ok', $ok)->response('redirect', $redirect)->success();
-                }
-                else {
-                    $this->error(self::ERR_SYS_FAILURE);                    
-                }                               
-                break;
-                
-            case 'preset':
-                if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
-                $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', FILTER_SANITIZE_EMAIL)));                
-                $lang=$this->_JPOST['l']??'ar';
-                if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
-                Core\Model\Router::instance()->language=$lang;
-                if (empty($email)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                if ($this->user()->isLoggedIn()) { $this->error(self::ERR_USER_UNAUTHORIZED); }
-                Config::instance()->incLibFile('IPQuality');
-                $status=IPQuality::getEMailStatus($email);
-                //\error_log(var_export($status, true));
-                if ($status['valid']!==1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                if ($status['disposable']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                if ($status['honeypot']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                
-                $date=date('Ymd');
-                $shouldSendMail=false;                                
-                $_ret=Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
-                if ($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                if (empty($user)) { $this->error(self::ERR_USER_UNAUTHORIZED); }
-                
-                $user_id=$user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
-                $opt=$user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
-                if (isset($opt['validating'])) { $this->error(self::ERR_USER_UNAUTHORIZED); }
-                
-                if (!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date]))) {
-                    $shouldSendMail=true;
-                    if (isset($opt['lang'])) { $lang=$opt['lang']; }
-                }
-                               
-                if (!$shouldSendMail) { $this->response('mail', 'sent')->error(self::ERR_SYS_FAILURE); }
-
-                $this->load_lang(array('main'));
-                
-                require_once $this->dir.'/bin/utils/MourjanMail.php';
-                $mailer=new MourjanMail($lang);
-                $verifyLink='';
-                $sessionKey=md5($this->sid.$user_id.time());
-                                                                        
-                $sKey=$this->user()->encodeRequest('reset_password', [$user_id]);
-                $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-                //error_log($verifyLink);
-                if ($mailer->sendResetPass($email, $verifyLink)) {
-                    if (!isset($opt['resetting'])) { $opt['resetting']=[]; }
-                    $opt['resetting'][$date]=1;
-                    $opt['resetKey']=$sessionKey;
-                    $this->user()->updateOptions($user_id, $opt);
-                    
-                    $this->response('ok', str_replace('{email}', $email, $this->lang['sent_preset']))->success();
-                }
-                                
-                $this->error(self::ERR_SYS_FAILURE, ['en'=>'Could not send email verification.', 'ar'=>'لا يمكن ارسال رسالة التحقق في الوقت الحالي.']);
-                break;
-                
-                
-            case 'register':
-                if ($this->router->config->isMaintenanceMode()) { $this->error(self::ERR_SYS_MAINTENANCE); }
-                $email=\trim(\strtolower(\filter_var($this->_JPOST['v']??'', \FILTER_SANITIZE_EMAIL)));
-                $user_id=0;
-                $lang=$this->_JPOST['l']??'ar';
-                if (!\in_array($lang, ['ar', 'en'])) { $lang='ar'; };
-                Core\Model\Router::instance()->language=$lang;
-                if (!$this->user()->isLoggedIn()) {
-                    if (empty($email)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                    Config::instance()->incLibFile('IPQuality');
-                    $status=IPQuality::getEMailStatus($email);
-                    //\error_log(var_export($status, true));
-                    if ($status['valid']!==1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                    if ($status['disposable']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                    if ($status['honeypot']===1) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
-                                        
-                    $date=date('Ymd');
-                    $_ret=Core\Model\NoSQL::instance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);                        
-                    if ($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND) {
-                        $this->response('user', 'failed')->error(self::ERR_SYS_FAILURE);
+                $lang='ar';
+                $tLang=$this->post('lang');
+                if($tLang=='ar'||$tLang=='en')$lang=$tLang;
+                if($pass && isset($this->user->pending['user_id']) && (isset($this->user->pending['password_new']) || isset($this->user->pending['password_reset'])))
+                {
+                    if($this->user->updatePassword($pass)){
+                        $this->process();
+                    }else{
+                        $this->fail('102');
                     }
-                    else {
-                        $shouldSendMail=false;
-                        $user_exists=false;
-                        if ($_ret==NoSQL::OK) {
-                            if ($user[Core\Model\ASD\USER_PASSWORD]) {
-                                $user_exists=true;
-                            }
-                            else {
-                                $user_id=$user[\Core\Model\ASD\USER_PROFILE_ID]; //['ID'];
-                                $opt=$user[\Core\Model\ASD\USER_OPTIONS];//json_decode($user['OPTS'], true);
-                                if (isset($opt['lang'])) { $lang=$opt['lang']; }
-                                $this->response('options', $opt);
-                                if (isset($opt['validating'])) {
-                                    if (!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<3)) {
-                                        $shouldSendMail=true;
+                } else {
+                    error_log(var_export($_SERVER,true).PHP_EOL, 3, "/var/log/mourjan/password.log");
+                    //error_log("PASSWORD SERVER LOG: ".var_export($_SERVER,true).PHP_EOL);
+                    $this->fail('101');
+                }
+                break;
+                
+            case 'ajax-preset':
+                $email=trim(strtolower(filter_var($this->post('v'), FILTER_SANITIZE_EMAIL)));
+                $user_id = 0;
+                $lang='ar';
+                $tLang=$this->post('lang');
+                if($tLang=='ar'||$tLang=='en')$lang=$tLang;
+                $date = date('Ymd');
+                $send_email=false;
+                if (!$this->user->info['id'])
+                {
+                    if ($email && $this->isEmail($email) )
+                    {
+                        $_ret = Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                        //$user = Core\Model\NoSQL::getInstance()->fetchUserByProvider Id($email, 'mourjan'); //$this->user->checkAccount($email);
+                        if($_ret!==NoSQL::OK && $_ret !== NoSQL::ERR_RECORD_NOT_FOUND)
+                        {
+                            $this->fail("103");
+                        }
+                        else
+                        {
+                            if(!empty($user))
+                            {
+                                //$user = $user[0];
+                                $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //$user['ID'];
+                                $opt = $user[Core\Model\ASD\USER_OPTIONS]; //json_decode($user['OPTS'], true);
+                                if(isset($opt['validating']))
+                                {
+                                    $this->fail('106');
+                                }
+                                elseif(!isset($opt['resetting']) || (isset($opt['resetting']) && !isset($opt['resetting'][$date])) )
+                                {
+                                    $send_email=true;
+                                    if(isset($opt['lang']))$lang=$opt['lang'];
+                                }
+                                
+                                if(!$send_email)
+                                {
+                                    $this->fail('105');
+                                }
+                                else
+                                {
+                                    require_once $this->dir.'/bin/utils/MourjanMail.php';
+                                    $mailer=new MourjanMail($this->urlRouter->cfg, $lang);
+
+                                    $verifyLink='';
+
+                                    $sessionKey=md5($this->sid.$user_id.time());
+                                                                        
+                                    $sKey=$this->user->encodeRequest('reset_password',array($user_id));
+                                    $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
+                                    
+                                    if ($mailer->sendResetPass($email,$verifyLink))
+                                    {
+                                        if(!isset($opt['resetting'])) $opt['resetting'] = array();
+                                        $opt['resetting'][$date]=1;
+                                        $opt['resetKey']=$sessionKey;
+                                        $this->user->updateOptions($user_id,$opt);
+                                        $this->process();
                                     }
-                                    else { $this->error(self::ERR_LIMIT_EXCEEDED); }
+                                    else
+                                    {
+                                        $this->fail('107');
+                                    }
                                 }
-                                else {                                    
-                                    $shouldSendMail=true;
-                                }                                  
                             }
+                            else $this->fail('104');
                         }
-                        else { //create new record
-                            $shouldSendMail=true;
-                        }
-                            
-                        if ($user_exists) { $this->response('user', 'exists')->error(self::ERR_DATA_USED_EMAIL); }                            
-                        if (!$shouldSendMail) { $this->response('mail', 'sent')->error(self::ERR_SYS_FAILURE); }
-                        
-                        if (!$user_id) {
-                            $user=$this->user()->createNewByEmail($email);
-                            if ($user && !empty($user)) {
-                                $user_id=$user[\Core\Model\ASD\USER_PROFILE_ID];
-                                $opt=$user[\Core\Model\ASD\USER_OPTIONS];
-                            }
-                        }
-                         
-                        if ($user_id) {
-                            require_once $this->dir.'/bin/utils/MourjanMail.php';
-                            $mailer=new MourjanMail($lang);
-
-                            $verifyLink='';
-
-                            $sessionKey=md5($this->sid.$user_id.time());
-                            if (isset($opt['accountKey'])) { $sessionKey=$opt['accountKey']; }
-                            $sKey=$this->user()->encodeRequest('reset_password', [$user_id]);
-                            $verifyLink=$this->host.'/a/'.($lang==='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
-
-                            if ($mailer->sendNewAccount($email, $verifyLink)) {
-                                if (!isset($opt['validating'])) { $opt['validating']=[]; }
-                                if (isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])) {
-                                    $opt['validating'][$date]++;
-                                }
-                                else {
-                                    $opt['validating'][$date]=0;
-                                }
-                                $opt['accountKey']=$sessionKey;
-                                $this->user()->updateOptions($user_id, $opt);
-                                $this->load_lang(array('main'));
-                                $this->response('ok', str_replace('{email}', $email, $this->lang['created_account']))->success();
-                            }
-                            else {
-                                $this->error(self::ERR_SYS_FAILURE, ['en'=>'Could not send email verification.', 'ar'=>'لا يمكن ارسال رسالة التحقق في الوقت الحالي.']);
-                            }
+                    }
+                    else $this->fail('102');
+                }
+                else $this->fail('101');
+                break;
+                
+            case 'ajax-register':
+                $email=trim(strtolower(filter_var($this->post('v'), FILTER_SANITIZE_EMAIL)));
+                $user_id = 0;
+                $lang='ar';
+                $tLang=$this->post('lang');
+                if ($tLang==='ar'||$tLang==='en')$lang=$tLang;
+                $date = date('Ymd');
+                if (!$this->user->info['id']) {
+                    require_once $this->urlRouter->cfg['dir'].'/core/lib/IPQuality.php';
+                    $status=IPQuality::getEMailStatus($email);
+                    $validEmail=$status['valid']??0;
+                    $disposable=$status['disposable']??0;
+                    $honeypot=$status['honeypot']??0;
+                                        
+                    if ($validEmail===1 && $disposable===0 && $honeypot===0) {
+                        $_ret=Core\Model\NoSQL::getInstance()->fetchUserByProviderId($email, \Core\Model\ASD\USER_PROVIDER_MOURJAN, $user);
+                        if($_ret!==NoSQL::OK && $_ret!==NoSQL::ERR_RECORD_NOT_FOUND) {
+                            $this->fail("103");
                         }
                         else {
-                            $this->error(self::ERR_SYS_FAILURE, ['en'=>'Creating user failed!','ar'=>'فشل انشاء مستخدم جديد!']);
-                        }                            
-                    }                    
+                            $send_email=$user_exists=false;
+                            if($_ret==NoSQL::OK) {
+                                if($user[Core\Model\ASD\USER_PASSWORD]) {
+                                    $user_exists=true;
+                                }
+                                else {
+                                    $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID]; //['ID'];
+                                    $opt = $user[\Core\Model\ASD\USER_OPTIONS];//json_decode($user['OPTS'], true);
+                                    if(isset($opt['validating'])) {
+                                        if(!isset($opt['validating'][$date]) || (isset($opt['validating'][$date]) && $opt['validating'][$date]<2)) {
+                                            $send_email=true;
+                                            if(isset($opt['lang']))$lang=$opt['lang'];
+                                        }
+                                    }
+                                    else {
+                                        $send_email=true;
+                                        if(isset($opt['lang']))$lang=$opt['lang'];
+                                    }                                    
+                                }
+                            }
+                            else {  
+                                //create new record
+                                $send_email=true;
+                            }
+                            
+                            if($user_exists)
+                            {
+                                $this->fail('103');
+                            }
+                            elseif(!$send_email)
+                            {
+                                $this->fail('104');
+                            }
+                            else {                                
+                                if(!$user_id)
+                                {
+                                    $user = $this->user->createNewByEmail($email);
+                                    if($user && !empty($user))
+                                    {
+                                        $user_id = $user[\Core\Model\ASD\USER_PROFILE_ID];
+                                        $opt = $user[\Core\Model\ASD\USER_OPTIONS];
+                                    }
+                                }
+                                if($user_id)
+                                {
+                                    require_once $this->dir.'/bin/utils/MourjanMail.php';
+                                    $mailer=new MourjanMail($this->urlRouter->cfg, $lang);
+
+                                    $verifyLink='';
+
+                                    $sessionKey=md5($this->sid.$user_id.time());
+                                    if(isset($opt['accountKey']))
+                                    {
+                                        $sessionKey=$opt['accountKey'];
+                                    }
+                                    $sKey=$this->user->encodeRequest('reset_password',array($user_id));
+                                    $verifyLink=$this->host.'/a/'.($lang=='ar'?'':$lang.'/').'?k='.$sKey.'&key='.urlencode($sessionKey);
+
+                                    if ($mailer->sendNewAccount($email,$verifyLink)){
+                                        if(!isset($opt['validating'])) $opt['validating'] = array();
+                                        if(isset($opt['validating'][$date]) && is_numeric($opt['validating'][$date])){
+                                            $opt['validating'][$date]++;
+                                        }else{
+                                            $opt['validating'][$date]=1;
+                                        }
+                                        $opt['accountKey']=$sessionKey;
+                                        $this->user->updateOptions($user_id,$opt);
+                                        $this->process();
+                                    }
+                                    else
+                                    {
+                                        $this->fail('105');
+                                    }
+                                }
+                                else
+                                {
+                                    $this->fail('106');
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        error_log('BIN('.__LINE__.')'.PHP_EOL.var_export($status, true));
+                        $this->fail("102");
+                    }
                 }
-                else {                    
-                    $this->error(self::ERR_USER_UNAUTHORIZED);
-                }
+                else $this->fail('101');
                 break;
                 
-                                
             case 'ajax-js-error':
                 $error=$this->post('e');
                 if($error){
@@ -5337,7 +6017,6 @@ class Bin extends AjaxHandler {
                 }
                 $this->process();
                 break;
-                
             case 'ajax-close-banner':
                 $banner_label=$this->post('id');
                 if($banner_label && isset($this->user->params[$banner_label])){
@@ -5346,37 +6025,68 @@ class Bin extends AjaxHandler {
                     $this->process();
                 }else $this->fail('101');
                 break;
-                
-            case 'user-type':
-                $this->authorize(true, 9);
-                $userId=$this->getGetInt('u');
-                $userType=$this->getGetInt('t');                               
-                if ($userId>0 && \in_array($userType, [1, 2])) {                    
-                    if ($this->user->setType($userId, $userType)) {
-                        $q='update ad a set a.publisher_type='.($userType==1?1:3).' where a.id in (select u.id from ad_user u where u.web_user_id=?)';
-                        $this->router->db->queryResultArray($q, [$userId], true);
-                        $this->success(['uid'=>$userId, 'type'=>$userType]);
-                    }
-                    else { 
-                        $this->error(self::ERR_SYS_FAILURE);                        
-                    }
-                }
-                else { 
-                    $this->error(self::ERR_DATA_INVALID_META);                     
+            case 'ajax-user-type':
+                if($this->user->info['id'] && $this->user->info['level']==9){
+                    $userId = $this->get('u','numeric');
+                    $userType = $this->get('t','numeric');
+                    if($userId && in_array($userType,array(1,2))){
+                        if($this->user->setType($userId, $userType)){
+                            $q = 'update ad a set a.publisher_type = '.($userType==1 ? 1:3).' where a.id in (select u.id from ad_user u where u.web_user_id = ?)';
+                            if($this->urlRouter->db->queryResultArray(
+                            $q,
+                            array($userId), true)){
+                                $this->process();
+                            }else{
+                                $this->fail('104');
+                            }
+                        }else $this->fail('103');
+                    }else $this->fail('102');
+                }  else {
+                    $this->fail('101');
                 }
                 break;
-                
             case 'ajax-mute':
                 $mute = $this->get('s','boolean');
                 $this->user->params['mute']=$mute;
                 $this->user->update();
                 $this->process();
                 break;
-            
             default:
-                $this->error(self::ERR_DATA_INVALID_META, ['en'=>'Invalid command!!!', 'ar'=>'لا يمكن التعرف على الطلب!']);
+                $this->fail();
                 break;
         }
+    }
+    
+    
+    function deleteVideo($video, $yt=null) {
+        $pass=true;
+        if ($video[0]) {
+            if (!$yt) {
+                require_once 'Zend/Loader.php';
+                Zend_Loader::loadClass('Zend_Gdata_YouTube');
+                Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
+                Zend_Loader::loadClass('Zend_Gdata_App_Exception');
+
+                $httpClient = Zend_Gdata_ClientLogin::getHttpClient($this->urlRouter->cfg['yt_user'],$this->urlRouter->cfg['yt_pass'], Zend_Gdata_YouTube::AUTH_SERVICE_NAME);
+                $yt = new Zend_Gdata_YouTube($httpClient, 'Mourjan.com Uploader', null, $this->urlRouter->cfg['yt_dev_key']);
+                $yt->setMajorProtocolVersion(2);
+                
+            }
+                try {
+                    $entry = $yt->getVideoEntry($video[0],null,true);
+                    $httpResponse = $yt->delete($entry);
+                } catch (Zend_Gdata_App_HttpException $httpException) {
+                    error_log($httpException->getRawResponseBody());
+                    $pass=false;
+                    if ($httpException->getCode()==0){
+                        $pass=true;
+                    }
+                } catch (Zend_Gdata_App_Exception $e) {
+                    error_log($e->getMessage());
+                    $pass=false;
+                }
+        }
+        return $pass;
     }
     
     
@@ -5395,68 +6105,59 @@ class Bin extends AjaxHandler {
     }
     
     
-    function getAdSection(Core\Model\Ad $ad, int $rootId=0) : string {
-        $section='';        
-        switch($ad->purposeId()){
+    function getAdSection($ad, $rootId=0) {
+        $section='';
+        switch($ad['PURPOSE_ID']){
             case 1:
             case 2:
             case 999:
             case 8:
-                $section=$this->router->sections[$ad->sectionId()][$this->name].' '.$this->router->purposes[$ad->purposeId()][$this->name];
+                $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex].' '.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex];
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad->purposeId()][$this->name].' '.$this->router->sections[$ad->sectionId()][$this->name];
+                $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].' '.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 break;
             case 3:
             case 4:
             case 5:
-                if (preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->name].'/', $this->router->sections[$ad->sectionId()][$this->name])) {
-                    $section=$this->router->sections[$ad->sectionId()][$this->name];
+                if (preg_match('/'.$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].'/', $this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex])) {
+                    $section=$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 else {
                     $in=' ';
-                    if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad->purposeId()][$this->name].$in.$this->router->sections[$ad->sectionId()][$this->name];
+                    if ($this->urlRouter->siteLanguage=='en')$in=' '.$this->lang['in'].' ';
+                    $section=$this->urlRouter->purposes[$ad['PURPOSE_ID']][$this->fieldNameIndex].$in.$this->urlRouter->sections[$ad['SECTION_ID']][$this->fieldNameIndex];
                 }
                 break;
         }
            
-        //$adContent = json_decode($ad['CONTENT'], true);
-        //$countries = $this->router->db->asCountriesDictionary();
-        
-        $countries = $this->router->countries;
-        $regions = $ad->dataset()->getRegions();
-        
-        if ( !empty($regions)) {
-            //$fieldIndex=2;
+        $adContent = json_decode($ad['CONTENT'], true);
+        $countries = $this->urlRouter->db->getCountriesDictionary(); // $this->urlRouter->countries;
+        if (isset($adContent['pubTo'])) {
+            $fieldIndex=2;
             $comma=',';
-            if ($this->router->isArabic()) {
-                //$fieldIndex=1;
+            if ($this->urlRouter->siteLanguage=='ar') {
+                $fieldIndex=1;
                 $comma='،';
             }
             $countriesArray=array();
-            $cities = $this->router->cities;
+            $cities = $this->urlRouter->cities;
 
             $content='';
-            //foreach ($adContent['pubTo'] as $city => $value) {
-            foreach ($regions as $city) {                
-                if (isset($cities[$city]) && isset($cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID])) {
-                    $country_id=$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID];                        
-                    if (!isset($countriesArray[$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID]])){                            
-                        $ccs = $countries[$country_id][\Core\Data\Schema::COUNTRY_CITIES];
-                        
-                        if ($ccs && \count($ccs)>0) {
-                            $countriesArray[$country_id] = [$countries[$country_id]['name'], [] ];
+            foreach ($adContent['pubTo'] as $city => $value) {                    
+                if (isset($cities[$city]) && isset($cities[$city][4])) {
+                    $country_id=$cities[$city][4];                        
+                    if (!isset($countriesArray[$cities[$city][4]])){                            
+                        $ccs = $countries[$country_id][6];
+                        if ($ccs && count($ccs)>0) {
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],array());
                         }
                         else {
-                            $countriesArray[$country_id] = [$countries[$country_id]['name'], false];
+                            $countriesArray[$country_id]=array($countries[$country_id][$fieldIndex],false);
                         }
                     }
-                    
-                    if ($countriesArray[$country_id][1]!==false) {
-                        $countriesArray[$country_id][1][]=$cities[$city][$this->name];
-                    }
+                    if ($countriesArray[$country_id][1]!==false) $countriesArray[$country_id][1][]=$cities[$city][$fieldIndex];
                 }
             }
 
@@ -5472,23 +6173,23 @@ class Bin extends AjaxHandler {
                 $section=$section.' '.$this->lang['in'].' '.$content;
             }
         }
-        elseif (isset ($countries[$ad->countryId()])) {
-            $countryId = $ad->countryId(); 
-            $countryCities = $countries[$countryId][\Core\Data\Schema::COUNTRY_CITIES];
-            if (\count($countryCities)>0 && isset($this->router->cities[$ad->cityId()])) {
-                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad->cityId()][$this->fieldNameIndex].' '.$countries[$countryId][$this->name];
+        elseif (isset ($countries[$ad['COUNTRY_ID']])) {
+            $countryId=$ad['COUNTRY_ID']; 
+            $countryCities=$countries[$countryId][6];
+            if (count($countryCities)>0 && isset($this->urlRouter->cities[$ad['CITY_ID']])) {
+                $section=$section.' '.$this->lang['in'].' '.$this->urlRouter->cities[$ad['CITY_ID']][$this->fieldNameIndex].' '.$countries[$countryId][$this->fieldNameIndex];
             }
             else {
-                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->name];
+                $section=$section.' '.$this->lang['in'].' '.$countries[$countryId][$this->fieldNameIndex];
             }
         }
         
         if($section) {
-            if ($this->router->isMobile) {
+            if ($this->isMobile) {
                 $section='<b class="ah">'.$section.'</b>';
             }
             else {
-                $section='<span>' . $section . ' - <b>' . $this->formatSinceDate($ad->getDateAdded()) . '</b></span>';
+                $section='<span class="k">'.$section.' - <b>' . $this->formatSinceDate(strtotime($ad['DATE_ADDED'])) . '</b></span>';
             }
         }
         return $section;
