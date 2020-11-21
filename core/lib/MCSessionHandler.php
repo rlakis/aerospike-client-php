@@ -12,7 +12,8 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     
     
     protected function __construct() {        
-        $this->ttl=\intval(\get_cfg_var("session.gc_maxlifetime"), 10);
+        //$this->ttl=\intval(\get_cfg_var("session.gc_maxlifetime"), 10);
+        $this->ttl=28800;
         \session_set_save_handler($this, true);
         \session_start();
     }
@@ -127,9 +128,7 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
         if ($this->storage->isConnected()) {
             return true;
         } 
-        else {
-            \error_log(__CLASS__ . '.' .__FUNCTION__.PHP_EOL."Failed to connect to the Aerospike server [" . $this->storage->errorno() . "]: " . $this->storage->error());            
-        }
+        \error_log(__CLASS__ . '.' .__FUNCTION__.PHP_EOL."Failed to connect to the Aerospike server [" . $this->storage->errorno() . "]: " . $this->storage->error());            
         return false;
     }
 
@@ -150,18 +149,24 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     
     public function write($id, $data) {        
         $key=$this->as_key($id);
-        $options=[\Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_IGNORE, \Aerospike::OPT_WRITE_TIMEOUT=>5000, \Aerospike::OPT_MAX_RETRIES=>2];                
-        if ($this->storage->put($key, ["PHP_SESSION" => $data], $this->ttl, $options)===\Aerospike::OK) {
-            return TRUE;
-        }                
-        \error_log("Session {$id} write error [{$this->storage->errorno()}] ".$this->storage->error());
-        return FALSE;
+        $max_retries=2;
+        while ($max_retries>0) {
+            $options=[\Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_IGNORE, \Aerospike::OPT_WRITE_TIMEOUT=>1000/*, \Aerospike::OPT_MAX_RETRIES=>2*/];                
+            if ($this->storage->put($key, ["PHP_SESSION" => $data], $this->ttl, $options)===\Aerospike::OK) {
+                return TRUE;
+            }
+            $max_retries--;
+            $this->storage=\Core\Model\NoSQL::instance()->getConnection();
+        }
+        \error_log(__FUNCTION__." Session {$id} write error [{$this->storage->errorno()}] ".$this->storage->error().PHP_EOL);
+        return true;
     }
 
     
     public function destroy($id) {
-        \error_log("new site ".__FUNCTION__. " ".$id);
-        return ($this->storage->remove($this->as_key($id))===\Aerospike::OK);
+        $ret=($this->storage->remove($this->as_key($id))===\Aerospike::OK);
+        \error_log(__FUNCTION__. " new site ".__FUNCTION__. " ".$id." returned ".$ret);
+        return $ret;
     }
 
     

@@ -391,7 +391,7 @@ class MCSaveHandler {
             $expr.=' FOR x IN attrs.geokeys)';
             $query->expression('gfilter', $expr);
             $fields[]='gfilter';
-            \error_log($expr);
+            //\error_log($expr);
         }
         else {
             if (isset($obj->attrs->locality)) {
@@ -463,7 +463,7 @@ class MCSaveHandler {
         $rs=$query->get();        
         $scores=$messages=[];
         
-        \error_log(PHP_EOL.\json_encode($query->getBody()).PHP_EOL);
+        //\error_log(PHP_EOL.\json_encode($query->getBody()).PHP_EOL);
         while ($rs->valid()) {
             $hit=$rs->current();
             //\error_log(var_export($hit, true));

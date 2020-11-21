@@ -7,6 +7,9 @@ use Core\Model\Classifieds;
 class Detail extends Search {
 
     private int $attrWidgetCount=0;
+    private String $adCountry;
+    private String $ipCountry;
+    private String $mobileCountry;
     
     function __construct() {
         parent::__construct();
@@ -158,10 +161,15 @@ class Detail extends Search {
             $date=new DateTime;
             $date->setTimestamp($this->detailAd->epoch());
         }
-        
+        /*
+        $adIPStatus=IPQuality::getIPStatus($this->detailAd->dataset()->getIpAddress());
+        \error_log(var_export($adIPStatus, true));
+        */
+        $this->ipCountry=$ipqs['ipquality']['country_code']??'XX';
+        $this->adCountry=$this->detailAd->countryCode();
         ?><div class="top ff-cols"><div class="col-12 sp-between"><?php
         if (!$this->detailAd->isJob()) {
-            ?><div class="fw-300">Posted on <?=$date->format('d.m.Y H:i e')?></div><?php
+            ?><div class=fw-300>Posted on <?=$date->format('d.m.Y H:i e').$this->adCountry?></div><?php
         }
         ?><div style="font-weight:700;font-size:30px"><?=$this->detailAd->formattedPrice()?></div></div><?php
         /*?><div class="row fw-700"><?=$adSection?></div><?php*/

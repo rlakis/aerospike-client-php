@@ -138,7 +138,12 @@ class Ad {
         return $this;
     }
     
-    
+    /*
+    public function getIpAddress() : String {
+        return $this->data[Classifieds::]
+    }
+    */
+
     public function setDataSet(Content $object) : Ad {
         $this->dataset = $object;
         $this->dataset->setAd($this);

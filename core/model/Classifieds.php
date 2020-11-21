@@ -119,7 +119,7 @@ class Classifieds {
             \error_log("Lost FB transaction ad id: {$id}");
         }
         
-        \error_log(__FUNCTION__. " fetch ad {$id} from database");
+        \error_log(__FUNCTION__. " fetch ad {$id} from database".PHP_EOL);
         
         if (!$this->stmt_get_ad || !$this->db->inTransaction()) {
             $this->stmt_get_ad = $this->db->prepareQuery(

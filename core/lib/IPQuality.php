@@ -260,7 +260,7 @@ class IPQuality {
         if ($ip!=='UNKNOWN') {
             $ipq=new IPQuality;
             if ($ipq->get_from_cache($ip, $result)===\Aerospike::OK) {
-                return $result['city']. ', ' . $result['region'] . ' ' . $result['country_code'] . ' [' . $result['latitude'] . ', ' . $result['longitude'] . '], ' . $result['timezone'];
+                return $result['city']. ', ' . ($result['region']??'RNA') . ' ' . $result['country_code'] . ' [' . $result['latitude'] . ', ' . $result['longitude'] . '], ' . ($result['timezone']??'NTZ');
             }
             
             /*
