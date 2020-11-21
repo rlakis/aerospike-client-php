@@ -3863,6 +3863,7 @@ class Bin extends AjaxHandler {
                 $id=$this->_JPOST['i'] ?? 0;
                 if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 $msg=\trim($this->_JPOST['msg']??'');
+                $msg=preg_replace('/(?:dv|dev)\.mourjan/', 'www.mourjan', $msg);
                 $warn=$this->_JPOST['w'];
                 if ($this->user()->rejectAd($id, $msg, 0)) {
                     $this->logAdmin($id, 3, $msg);
