@@ -1209,7 +1209,7 @@ class MyAds extends UserPage {
                 }
                 
                 if ($this->adList->rootId()>0) {
-                    $link.=$appendOp.'fro='.$this->adList->ootId();
+                    $link.=$appendOp.'fro='.$this->adList->rootId();
                     $appendOp='&';
                 }
                 
