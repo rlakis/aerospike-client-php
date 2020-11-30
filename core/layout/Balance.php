@@ -333,7 +333,7 @@ class Balance extends UserPage {
                     echo '<li class=ct0>'.($data['recs'][$i][$fieldDebit]==0?'<ct>-</ct>':'-'.((int)$data['recs'][$i][$fieldDebit])), '</li>';
                         
                     $hasDownload = false;
-                    if ($data['recs'][$i][$fieldCredit]>0 && ($data['recs'][$i][$fieldCurrency]==='USD'||$data['recs'][$i][$fieldCurrency]==='AED') && $data['recs'][$i][$fieldPlatform]==='PAYFORT') {
+                    if ($data['recs'][$i][$fieldCredit]>0 && ($data['recs'][$i][$fieldCurrency]==='USD'||$data['recs'][$i][$fieldCurrency]==='AED') && ($data['recs'][$i][$fieldPlatform]==='PAYFORT'||$data['recs'][$i][$fieldPlatform]==='PAYPAL')) {
                         $signature=base64_encode(strtoupper(hash_hmac('sha1', $data['recs'][$i][$fieldTID], MOURJAN_KEY)));
                         $hasDownload="<li class=dwt><a href='{$this->downloadLinkPath}?tid={$data['recs'][$i][$fieldTID]}&signature={$signature}' target=_blank><i class='icn icnsmall icn-invoice'></i></a></li>";
                     }
