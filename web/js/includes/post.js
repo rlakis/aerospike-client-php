@@ -1118,8 +1118,9 @@ var Ad={
         let _=this; _.init();
         
         _.id=ad.id;
-        _.state=ad.state;                        
-        _.content.id=_.id;        
+        _.state=ad.state;        
+        _.content.id=_.id;
+        _.content.user=ad.user?ad.user:0;
         _.content.hl=((ad.hl)?ad.hl:(UI.ar?'ar':'en'));        
         _.content.lat=ad.lat;
         _.content.lon=ad.lon;
@@ -1268,11 +1269,11 @@ var Ad={
             hl:(UI.ar?'ar':'en'),
             id:_.id, 
             state:parseInt(window.event.target.dataset.state), 
-            user:0, 
+            user:_.content.user, 
             lat:_.content.lat, 
             lon:_.content.lon, 
             loc:_.content.loc, 
-            budget:0, 
+            budget:_.content.budget, 
             version:2, 
             app:'web', app_v:UI.version,
             cui:{p:[], e:''},

@@ -9,9 +9,9 @@ class MCCache extends \Redis {
     
     function __construct() {
         parent::__construct();
-        $this->buffer = [];
-        $this->writeBuffering = TRUE;
-        $memstore = \Config::instance()->get('memstore');
+        $this->buffer=[];
+        $this->writeBuffering=TRUE;
+        $memstore=\Config::instance()->get('memstore');
         
         if ($memstore['tcp']) {
             $success = $this->connect($memstore['host'], $memstore['port'], 1, NULL, 100);

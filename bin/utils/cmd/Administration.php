@@ -219,7 +219,7 @@ class Administration
                 break;
                 
             case "redirect":
-                $redis = new \Redis();
+                $redis=new \Redis;
                 $redis->connect('p1.mourjan.com', 6379, 1, NULL, 100);
                 $redis->setOption(\Redis::OPT_SERIALIZER, $config['memstore']['serializer']);
                 $redis->setOption(\Redis::OPT_PREFIX, $config['memstore']['prefix']);
@@ -237,8 +237,7 @@ class Administration
                     and BLOCKED=0
                     ", [$this->args[3]], FALSE, PDO::FETCH_NUM);
                 
-                if ($destination && is_array($destination) && count($destination)==1)
-                {
+                if ($destination && is_array($destination) && count($destination)==1) {
                     $from = preg_replace("/\/en\/$|\/en$|\/$/", "", $this->args[2]);
                     
                     echo $from, "\n";

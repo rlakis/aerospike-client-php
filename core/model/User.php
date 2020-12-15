@@ -1467,7 +1467,7 @@ class User {
     }
     
     
-    function saveAd($publish=0, $user_id=0) : int {
+    function saveAd(int $publish=0, int $user_id=0) : int {
         $id=0;
         if ($user_id) { 
             $userId=$user_id;             

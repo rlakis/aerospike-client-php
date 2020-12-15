@@ -50,6 +50,7 @@ class Config extends \Core\Model\Singleton {
         $this->imgLibURL = $this->config['url_image_lib'];
         
         $this->adImgURL = 'https://c6.mourjan.com';
+        $this->adImgURL = 'https://doxplxe8wce37.cloudfront.net';
         
         $this->libDir = $this->baseDir . '/core/lib/';
         $this->modelDir = $this->baseDir . "/core/model/";
@@ -465,6 +466,7 @@ if ($globalSettings!==FALSE && isset($globalSettings['data'])) {
     $config['modules']['ajax-number-info']=array('Bin',0);
 }
 */
+
 
 /*
 $globalSettings=\Core\Model\DB::getCacheStorage($config)->get("global-settings");

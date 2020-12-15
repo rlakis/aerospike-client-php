@@ -435,6 +435,7 @@ class Account extends Page {
         include_once $this->router->config->get('dir').'/core/lib/phpqrcode.php';
         $qrfile = $this->router->config->get('dir').'/web/qr/m-'.session_id().'.png';
         QRcode::png('mourjan:merge:'.session_id().str_pad($this->router->config->serverId, 4, '0', STR_PAD_LEFT).str_pad(time(), 16, '0', STR_PAD_LEFT), $qrfile, QR_ECLEVEL_L, 5);
+        // Robert: to be moved to aerospike
         $redis=new Redis;
         $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
         $redis->setOption(Redis::OPT_PREFIX, 'SESS:');

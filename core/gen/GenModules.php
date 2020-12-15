@@ -659,13 +659,12 @@ class GenModules extends Site
 }
 
 
-if (php_sapi_name()=='cli')
-{
+if (php_sapi_name()=='cli') {
     //echo ($invalidate ? "invalidate {$argv[2]}" : "loading") . " website modules generation @".date("r"), "\n";
 
     $generator = new GenModules($router, $force);
     if ($invalidate===TRUE) {
-        $iredis = new Redis();
+        $iredis=new Redis;
         if ($config['memstore']['tcp']) {
             $iredis->connect($config['memstore']['host'], $config['memstore']['port'], 1, NULL, 100);
         } else {
@@ -749,7 +748,8 @@ if (php_sapi_name()=='cli')
         $iredis->close();
         //echo "finish website invalidate {$argv[2]} @",date("r"), "\n";
 
-    } else {
+    } 
+    else {
 	syslog(LOG_INFO, "start website modules generation @".date("r"));
         $generator->generate('ar');
         $generator->generate('en');

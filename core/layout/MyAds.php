@@ -221,7 +221,7 @@ class MyAds extends UserPage {
         'نص الإعلان غير صالح للنشر',
         'نص الإعلان غير صالح للنشر في هذا القسم',
         'group=تفاصيل ناقصة',
-        'يرجى تحديد المنطقة',        
+        'يرجى تحديد المنطقة ضمن نص الاعلان',
         'يرجى تحديد المدينة أو المنطقة التي تتوفر فيها فرصة العمل ضمن نص الاعلان',        
         'group=وساءل التواصل',
         'يرجى اضافة رقم الهاتف للتواصل معك ضمن خانة معلومات التواصل',
@@ -281,7 +281,7 @@ class MyAds extends UserPage {
         'This ad can on be published in the suitable city section',
         'please choose \"international real estate\" section to publish your ad',
         'this ad can only be published in countries where your offices and services are located',
-        'this ad cannot be published in a country while your reside in a different country or your account might be blocked',
+        'this ad cannot be published in a country while you reside in a different country or your account might be blocked',
         'this ad cannot be published in countries other than the country of origin (cars, real estate, goods)',
         'worthless seeking work ad posting while travel is prohibited',
         'group=Website Policy',      
@@ -533,8 +533,7 @@ class MyAds extends UserPage {
         $count=$this->adList->count();
         $dbCount=$this->adList->dbCount();
 
-        \error_log($count.' '.$dbCount.PHP_EOL);
-        
+       
         ?><div class="row viewable"><div class=col-12><?php
         //if ($isAdmin===true && $uid>0 && $uid!==$this->user->id()) {
         //    $this->renderUserTypeSelector($this->user->data);

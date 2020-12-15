@@ -292,7 +292,6 @@ class Bin extends AjaxHandler {
                 $se = $this->post('s');
                 $pu = $this->post('p');
                     
-                //error_log("pu ". $pu);
                 if ($se) { $ro=$this->router->sections[$se][\Core\Data\Schema::BIN_ROOT_ID]; }
                 if ($ro==4) { $pu=5; }
                     
@@ -311,8 +310,6 @@ class Bin extends AjaxHandler {
                 $imgIdx = $this->getGetInt('ix', -1);
                 $pixPath = $this->getGetString('pix');
                     
-                //$ad=$ad[0];
-                //$content=\json_decode($ad['CONTENT'], true);
                 $content = $ad->dataset()->getOldContent();
                 if ($imgAdmin) {
                     $newImgs = [];
@@ -323,18 +320,14 @@ class Bin extends AjaxHandler {
                         foreach ($ad->dataset()->getPictures() as $pp => $dim) {
                             if ($pp!==$pixPath) { $newImgs[$pp]=$dim; }
                         }
-                        //foreach($content['pics'] as $img => $dim) {
-                        //     if ($img!==$pixPath) { $newImgs[$img]=$dim; }                                 
-                        // }
                     }                                                        
                             
                     if ($imageToRemove) {
-                        $media = $this->router->db->queryResultArray('select * from media where filename=?', [$imageToRemove], false);
+                        $media=$this->router->db->queryResultArray('select * from media where filename=?', [$imageToRemove], false);
                         if ($media && \count($media)) {
                             foreach ($media as $m) {
                                 $this->router->db->queryResultArray('delete from ad_media where ad_id=? and media_id=?',[$id, $m['ID']], true);
                             }
-                            
                         }
                     }
                            
@@ -382,20 +375,20 @@ class Bin extends AjaxHandler {
                                                     
                 // fix here
                 Config::instance()->incLibFile('MCSaveHandler');
-                $normalizer = new MCSaveHandler();    
-                $normalized = $normalizer->getFromContentObject( $content, false);
+                $normalizer=new MCSaveHandler;
+                if (!isset($content['id']) || $content['id']==0) {
+                    $content['id']=$ad->id();
+                }
+                
+                $normalized=$normalizer->getFromContentObject($content, false);
                 if ($normalized) { $content=$normalized; }
                 $text = $content['other']??'';
                 $rtl = $content['rtl']??0;
                 $text2 = isset($content['altother']) ? $content['altother'] : '';
                 $rtl2 = isset($content['altRtl']) ? $content['altRtl'] : '';                        
-                //if ($text2=='') { $content['extra']['t']=2; }
-                //$root = $content['ro'];
-                //$section = $content['se'];
-                //$purpose = $content['pu'];
-            
-                //$content = \json_encode($content);                                            
+
                 if ($this->router->db->queryResultArray('update ad_user set content=?, section_id=?, purpose_id=? where id=?', [\json_encode($content), $ad->sectionId(), $ad->purposeId(), $id])) {
+                    //\error_log("Robert update ad_user set content=?, section_id=?, purpose_id=? where id={$id}");
                     if ($imgAdmin) {
                         $redisAction = 'editorialImg'; 
                         $this->response('sic', $images);
@@ -421,7 +414,7 @@ class Bin extends AjaxHandler {
                     $this->response('id', $id);
                             
                     try {            	
-                        $redis = new Redis();
+                        $redis=new Redis;
                         $data = ['cmd' => $redisAction, 'data' => $this->data];
                         if ($redis->connect('h8.mourjan.com', 6379, 1, NULL, 50)) {
                             $redis->publish('editorial', json_encode($data));
@@ -2461,9 +2454,11 @@ class Bin extends AjaxHandler {
                 if (!isset($this->_JPOST['o'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                
                 
                 $_ad=\is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
-                if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
-                             
-                //$this->router->logger()->info('_JPOST[o]', $_ad);                              
+                //if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                   
+                
+                if ($this->user->level()!==9) {
+                    $_ad['ip']=IPQuality::getClientIP();
+                }
                 
                 $ad = new Core\Model\Ad();
                 $content = new Core\Model\Content();
@@ -2493,11 +2488,13 @@ class Bin extends AjaxHandler {
                         ->setLocation($_ad['loc']??'');
      
                 if ($content->getID()>0) {
-                    $oad = new Core\Model\Ad();
+                    $oad=new Core\Model\Ad;
                     $oad->getAdFromAdUserTableForEditing($content->getID());
                     if ($oad->id()>0) {
                         $content->setUID($oad->uid());
                         if ($content->getUID()!==$this->user()->id()) {
+                            $_ad['ip']=$oad->dataset()->getIpAddress();
+                           
                             $content->setUserAgent($oad->dataset()->getUserAgent())
                                     ->setUserLanguage($oad->dataset()->getUserLanguage())
                                     ->setIpAddress($oad->dataset()->getIpAddress())
@@ -2518,12 +2515,17 @@ class Bin extends AjaxHandler {
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
                 $content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
                 
-                Config::instance()->incLibFile('MCSaveHandler');
-                $normalizer = new MCSaveHandler();    
-                $normalized = $normalizer->getFromContentObject($_ad, false);
                 
+                
+                $this->router->logger()->info('_JPOST[o]', $_ad);
+                Config::instance()->incLibFile('MCSaveHandler');
+                $normalizer=new MCSaveHandler;    
+                $normalized=$normalizer->getFromContentObject($_ad, false);
+                $this->router->logger()->info('normalized', $normalized);        
                 if ($normalized!==false) {
-                    $content->setAttributes($normalized['attrs']);
+                    $content->setAttributes($normalized[Core\Model\Content::ATTRIBUTES]);
+                    $content->setUserLocation($normalized[Core\Model\Content::USER_LOCATION]);
+                    //$content->
                     $this->router->logger()->info('attributes', $normalized['attrs']);
                 }
                 

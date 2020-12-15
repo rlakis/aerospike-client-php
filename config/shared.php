@@ -271,7 +271,7 @@ $config=array (
   'search_results_max' => 1000,
   'sphinxql' => 
   array (
-    'host' => 'p1.mourjan.com',
+    'host' => 'p2.mourjan.com',
     'port' => 8307,
     'socket' => '/var/run/manticore.sock',
   ),
@@ -284,7 +284,7 @@ $config=array (
   'ttl_unlimited' => 0,
   'url_uploader' => 'https://h5.mourjan.com',
   'url_resources' => 'https://www.mourjan.com',
-  'url_ad_img' => 'https://c6.mourjan.com/repos',
+  'url_ad_img' => 'https://doxplxe8wce37.cloudfront.net/repos',
   'url_img' => '/img/1.0.3',
   'url_js' => '/js/3.5.9',
   'url_js_mobile' => '/js/3.5.9',
@@ -964,10 +964,10 @@ $config=array (
   ),
   'android_releases_en_3' => 
   array (
-    '2.2.8' => '
-            <b>release 2.2.8</b>
-            <br>&#8226; 
-            Activation of profile picture upload
+    '2.5.5' => '
+            <b>release 2.5.5</b>
+            <br>&#8226;             
+            Fix for English/Arabic language display
         ',
     '2.4.8' => '
             <b>release 2.4.8</b>
@@ -1011,12 +1011,10 @@ $config=array (
             <br>&#8226; 
             Fix for several app crashes
         ',
-    '2.1.5' => '
-            <b>release 2.1.5</b>
-            <br>&#8226; 
-            Fix for viewing ad location on map
-            <br>&#8226; 
-            Fix for several app crashes
+    '2.5.1' => '
+            <b>release 2.5.1</b>
+            <br>&#8226;             
+            Fix for some issues causing purchase failures
         ',
     '2.1.6' => '
             <b>release 2.1.6</b>
@@ -1030,20 +1028,6 @@ $config=array (
             <br>&#8226; 
             Fix for app crash on some devices when trying to add pictures to the ad
         ',
-    '2.1.8' => '
-            <b>release 2.1.8</b>
-            <br>&#8226; 
-            Fix of various bugs causing app crash
-        ',
-    '2.4.2' => '
-            <b>release 2.4.2</b>
-            <br>&#8226; 
-            New dark mode feature in the app settings
-            <br>&#8226; 
-            Fix for problem in adding pictures to ads on Android Q devices
-            <br>&#8226; 
-            Several enhancements and bug fixes
-        ',
     '2.2.7' => '
             <b>release 2.2.7</b>
             <br>&#8226; 
@@ -1055,13 +1039,34 @@ $config=array (
             <br>&#8226; 
             Fix for several issues and bugs
         ',
-    '2.5.1' => '
-            <b>release 2.5.1</b>
-            <br>&#8226;             
-            Fix for some issues causing purchase failures
+    '2.4.2' => '
+            <b>release 2.4.2</b>
+            <br>&#8226; 
+            New dark mode feature in the app settings
+            <br>&#8226; 
+            Fix for problem in adding pictures to ads on Android Q devices
+            <br>&#8226; 
+            Several enhancements and bug fixes
+        ',
+    '2.2.8' => '
+            <b>release 2.2.8</b>
+            <br>&#8226; 
+            Activation of profile picture upload
         ',
     '2.2.2' => '
             <b>release 2.2.2</b>
+            <br>&#8226; 
+            Fix for several app crashes
+        ',
+    '2.1.8' => '
+            <b>release 2.1.8</b>
+            <br>&#8226; 
+            Fix of various bugs causing app crash
+        ',
+    '2.1.5' => '
+            <b>release 2.1.5</b>
+            <br>&#8226; 
+            Fix for viewing ad location on map
             <br>&#8226; 
             Fix for several app crashes
         ',
@@ -1093,10 +1098,10 @@ $config=array (
   ),
   'android_releases_ar_3' => 
   array (
-    '2.2.8' => '            
-            <b>اصدار 2.2.8</b>
+    '2.5.5' => '            
+            <b>اصدار 2.5.5</b>
             <br>&#8226;
-            تفعيل ميزة اضافة صورة للحساب
+            معالجة مشكل اللغة وتداخل العربية والانجليزية
         ',
     '2.4.8' => '            
             <b>اصدار 2.4.8</b>
@@ -1140,12 +1145,10 @@ $config=array (
             <br>&#8226;
             معالجة عدة مشاكل مسببة لتوقف التطبيق
         ',
-    '2.1.5' => '            
-            <b>اصدار 2.1.5</b>
+    '2.5.1' => '            
+            <b>اصدار 2.5.1</b>
             <br>&#8226;
-            معالجة خلل في مشاهدة موقع الاعلان على الخريطة
-            <br>&#8226;
-            معالجة عدة مشاكل مسببة لتوقف التطبيق
+            معالجة بعض المشاكل أثناء القيام بعملية شرائية
         ',
     '2.1.6' => '            
             <b>اصدار 2.1.6</b>
@@ -1159,20 +1162,6 @@ $config=array (
             <br>&#8226;
             معالجة مشكل توقف التطبيق لبعض المستخدمين عند محاولة اضافة صور للاعلان
         ',
-    '2.1.8' => '            
-            <b>اصدار 2.1.8</b>
-            <br>&#8226;
-            معالجة بعض المشاكل المسببة لتوقف التطبيق
-        ',
-    '2.4.2' => '            
-            <b>اصدار 2.4.2</b>
-            <br>&#8226;
-            ميزة جديدة وهي حالة الالوان الليلية ضمن اعدادات التطبيق
-            <br>&#8226;
-            معالجة مشكل عدم إمكانية إضافة صور للإعلانات في آخر اصدار اندرويد كيو
-            <br>&#8226;
-            عدة تحسينات ومعالجة بعض المشاكل
-        ',
     '2.2.7' => '            
             <b>اصدار 2.2.7</b>
             <br>&#8226;
@@ -1184,13 +1173,34 @@ $config=array (
             <br>&#8226;
             معالجة العديد من المشاكل الأخرى
         ',
-    '2.5.1' => '            
-            <b>اصدار 2.5.1</b>
+    '2.4.2' => '            
+            <b>اصدار 2.4.2</b>
             <br>&#8226;
-            معالجة بعض المشاكل أثناء القيام بعملية شرائية
+            ميزة جديدة وهي حالة الالوان الليلية ضمن اعدادات التطبيق
+            <br>&#8226;
+            معالجة مشكل عدم إمكانية إضافة صور للإعلانات في آخر اصدار اندرويد كيو
+            <br>&#8226;
+            عدة تحسينات ومعالجة بعض المشاكل
+        ',
+    '2.2.8' => '            
+            <b>اصدار 2.2.8</b>
+            <br>&#8226;
+            تفعيل ميزة اضافة صورة للحساب
         ',
     '2.2.2' => '            
             <b>اصدار 2.2.2</b>
+            <br>&#8226;
+            معالجة عدة مشاكل مسببة لتوقف التطبيق
+        ',
+    '2.1.8' => '            
+            <b>اصدار 2.1.8</b>
+            <br>&#8226;
+            معالجة بعض المشاكل المسببة لتوقف التطبيق
+        ',
+    '2.1.5' => '            
+            <b>اصدار 2.1.5</b>
+            <br>&#8226;
+            معالجة خلل في مشاهدة موقع الاعلان على الخريطة
             <br>&#8226;
             معالجة عدة مشاكل مسببة لتوقف التطبيق
         ',
@@ -1461,7 +1471,7 @@ $config=array (
     924 => 1,
     350 => 1,
   ),
-  'android_enabled_cli_verification' => 1,
+  'android_enabled_cli_verification' => 0,
   'android_enabled_sms_verification' => 1,
   'android_url_img_xx' => 
   array (

@@ -92,7 +92,12 @@ class AdList extends \SplDoublyLinkedList {
             $f.='LEFT JOIN T_AD_BO on T_AD_BO.AD_ID=AD_USER.ID and T_AD_BO.BLOCKED=0 ';
             $f.='LEFT JOIN T_AD_FEATURED on T_AD_FEATURED.AD_ID=AD_USER.ID and current_timestamp between T_AD_FEATURED.added_date and T_AD_FEATURED.ended_date ';
 
-            $w.="AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
+            if ($this->state===8) {
+                $w.="AD_USER.web_user_id={$this->uid} and (AD_USER.state={$this->state} or AD_USER.state=6) ";
+            }
+            else {
+                $w.="AD_USER.web_user_id={$this->uid} and AD_USER.state={$this->state} ";
+            }
             $o ='ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
         }
         elseif ($this->state>0 && $this->state!==3) {

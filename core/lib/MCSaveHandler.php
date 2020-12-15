@@ -312,7 +312,7 @@ class MCSaveHandler {
             $resp=\curl_exec($ch);
             $result['status']=\curl_getinfo($ch, CURLINFO_HTTP_CODE);
             
-            $is_json = is_string($resp) && \is_array(\json_decode($resp, true)) && (\json_last_error()===\JSON_ERROR_NONE) ? true : false;
+            $is_json=\is_string($resp) && \is_array(\json_decode($resp, true)) && (\json_last_error()===\JSON_ERROR_NONE) ? true : false;
             if ($is_json) { $result['data']=\json_decode($resp, TRUE); }
         }
         catch (Exception $ex) {

@@ -196,7 +196,7 @@ var d = {
     edit: function(e) {
         //if (this.level===9) {            
         //}
-        //console.log('edit button', this, e);        
+        //console.log('edit button', this, e);  
         var form = createElem("form");
         form.target = '';
         form.method = "POST";
@@ -205,9 +205,9 @@ var d = {
         input.type = "hidden";
         input.name = "ad";
         input.value = e.article().id;
-        
         form.append(input);        
-        $$.append(form);               
+        $$.append(form);
+        
         form.submit();
     },
     

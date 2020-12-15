@@ -60,6 +60,9 @@ class Classifieds {
     const PRICE                 = 46;
     
     const RERA                  = 47;
+    const IP_FRAUD_SCORE        = 48;
+    const IP_COUNTRY_CODE       = 49;
+    const AM_COUNTRY_CODE       = 50;
     const ATTRS                 = 80;
     const DONE                  = 99;
 

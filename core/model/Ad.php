@@ -757,7 +757,7 @@ class Ad {
     }
     
     
-    public function parseDbRow($row) : void {
+    public function parseDbRow(array $row) : void {
         $this->setID($row['ID'])
             ->setSectionId($row['SECTION_ID'])
             ->setPurposeId($row['PURPOSE_ID'])
@@ -783,7 +783,7 @@ class Ad {
         if (\json_last_error()) {
             \error_log(\var_export($ext, true));
         }
-        
+        $this->dataset->setIpAddress($ext[Content::IP_ADDRESS]??'');
             
         $ext_version=$ext[Content::VERSION]??2;
         if ($ext_version===3) {
@@ -849,6 +849,7 @@ class Ad {
                     $this->dataset->setUserLevel($user->level());
                 }
                 else {
+                    //\error_log(var_export($this->dataset(), true));
                     \Config::instance()->incLibFile('MCUser');
                     $u=new \Core\Lib\MCUser($this->dataset->getUID());
                     $this->dataset->setUserActivatedMobileNumber($u->getMobileNumber());                    

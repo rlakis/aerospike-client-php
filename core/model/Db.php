@@ -79,8 +79,8 @@ class DB {
         //$this->kafkaProducer->addBrokers("a1.mourjan.com:9092,www.edigear.com:9092");
 
         $params = ['connections'=>
-            [
-                ['host' => '138.201.50.158', 'port' => 8308],
+            [                
+                ['host' => '148.251.186.42', 'port' => 8308],
                 ['host' => '148.251.186.42', 'port' => 8308],
                 ['host' => '138.201.142.130', 'port' => 8308],
             ],

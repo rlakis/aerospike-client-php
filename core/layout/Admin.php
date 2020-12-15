@@ -11,8 +11,10 @@ class Admin extends Page {
     private $userdata=0;
     private array $multipleAccounts = [];
 
+    
     function __construct() {
         parent::__construct();
+    
         $this->uid=0;
         $this->sub=\filter_input(\INPUT_GET, 'sub', \FILTER_SANITIZE_STRING, ['options' => ['default' => '']]);
         $this->aid=filter_input(INPUT_GET, 'r', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
@@ -107,7 +109,7 @@ class Admin extends Page {
             $this->uid=0;
             $isEmail=\preg_match('/@/', $parameter);            
 
-            $date=new DateTime();
+            //$date=new DateTime;
 
             if (!$isEmail && preg_match('/[^0-9]/', $parameter)) {
                 $record=[];
@@ -129,25 +131,7 @@ class Admin extends Page {
                     if (\count($records)>1) {
                         $this->multipleAccounts=\array_keys($records);
                     }
-                }
-                /*
-                $user=$this->user->getUserByEmail($parameter, $records);
-                if ($user && count($user)) {
-                    $selected=$this->uid=$user[0]['ID'];
-
-                    if (isset($_GET['selected'])) {
-                        $selected=intval($_GET['selected']);
-                    }
-
-                    if (count($user) > 1) {
-                        foreach ($user as $rec) {
-                            $this->multipleAccounts[] = $rec['ID'];
-                            if ($selected == $rec['ID']) {
-                                $this->uid = $rec['ID'];
-                            }
-                        }
-                    }
-                }*/
+                }       
             } 
             else {
                 $this->uid=\intval($parameter);
@@ -160,7 +144,7 @@ class Admin extends Page {
             //if ($isEmail) { $this->uid=$email; }
         } 
         else {
-            $parameter = filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
+            $parameter=filter_input(INPUT_GET, 't', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
             if ($parameter) {
                 $this->userdata=[];
                 if (\Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($parameter, $uids) == Core\Model\NoSQL::OK) {
@@ -233,14 +217,10 @@ class Admin extends Page {
             $url='';
 
             foreach ($_GET as $key => $value) {
-                if ($url) {
-                    $url .= '&';
-                }
+                if ($url) {  $url .= '&';  }
                 $url .= $key . '=' . $value;
             }
-            if ($url)
-                $url = '?' . $url;
-
+            if ($url) {  $url='?'.$url;  }
             header('Location: ' . $url);
         }
 
@@ -298,13 +278,14 @@ class Admin extends Page {
                         break;
                 }
 
-                $ttl = MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
+                $ttl=MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
                 if ($ttl) {
                     if ($release === -1) {
-                        $_mobiles[$i]['suspended']['release'] = 'within 60 seconds';
-                        $bins['suspended'] = '60s';
-                        MCSessionHandler::setSuspendMobile($bins[\Core\Model\ASD\USER_PROFILE_ID], $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 60, TRUE, $_mobiles[$i]['suspended']['release']);
-                    } else {
+                        $_mobiles[$i]['suspended']['release'] = 'within few seconds';
+                        $bins['suspended'] = '30s';
+                        MCSessionHandler::setSuspendMobile($bins[\Core\Model\ASD\USER_PROFILE_ID], $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 30, true, $_mobiles[$i]['suspended']['release']);
+                    } 
+                    else {
                         $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time() + $ttl);
                         $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':') + 1)) : $reason;
                         //var_dump($_mobiles[$i]['suspended']['reason']);

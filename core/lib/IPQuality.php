@@ -22,7 +22,7 @@ class IPQuality {
         }
 
         try {
-            $redis = new Redis();                
+            $redis=new Redis;  
             if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
                 $redis->select(3);
                 $redis->setOption(Redis::OPT_PREFIX, 'IP');                        
@@ -30,7 +30,8 @@ class IPQuality {
                 $raw = $redis->get($IP);
                 $redis->close();                                
             }
-        } catch (RedisException $re) {
+        } 
+        catch (RedisException $re) {
             print_r($re);
         }
         
@@ -201,7 +202,7 @@ class IPQuality {
         $ip = static::getClientIP();
         
         if ($ip!=='UNKNOWN') {
-            $redis = new Redis();
+            $redis=new Redis;
             try {                              
                 if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
                     $redis->select(3);
@@ -474,7 +475,7 @@ class IPQuality {
             return json_encode(['IP'=>'Unknown']);
         }
         
-        $redis=new Redis();
+        $redis=new Redis;
         try {                  
             if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
                 $redis->select(3);
