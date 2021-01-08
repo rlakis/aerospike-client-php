@@ -1125,6 +1125,7 @@ var Ad={
         _.content.lat=ad.lat;
         _.content.lon=ad.lon;
         _.content.loc=ad.loc;
+        _.content.budget=ad.budget;
         
         UI.addressChanged();        
         UI.photos.forEach(function(p){ p.clear(); });
@@ -1264,7 +1265,7 @@ var Ad={
             return;
         }
         let status=parseInt(window.event.target.dataset.state);
-        console.log("Status", status);
+        console.log("Status", status, "Budget", _.content.budget);
         let ad={
             hl:(UI.ar?'ar':'en'),
             id:_.id, 
@@ -1357,7 +1358,7 @@ var Ad={
                         _.parse(response.DATA.ad);
                     }
                 }
-                if(status===1||status===2){
+                if(status===1||status===2||status===4){
                     history.go(-1);
                 }
             })
@@ -1794,13 +1795,14 @@ class ContactNumber{
         if(num && num.length>3){
             try {
                 _.phoneNumber=new libphonenumber.parsePhoneNumberFromString(num, Prefs.activationCountryCode);
-                console.log(typeof _.phoneNumber);
+                //console.log(typeof _.phoneNumber);
                 if(_.phoneNumber && _.phoneNumber.hasOwnProperty('metadata')){
-                    console.log('phoneNumber', _.phoneNumber); 
+                    console.log('phoneNumber', _.phoneNumber, _.phoneNumber.isValid(), _.phoneNumber.getType()); 
                     
                     if(_.phoneNumber.isValid()){
                         _.tel.value=_.phoneNumber.country===Prefs.activationCountryCode ? _.phoneNumber.formatNational() : _.phoneNumber.formatInternational();
                         let tp=_.phoneNumber.getType();
+                        if (typeof tp === 'undefined') { tp='FIXED_LINE_OR_MOBILE'; }
                         switch(_.getType()){
                             case ContactNumberType.Landline:
                                 if(tp!=='FIXED_LINE'&&tp!=='FIXED_LINE_OR_MOBILE'){

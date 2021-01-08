@@ -906,7 +906,7 @@ class Page extends Site {
                 ?><li><a href=<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $section_id, $purposeId).$q?>><img style="width:25px;height:25px;margin-inline-end:8px" src="<?=$this->router->config->imgURL?>/se/<?=$k?>.svg"><?=$v['name']?></a></li><?php
             }
             else {
-                if ($purposeId>0 && $purposeId===$this->router->purposeId) {
+                if ($this->router->module!=='detail' && $purposeId>0 && $purposeId===$this->router->purposeId) {
                     $v['counter']=$v['purposes'][$purposeId]['counter'];
                 }
                 $isNew=(!$selected && $this->checkNewUserContent($v['unixtime']));
@@ -2664,10 +2664,10 @@ class Page extends Site {
 
     function header() : void {
         ?><link rel=preconnect href='https//c6.mourjan.com' /><?php    
-        ?><link rel=preconnect href="https://fonts.googleapis.com" crossorigin /><?php
-        
+        /*
+        ?><link rel=preconnect href="https://fonts.googleapis.com" crossorigin /><?php        
         ?><link rel=preconnect href="https://fonts.gstatic.com/" crossorigin /><?php
-
+        */
         ?><link rel=preconnect href='https://pagead2.googlesyndication.com' crossorigin /><?php
         ?><link rel=preconnect href='https://googleads.g.doubleclick.net' crossorigin /><?php
         ?><link rel=preconnect href="https://adservice.google.com" crossorigin /><?php
@@ -3535,7 +3535,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                     $cssContents = \file_get_contents($cssfile);
                     file_put_contents($mincss, $this->router->minifyCss($cssContents));
                 }*/
-                include $cssfile;
+                include_once $cssfile;
                 //include $this->router->config->baseDir.'/web/css/includes/'.$filename.'.css';
             }
             
@@ -3572,14 +3572,18 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     protected function _header() : void {
         \header("Link: <".$this->router->config->cssURL."/1.0/mc.css>; rel=preload; as=style;", false);
+        \header("Link: <".$this->router->config->cssURL."/1.0/fonts/roboto-v20-latin-regular.woff2>; rel=preload; as=font; crossorigin", false);
+        \header("Link: <{$this->router->config->cssURL}/1.0/fonts/almarai-v4-arabic-300.woff2>; rel=preload; as=font; crossorigin", false);
+        
         if ($this instanceof UserPage) {
             \header("Link: <".$this->router->config->cssURL."/1.0/user.css>; rel=preload; as=style;", false);
         }
         switch ($this->router->module) {
             case 'myads':
-                \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->jsURL."/1.0/socket.io.slim.js>; rel=preload; as=script;", false);
                 \header("Link: <".$this->router->config->jsURL."/1.0/chart-2.9.3/Chart.min.js>; rel=preload; as=script;", false);
                 \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
+                
                 break;
             
             case 'admin':
@@ -3587,9 +3591,10 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'post':    
-                \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.7.10.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->jsURL."/1.0/libphonenumber-min-1.9.6.js>; rel=preload; as=script;", false);
                 \header("Link: <".$this->router->config->jsURL."/1.0/load-image-scale.js>; rel=preload; as=script;", false);
                 \header("Link: <".$this->router->config->jsURL."/1.0/sweetalert2.all.min.js>; rel=preload; as=script;", false);
+                \header("Link: <".$this->router->config->cssURL."/1.0/user.css>; rel=preload; as=style;", false);
                 break;
 
             case 'gold':
@@ -3613,14 +3618,20 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
         echo '><head><meta charset="utf-8">';        
         echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/mc.css />';
-        if ($this instanceof UserPage) {
+        if ($this instanceof UserPage || $this->router->module==='post') {
             echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/user.css />';
         }
+        echo '<link rel=preload type=font/woff2 href="', $this->router->config->cssURL, '/1.0/fonts/roboto-v20-latin-regular.woff2" />';
+        echo '<link rel=preload type=font/woff2 href="', $this->router->config->cssURL, '/1.0/fonts/almarai-v4-arabic-300.woff2" />';
+
+        /*
         ?><link rel=preload as=style href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" /><?php
         ?><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" media="print" onload="this.media='all'" /><?php
+         * 
+         */
         switch ($this->router->module) {
             case 'myads':
-                ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.slim.js></script><?php
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/chart-2.9.3/Chart.min.js></script><?php
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
                 break;
@@ -3631,7 +3642,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
                 break;
             
             case 'post':
-                ?><script async src=<?=$this->router->config->jsURL?>/1.0/libphonenumber-min-1.7.10.js></script><?php
+                ?><script async src=<?=$this->router->config->jsURL?>/1.0/libphonenumber-min-1.9.6.js></script><?php
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/load-image-scale.js></script><?php
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/sweetalert2.all.min.js></script><?php
                 break;
@@ -3706,6 +3717,7 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
             
             case 'post':
                 $this->css('post');
+                
                 break;
             
             case 'admin':

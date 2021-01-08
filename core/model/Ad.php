@@ -541,23 +541,18 @@ class Ad {
             return $this->profile;
         }
         
-        if ($this->list!==null) {
-            $this->profile = $this->list->getCachedProfile($this->uid());
-            //if ($profile!==null) {
-            //    $this->profile = $profile;
-            //}
-            //else {
-            //    $this->profile = new \MCUser($this->uid());
-            //    $this->list->cacheProfile($this->profile);
-            //}
+        if (isset($this->profile) && $this->list!==null) {
+            $this->profile=$this->list->getCachedProfile($this->uid());
         }
                     
         if ($this->profile===null) {
             if ($this->dataset!==null) {
                 return $this->dataset()->getProfile();
             }
-            $this->profile = new \Core\Lib\MCUser($this->uid());
-            $this->list->cacheProfile($this->profile);
+            $this->profile=new \Core\Lib\MCUser($this->uid());
+            if (isset($this->list)) {
+                $this->list->cacheProfile($this->profile);
+            }
         }
         return $this->profile;
     }
@@ -815,7 +810,7 @@ class Ad {
                 ->setMessage($ext[Content::MESSAGE]??'') 
                 ->setRERA($ext[Content::RERA]??[])
                 ;
-        
+         
         $this->data[Classifieds::CONTENT]=$this->dataset()->getNativeText();
         $this->data[Classifieds::ALT_CONTENT]=$this->dataset()->getForeignText();
         if ($this->dataset()->getNativeRTL()===1) {
@@ -849,10 +844,13 @@ class Ad {
                     $this->dataset->setUserLevel($user->level());
                 }
                 else {
+                    $u=$this->profile();
+                    //\error_log('Balance '.$u->getBalance());
                     //\error_log(var_export($this->dataset(), true));
-                    \Config::instance()->incLibFile('MCUser');
-                    $u=new \Core\Lib\MCUser($this->dataset->getUID());
-                    $this->dataset->setUserActivatedMobileNumber($u->getMobileNumber());                    
+                    //\Config::instance()->incLibFile('MCUser');
+                    //$u=new \Core\Lib\MCUser($this->dataset->getUID());
+                    $this->dataset->setUserActivatedMobileNumber($u->getMobileNumber());
+                    
                 }
                 
             }

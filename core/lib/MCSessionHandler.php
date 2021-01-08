@@ -10,7 +10,7 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
         Aerospike::OPT_POLICY_RETRY=>Aerospike::POLICY_RETRY_ONCE,
         Aerospike::OPT_WRITE_TIMEOUT=>2000,
         Aerospike::OPT_MAX_RETRIES=>3,
-        Aerospike::OPT_SLEEP_BETWEEN_RETRIES=>300,
+        Aerospike::OPT_SLEEP_BETWEEN_RETRIES=>250,
         Aerospike::OPT_SERIALIZER=>Aerospike::SERIALIZER_NONE,
         Aerospike::OPT_POLICY_EXISTS=>\Aerospike::POLICY_EXISTS_IGNORE
     ];
@@ -27,11 +27,12 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     }
 
     
-    public static function checkSuspendedMobile(int $number, ?string &$reason="") : int {
+    public static function checkSuspendedMobile(int $number, ?string &$reason='', ?string &$score='') : int {
         $as=\Core\Model\NoSQL::instance();
         $pk=$as->initLongKey(\Core\Model\NoSQL::NS_CACHE, "suspended", $number);
         if ($as->getConnection()->get($pk, $record, NULL)===Aerospike::OK) {
             $reason=$record['bins']['en'];
+            $score=$record['bins']['summary']??'';
             return $record['metadata']['ttl'];
         }
         return 0;
@@ -101,7 +102,7 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
             }
            
             $max_retries--;
-            $this->storage=\Core\Model\NoSQL::instance()->getConnection();
+            //$this->storage=\Core\Model\NoSQL::instance()->getConnection();
         }
         \error_log(__FUNCTION__." Session {$id} write error [{$this->storage->errorno()}] ".$this->storage->error().\PHP_EOL);
         return true;

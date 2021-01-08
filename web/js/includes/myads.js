@@ -25,6 +25,7 @@ const wording={
     hold_text:{e:'Are you sure that you want to stop this ad?', a:'هل انت متأكد من قرار إيقاف الاعلان؟'},
     hold_it:{e:'Yes, stop it!', a: 'نعم، إلغاء النشر!'},
     make_it:{e:'Yes, make it!', a: 'نعم، متأكد!'},
+    del_it:{e:'Yes, delete it!', a: 'نعم، متأكد!'},
     stop_premium:{e:'Are you sure that you want to stop premium listing for this ad?', a:'هل أنت متأكد(ة) من إيقاف العرض المميز لهذا الإعلان؟'},
     premium_rs1:{e:'Premium listing of this ad has been cancelled successfully', a:'تم الغاء تمييز الاعلان بنجاح'},
     premium_rs2:{e:'but the ad will remain premium for the earned period of', a:'ولكن الاعلان سيبقى مميز للفترة المكتسبة وهي'},
@@ -209,6 +210,39 @@ var d = {
         $$.append(form);
         
         form.submit();
+    },
+    
+    del: function(e) {
+        Swal.fire({
+            title:this.ar?"هل انت متأكد انت تريد مسح الاعلان نهائيا؟":"Are you sure you want to delete this ad forever?",
+            text: '',
+            icon: 'warning',
+            showCancelButton: true,
+            focusCancel: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            cancelButtonText: wording.cancel[lg],
+            confirmButtonText: wording.del_it[lg]
+        }).then((result) => {
+            console.log(result);
+             if (result.value) {
+                fetch(('/ajax-adel/'), _options('POST', {i: parseInt(e.article().id), h:d.level!=='9'?1:0}))
+                .then(res=>res.json())
+                .then(response => {
+                    console.log('Success:', response);
+                    if (response.success===1) {                       
+                        e.parentElement.parentElement.style.backgroundColor='lightgray';
+                        Swal.fire('Deleted!', 'Your ad has been deleted forever.', 'success');
+                    }
+                    else {
+                        Swal.fire('Failed!', response.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    Swal.fire('Exception!', error.toString(), 'error');
+                });               
+             }
+        });        
     },
     
     unpublish: function(e, premium) {
@@ -1132,6 +1166,7 @@ class Ad {
     
     setName(v) {
         if (!this._editor.innerText.includes(v)) {
+            console.log('setName', v);
             this._editor.innerHTML = v + '/' + this._editor.innerText;
         }
         return this;
@@ -1139,6 +1174,8 @@ class Ad {
     
     replName(v) {
         if (this.getStatus()<7 && this._editor) {
+            
+            console.log('replName', v);
             this._editor.innerHTML = v;
         }
     }
@@ -1160,6 +1197,7 @@ class Ad {
         if (!this.node.classList.contains('selected')) {
             this.setAs('selected');
             if (this.getStatus()<7) {
+                console.log("touch", [this.id, d.KUID]);
                 socket.emit("touch", [this.id, d.KUID]);
             }
             let f=byId('fixForm');
@@ -1277,7 +1315,7 @@ class Ad {
 
 
 const reqSIO = async () => {
-    socket = io.connect('ws.mourjan.com:1313', {transports: ['websocket'], 'force new connection': false});
+    socket = io.connect('io.mourjan.com:1313', {transports: ['websocket'], 'force new connection': false});
     
     socket.on('admins', function (data) {
         active_admins = data.a;
@@ -1307,6 +1345,7 @@ const reqSIO = async () => {
         }
 
         if (d.editors && typeof data.b==='object') {
+            console.log('admins', data);
             for (let uid in data.b) {
                 if (data.b[uid]===0) { continue; }
                 let ad=d.items[data.b[uid]];
@@ -1317,8 +1356,9 @@ const reqSIO = async () => {
             }
         }
     });
-    socket.on("ad_touch", function (data) {
+    socket.on("ad_touch", function (data) {        
         if (data.hasOwnProperty('x')) {
+            console.log('ad_touch', data);
             if (data.hasOwnProperty('i') && data.i > 0) {
                 let ad=d.items[data.i];
                 if(ad)ad.setName(d.getName(data.x)).lock();
@@ -1591,7 +1631,7 @@ $.addEventListener("DOMContentLoaded", function () {
     }
     
     var script=$.createElement('script');script.type="text/javascript";
-    script.src="https://dev.mourjan.com/js/2020/1.0/socket.io.js";           
+    script.src="https://dev.mourjan.com/js/2020/1.0/socket.io.slim.js";           
     $.body.append(script);
     script.onload=function(){ reqSIO(); }
     

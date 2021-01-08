@@ -24,6 +24,7 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
     flex-flow: column;
     align-items: center;
     background-color: inherit;
+    flex: 1;
 }
 
 .mls article {
@@ -71,7 +72,8 @@ canvas{max-width: 1024px;margin-left: auto; margin-right: auto;display: block}
     border:1px solid var(--mdc50);
     border-radius: 20px;
     height: 36px;
-    min-width: 80px;
+    min-width: 80px;   
+    padding: 0 4px;
     background: inherit;
     font-family: inherit;
     font-size: 16px;
@@ -155,6 +157,7 @@ body[dir=rtl] .note b::before {
     position: relative;
     align-items: flex-start;
     padding: 16px 4px;
+    word-break: break-word;
 }
 
 .mls article .adbody .icon {

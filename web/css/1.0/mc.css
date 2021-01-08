@@ -1,4 +1,58 @@
 @charset "UTF-8";
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 300;
+  src: local(''),
+       url('/css/2020/1.0/fonts/roboto-v20-latin-300.woff2') format('woff2'), 
+       url('../fonts/roboto-v20-latin-300.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 400;
+  src: local(''),
+       url('/css/2020/1.0/fonts/roboto-v20-latin-regular.woff2') format('woff2'), 
+       url('../fonts/roboto-v20-latin-regular.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Roboto';
+  font-style: normal;
+  font-weight: 700;
+  src: local(''),
+       url('/css/2020/1.0/fonts/roboto-v20-latin-700.woff2') format('woff2'),
+       url('../fonts/roboto-v20-latin-700.woff') format('woff'); 
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Almarai';
+  font-style: normal;
+  font-weight: 300;
+  src: local(''),
+       url('/css/2020/1.0/fonts/almarai-v4-arabic-300.woff2') format('woff2'),
+       url('../fonts/almarai-v4-arabic-300.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Almarai';
+  font-style: normal;
+  font-weight: 700;
+  src: local(''),
+       url('/css/2020/1.0/fonts/almarai-v4-arabic-700.woff2') format('woff2'), 
+       url('../fonts/almarai-v4-arabic-700.woff') format('woff');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Almarai';
+  font-style: normal;
+  font-weight: 400;
+  src: local(''),
+       url('/css/2020/1.0/fonts/almarai-v4-arabic-regular.woff2') format('woff2'),
+       url('../fonts/almarai-v4-arabic-regular.woff') format('woff'); 
+  font-display: swap;
+}
 :root {
     --mourjanC: rgba(10,122,255,1);
     --midnight: rgba(44,62,80,1);
@@ -71,13 +125,15 @@
   --mseFilter: invert(55%) sepia(11%) saturate(758%) hue-rotate(141deg) brightness(87%) contrast(83%)
 }
 
-html {
+body {
     width: 100%;
-    margin: 0px;
-    padding: 0px;    
+    margin: 0;
+    padding: 0;
+/*    
     height: 100%;
     height: -webkit-fill-available;
     height: -moz-available;
+*/
     overflow-x: hidden;
     box-sizing: border-box;
 }
@@ -85,6 +141,9 @@ html {
   box-sizing: inherit;
   padding: 0;
   margin: 0;
+}
+html {
+    display: flex;
 }
 html * {    
   -webkit-font-smoothing: antialiased;
@@ -104,15 +163,18 @@ body {
     margin: 0;
     background-color: #fff;
     line-height: 1;
+    /*
     min-height: 100vh;
+    */
     /*min-height: -webkit-fill-available;*/
     overflow-x: hidden;
 }
 
 main {
-    display: inherit;
     flex: 1;
+    /*
     margin-bottom: 72px;
+    */
 }
 
 aside {
@@ -848,11 +910,11 @@ body > * {
 .roots a+a{
     margin-inline-start:6px;
 }
-
+/*
 .search-box.shortcut {
     background-color: #eff2f4;
 }
-    
+*/
 .search-box.shortcut .roots {  
     justify-content: center;
     flex: 1;
@@ -1373,11 +1435,11 @@ body[dir=rtl] .large .arrow {
         display: none;
     }
     
-    
+    /*
     html {
         min-height: 0;
     }
-    
+    */
     body {
         flex-flow: row wrap;
         align-content: flex-start;
@@ -1445,9 +1507,10 @@ body[dir=rtl] .large .arrow {
     }
     
     main {
-        min-height: 33vh;
+        /*min-height: 33vh;*/
         background: var(--mdc03);        
         margin-bottom: 0;
+        padding-top:30px;
     }
     
     body footer nav {
@@ -1499,7 +1562,7 @@ body[dir=rtl] .large .arrow {
     
     .search-box {
         background-color:var(--mdc03);
-        padding-bottom: 30px;
+        /*padding-bottom: 30px;*/
     }
     
     .search-box.main {
@@ -1508,10 +1571,11 @@ body[dir=rtl] .large .arrow {
         box-shadow:0 1px 4px aliceblue;
     }
 
+    /*
     .search-box.shortcut {
         background-color: var(--mdc03);
     }
-    
+    */
     
     .search-box.shortcut .roots {  
         justify-content: flex-start;

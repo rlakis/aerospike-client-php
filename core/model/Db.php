@@ -338,16 +338,8 @@ class DB {
         $result=[];
         $stmt=null;
         try {
-            $stmt=$this->getInstance()->prepare($query);
-            
-            if ($params) {
-                $stmt->execute($params);
-            }
-            else {
-                $stmt->execute();
-            }
-            
-            if ($stmt) {
+            $stmt=$this->getInstance()->prepare($query);                                    
+            if ($stmt->execute($params)) {
                 $query=\trim($query);               
                 if (!\stristr($query, " returning ") && \preg_match('/^(insert|update|delete|execute)\s/i', $query)) {
                     $result=true;
@@ -356,31 +348,39 @@ class DB {
                     $result=$stmt->fetchAll($fetch_mode);
                 }
             }
+            else {
+                \error_log("DB.".__FUNCTION__."[".__LINE__."] Failed to execute statement".PHP_EOL.$query.PHP_EOL.\json_encode($params));
+            }
             unset($stmt);
-            //$this->closeStatement($stmt);            
             if ($commit) { $this->commit(); }                    
         }
         catch (\PDOException $pdoException) {
-            error_log(__FUNCTION__ . ' first exception '.$pdoException->getMessage());
-            unset($stmt);
-            //if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
-            $result = FALSE;
-            
-            if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage())) {
-                self::$Instance->rollBack();
-                usleep(200);
-                error_log('RETRY: '. ($runtime+1) .' | CODE: '.$pdoException->getCode(). ' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
-                $this->getInstance();
-                return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);                
-            } 
+            if ($commit) {
+                error_log(__FUNCTION__ . ' first exception '.$pdoException->getMessage());
+                unset($stmt);
+                $result = FALSE;
+
+                if ($runtime<5 && preg_match('/913 deadlock/', $pdoException->getMessage())) {
+                    self::$Instance->rollBack();
+                    usleep(200);
+                    error_log('RETRY: '. ($runtime+1) .' | CODE: '.$pdoException->getCode(). ' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
+                    $this->getInstance();
+                    return $this->queryResultArray($query, $params, $commit, $fetch_mode, $runtime+1);                
+                } 
+                else {
+                    self::$Instance->rollBack();
+                    error_log('CODE: '.$runtime.'/'.$pdoException->getCode().' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
+                }
+            }
             else {
+                unset($stmt);
                 self::$Instance->rollBack();
-                error_log('CODE: '.$runtime.'/'.$pdoException->getCode().' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
+                \error_log(__LINE__. '-> CODE: '.$runtime.'/'.$pdoException->getCode().' | '.$pdoException->getMessage().PHP_EOL.$query.PHP_EOL.var_export($params, TRUE));
+                $result=false;
             }
         }
         catch (\Exception $ex) {
             error_log(__FUNCTION__ . ' second exception '.$ex->getMessage());
-            //if ($stmt instanceof \PDOStatement) { $this->closeStatement($stmt); }
             unset($stmt);
             self::$Instance->rollBack();
             $result=FALSE;

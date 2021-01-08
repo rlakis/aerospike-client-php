@@ -29,6 +29,9 @@ class Content {
     const ATTR_SPACE            = 'space';
     const ATTR_ROOMS            = 'rooms';
     const BUDGET                = 'budget';
+    const AD_COUNTRY            = 'acn';
+    const IP_COUNTRY            = 'icn';
+    const MOBILE_COUNTRY        = 'mcn';
     
     const CONTACT_INFO          = 'cui';
     const CONTACT_INFO_BLACKBERRY = 'b'; // deprecated
@@ -132,13 +135,16 @@ class Content {
                                     self::ATTR_LOCALITY => [self::ATTR_LOCALITY_ID=>0, self::ATTR_LOCALITY_CITIES=>[]],
                                     self::ATTR_PHONES => [],                
                                    ],
-            self::QUALIFIED     => false            
+            self::AD_COUNTRY        => '',
+            self::IP_COUNTRY        => '',
+            self::MOBILE_COUNTRY    => '',
+            self::QUALIFIED         => false            
         ];
     }
     
     
     public function setAd(Ad $ad) : Content {
-        $this->ad = $ad;
+        $this->ad=$ad;
         return $this;
     }
     
@@ -327,6 +333,39 @@ class Content {
     
     public function setIpScore(float $score) : Content {
         $this->content[self::IP_SCORE]=$score;
+        return $this;
+    }
+    
+    
+    public function getIpCountry() : string {
+        return $this->content[self::IP_COUNTRY]??'';
+    }
+    
+    
+    public function setIpCountry(string $country_code) : self {
+        $this->content[self::IP_COUNTRY]=$country_code;
+        return $this;
+    }
+    
+
+    public function getAdCountry() : string {
+        return $this->content[self::AD_COUNTRY]??'';
+    }
+
+    
+    public function setAdCountry(string $country_code) : self {
+        $this->content[self::AD_COUNTRY]=$country_code;
+        return $this;
+    }
+    
+    
+    public function getMobileCountry() : string {
+        return $this->content[self::MOBILE_COUNTRY]??'';
+    }
+
+    
+    public function setMobileCountry(string $country_code) : self {
+        $this->content[self::MOBILE_COUNTRY]=$country_code;
         return $this;
     }
     
@@ -849,6 +888,9 @@ class Content {
             self::NATIVE_TEXT   => $this->content[self::NATIVE_TEXT],
             self::NATIVE_RTL    => $this->content[self::NATIVE_RTL],
             self::APP_NAME      => $this->content[self::APP_NAME][0].'-'.$this->content[self::APP_VERSION],
+            self::AD_COUNTRY    => $this->content[self::AD_COUNTRY]??'',
+            self::IP_COUNTRY    => $this->content[self::IP_COUNTRY]??'',
+            self::MOBILE_COUNTRY=> $this->content[self::MOBILE_COUNTRY]??'',
             self::VERSION       => 3,
         ];
         unset($rs[self::CONTACT_INFO][self::CONTACT_INFO_BLACKBERRY]);
@@ -884,6 +926,9 @@ class Content {
             $rs[self::ATTRIBUTES] = $this->content[self::ATTRIBUTES]??[];
         }
         
+        $rs[self::AD_COUNTRY]=$this->content[self::AD_COUNTRY]??'';
+        $rs[self::IP_COUNTRY]=$this->content[self::IP_COUNTRY]??'';
+        $rs[self::MOBILE_COUNTRY]=$this->content[self::MOBILE_COUNTRY]??'';
         return $rs;
     }
     

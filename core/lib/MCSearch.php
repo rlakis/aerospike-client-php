@@ -161,7 +161,17 @@ class MCSearch extends \Manticoresearch\Search {
         foreach ($this->conditions['not'] as $attr => $condition) {
             $this->notFilter($attr, $condition[0], $condition[1]);
         }
-        return parent::get();
+        
+        //\error_log(__FUNCTION__.'['.__LINE__.']: '.\json_encode($this->query->toArray()).PHP_EOL);
+        try {
+            $rs=parent::get();            
+            return $rs;
+        }
+        catch (\Exception $e) {            
+            \error_log($e->getMessage().PHP_EOL);
+            \error_log(\json_encode($this->query->toArray()).PHP_EOL);   
+            \error_log(__FUNCTION__.'['.__LINE__.']: '. \var_export($this->body, true).PHP_EOL);
+        }        
     }
     
     

@@ -2459,6 +2459,7 @@ class Bin extends AjaxHandler {
                 if ($this->user->level()!==9) {
                     $_ad['ip']=IPQuality::getClientIP();
                 }
+              
                 
                 $ad = new Core\Model\Ad();
                 $content = new Core\Model\Content();
@@ -2499,6 +2500,9 @@ class Bin extends AjaxHandler {
                                     ->setUserLanguage($oad->dataset()->getUserLanguage())
                                     ->setIpAddress($oad->dataset()->getIpAddress())
                                     ->setIpScore($oad->dataset()->getIpScore())
+                                    ->setAdCountry($oad->dataset()->getAdCountry())
+                                    ->setIpCountry($oad->dataset()->getIpCountry())
+                                    ->setMobileCountry($oad->dataset()->getMobileCountry())
                                     ->setQualified($oad->dataset()->isQualified())
                                     ;
                             
@@ -2509,14 +2513,14 @@ class Bin extends AjaxHandler {
                 if ($content->getUID()===0) { $content->setUID($this->user()->id()); }
                 
                 if ($this->user()->id()===$content->getUID()) {
-                    $content->setUserLevel($this->user()->level())->setIpAddress(IPQuality::getClientIP());                        
+                    $content->setUserLevel($this->user()->level())->setIpAddress(IPQuality::getClientIP());  
+                    $_ad['ip']=IPQuality::getClientIP();
                 }
                 
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
                 $content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
                 
-                
-                
+                                
                 $this->router->logger()->info('_JPOST[o]', $_ad);
                 Config::instance()->incLibFile('MCSaveHandler');
                 $normalizer=new MCSaveHandler;    
@@ -2525,7 +2529,9 @@ class Bin extends AjaxHandler {
                 if ($normalized!==false) {
                     $content->setAttributes($normalized[Core\Model\Content::ATTRIBUTES]);
                     $content->setUserLocation($normalized[Core\Model\Content::USER_LOCATION]);
-                    //$content->
+                    $content->setAdCountry($normalized[Core\Model\Content::AD_COUNTRY]??'');
+                    $content->setIpCountry($normalized[Core\Model\Content::IP_COUNTRY]??'');
+                    $content->setMobileCountry($normalized[Core\Model\Content::MOBILE_COUNTRY]??'');
                     $this->router->logger()->info('attributes', $normalized['attrs']);
                 }
                 
@@ -2587,48 +2593,7 @@ class Bin extends AjaxHandler {
                 
                 $error_path = "/var/log/mourjan/editor.log";
                                             
-                //if (!$ad['id'] || !isset($this->user->pending['post']['state']) || !isset($this->user->pending['post']['id']) || ($ad['id'] && $ad['id']!=$this->user->pending['post']['id'])) {
-                //    $this->user->loadAdToSession($ad['id']);
-                //}
-                        
-                //$sContent=json_decode($this->user->pending['post']['content'], true);                        
-                //if (isset($sContent['ip'])) { $ad['ip']=$sContent['ip']; }
-                //if (isset($sContent['userLOC'])) { $ad['userLOC']=$sContent['userLOC']; }
-                //if (isset($sContent['agent'])) { $ad['agent']=$sContent['agent']; }
-                //if (isset($sContent['state'])) { $ad['state']=$sContent['state']; }
-                    
-                //if ((!isset($ad['other']) || (isset($ad['other']) && preg_match('/^undefined/', $ad['other']))) && isset($sContent['other'])) {
-                //    $ad['other']=$sContent['other'];
-                    //if (!isset($ad['rawOther']) && isset($sContent['rawOther'])) {
-                    //    $ad['rawOther']=$sContent['rawOther'];
-                    //}
-                //}
-
-                //if (!isset($ad['rtl']) && isset($sContent['rtl'])) {
-                //    $ad['rtl']=$sContent['rtl'];
-                //}
-                    
-                //if (!isset($ad['loc']) && isset($sContent['loc'])) {
-                //    $ad['loc']=$sContent['loc'];
-                //}
-                    
-                //if ($ad['extra']['t']!=2 && (!isset($ad['altother']) || (isset($ad['altother']) && preg_match('/^undefined/',$ad['altother']))) && isset($sContent['altother'])) {
-                //    $ad['altother']=$sContent['altother'];
-                //    if (!isset($ad['rawAltOther']) && isset($sContent['rawAltOther'])) {
-                //        $ad['rawAltOther']=$sContent['rawAltOther'];
-                //    }
-                //}
-                    
-                //if ($ad['extra']['t']!=2 && !isset($ad['altRtl']) && isset($sContent['altRtl'])) {
-                //    $ad['altRtl']=$sContent['altRtl'];
-                //}
-                    
-                //if (isset($sContent['pics'])) { $ad['pics']=$sContent['pics']; }
-                    
-                //if (!isset($ad['pic_def']) && isset($sContent['pic_def'])) { $ad['pic_def']=$sContent['pic_def']; }                    
-                //if (isset($sContent['pic_idx'])) { $ad['pic_idx']=$sContent['pic_idx']; }
-                    
-                //if (!isset($ad['video']) && isset($sContent['video'])) { $ad['video']=$sContent['video']; }
+              
                 if ($ad['user']==$this->user()->id() && isset($this->user->params['mobile']) && $this->user->params['mobile']) {
                     $ad['mobile']=1;
                 } 
@@ -2636,60 +2601,17 @@ class Bin extends AjaxHandler {
                     $ad['mobile']=0;
                 }
                                                                         
-                //if (!$ad['id']) { 
-                //    $this->user->pending['post']['user']=$this->user()->id();                         
-                //}
-                    
-                //if (!$ad['user']) {
-                //    $ad['user']=$this->user()->id();
-                //}
-                        
-                //$this->user->pending['post']['ro']=$ad['ro'];
+        
                 $sectionId = $ad['se'];
                 $purposeId = $ad['pu'];
-                //$this->user->pending['post']['rtl']=$ad['rtl'];
-                //$this->user->pending['post']['lat']=$ad['lat'];
-                //$this->user->pending['post']['lon']=$ad['lon'];
+           
                                        
                           
                 if ($ad['profile']->isBlocked()) { $this->error(self::ERR_USER_BLOCKED); }
-                /*                       
-                if (count($ad['pubTo'])) {
-                    foreach ($ad['pubTo'] as $key => $val) {
-                            if (!\is_numeric($key)) {
-                                unset($ad['pubTo'][$key]);
-                                continue;
-                            }
-                            if (!$cityId && $cityId!=64) { $cityId=$key; }
-                            if ($cityId==64) {
-                                if (isset($ad['pubTo']['64'])) {            
-                                    unset($ad['pubTo']['64']);                                     
-                                }
-                                elseif (isset($ad['pubTo'][64])) {
-                                    unset($ad['pubTo'][64]);
-                                }
-                                $cityId=0;
-                                $key = 0;
-                            }
-                            
-                            if ($key && isset($this->urlRouter->cities[$key][4])) {
-                                if ($currentCid && $currentCid != $this->urlRouter->cities[$key][4]) {
-                                    $isMultiCountry = true;
-                                }
-                                $currentCid = $this->urlRouter->cities[$key][4];
-                            }
-                    }
-                }
-                    
-                if ($cityId) { $countryId=$this->router->cities[$cityId][4]; }
-                 * 
-                 */
-                
+             
                 $ad['c']=$cityId;
                 $ad['cn']=$country;
-                
-                //$this->user->pending['post']['c']=$cityId;
-                //$this->user->pending['post']['cn']=$countryId;                        
+                                 
                     
                 $requireReview = 0;                        
                 $validator = libphonenumber\PhoneNumberUtil::getInstance();
@@ -2986,24 +2908,24 @@ class Bin extends AjaxHandler {
                 }
                         
                 if (!$isSCAM && !$requireReview && isset($ad['cui']['e']) && strlen($ad['cui']['e'])>0) {
-                    $requireReview = \preg_match('/\+.*@/', $ad['cui']['e']);
-                    if (!$requireReview) {
+                    //$requireReview = \preg_match('/\+.*@/', $ad['cui']['e']);
+                    //if (!$requireReview) {
                         $requireReview = \preg_match('/hotel/', $ad['cui']['e']);
-                    }
-                    else {
-                        $requireReview = 998;
-                    }
-                    if (!$requireReview) {
-                        $requireReview = \preg_match('/\..*\..*@/', $ad['cui']['e']);
-                        if ($requireReview) { $requireReview = 996; }
-                    }
-                    else {
-                        $requireReview = 997;
-                    }
+                    //}
+                    //else {
+                    //    $requireReview = 998;
+                    //}
+                    //if (!$requireReview) {
+                    //    $requireReview = \preg_match('/\..*\..*@/', $ad['cui']['e']);
+                    //    if ($requireReview) { $requireReview = 996; }
+                    //}
+                    //else {
+                    //    $requireReview = 997;
+                    //}
                 }
                         
                 if ($publish===1 && isset($ad['budget']) && \is_numeric($ad['budget']) && $ad['budget']>0) {
-                    $publish = 4;
+                    $publish=4;
                 }
                         
                 $adId = $this->user->pending['post']['id'];                        
@@ -4026,30 +3948,13 @@ class Bin extends AjaxHandler {
                 break;
                 
                 
-            case 'ajax-adel':
-                if ($this->user->info['id'] && isset ($_POST['i'])) 
-                {
-                    $id=$_POST['i'];
-                    $hide=$this->post('h','numeric');
-                    if (is_numeric($id))
-                    {
-                        if ($this->user->deletePendingAd($id, $hide)) 
-                        {
-                            $this->process();
-                        }
-                        else 
-                        {
-                            $this->fail('103');
-                        }
-                    }
-                    else 
-                    {
-                        $this->fail('102');
-                    }
-                }
-                else 
-                {
-                    $this->fail('101');
+            case 'adel':
+                $this->authorize(true);
+                $id=$this->_JPOST['i']??0;
+                if (!(\is_int($id) && $id>0)) { $this->error(self::ERR_DATA_INVALID_PARAM); }
+                
+                if ($this->user->deletePendingAd($id, $this->_JPOST['h']??0)) {
+                    $this->success();
                 }
                 break;
                 

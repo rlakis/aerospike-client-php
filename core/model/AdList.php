@@ -126,12 +126,20 @@ class AdList extends \SplDoublyLinkedList {
                     $w.='((AD_USER.state in (1,2,4)) and AD_USER.web_user_id='. $this->alterUID . ') ';
                 }
                 else {
+                    
                     if ($this->user->level()>=9) {
-                        $w.='((AD_USER.state in (1,2,4)) or (AD_USER.state=3 and AD_USER.web_user_id='. $this->uid.')) ';
+                        if (\filter_input(\INPUT_GET, 'approved', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]])==1) {
+                            $w.='((AD_USER.state in (1,2,4)) or (AD_USER.state=3 and AD_USER.web_user_id='. $this->uid.')) ';
+                        }
+                        else {
+                            $w.='((AD_USER.state in (1,4)) or (AD_USER.state=3 and AD_USER.web_user_id='. $this->uid.')) ';
+                        }
+                            
                     }
                     else {
                         $w.='(AD_USER.state in (1,3,4) and AD_USER.web_user_id='. $this->uid.') ';                        
                     }
+                    //\error_log($w);
                 }
             }
             $w.= ' and (AD_OBJECT.super_admin is null or AD_OBJECT.super_admin<='.$adLevel.') ';

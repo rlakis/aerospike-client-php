@@ -125,7 +125,7 @@ aside #editors span+span{
 .welcome #start{
 }
 
-.welcome #end{
+.welcome #end {
     display: inherit;
     flex-flow: column;
 }

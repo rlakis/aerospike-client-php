@@ -5,13 +5,18 @@ use Core\Model\Ad;
 use Core\Model\AdList;
 use Core\Lib\MCUser;
 
+/* TODO *
+ * 
+ * delete picture index mismatch on click 
+ */
+
 class MyAds extends UserPage {
     
     private AdList $adList;
     private array $admins_online=[];
     //private $subSection='', $redis=null;
     private ?\Redis $redis=null;
-    
+    private int $showApproved=0;
         
     private array $editors = [
         1 => 'Bassel', 43905 => 'Bassel',
@@ -38,9 +43,11 @@ class MyAds extends UserPage {
         998 => 'email contains + sign',        
         999 => 'system general'        
     ];
+    
             
     function __construct() {
         parent::__construct();    
+        $this->showApproved=\filter_input(\INPUT_GET, 'approved', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         /*
         if (!$this->user->isLoggedIn()) {
             $this->user->redirectTo($this->router->getLanguagePath('/signin/'));
@@ -326,11 +333,12 @@ class MyAds extends UserPage {
     function renderEditorsBox(int $state=0, bool $standalone=false) : string {
         \ob_start();
         $isSuperUser=$this->user->isSuperUser();
-        if ($isSuperUser) {
+        $isAdminUser=$this->user->isLoggedIn(9);
+        if ($isSuperUser||$this->user->isLoggedIn(9)) {
             $filters=$this->user->getAdminFilters();
         }
         
-        if ($this->user->isLoggedIn(9)) {
+        //if ($this->user->isLoggedIn(9)) {
             /*
             ?><style><?php
             ?>.stin,.phc{display:none}.prx h4{margin-bottom:5px}.prx{display:block;clear:both;width:300px}.prx a{color:#00e}.prx a:hover{text-decoration:underline}<?php
@@ -341,10 +349,11 @@ class MyAds extends UserPage {
             ?></style><?php
              * 
              */
-        }
+        //}
+        
         
         if ($isSuperUser) {
-            if ($standalone) { echo '<div class=fl>'; }
+            //if ($standalone) { echo '<div class=fl>'; }
             $link='';
             switch ($state) {
                 case 9:
@@ -367,14 +376,20 @@ class MyAds extends UserPage {
                 $baseUrl=$this->router->getLanguagePath('/myads/');
                 ?><div id=filters><form action="<?=$baseUrl?>" method=GET class=account><?php
                 ?><input type=hidden name=sub value=pending /><?php
+                
+                ?><span class="maw mb-16"><?php
+                ?><input type=checkbox name=approved value=1<?=$filters['approved']==1?' checked':''?> style="margin-inline-end:5px" onchange="this.form.submit()"><?php
+                ?><label for=approved class=fw-300>Show Approved</label></span><?php
+                
+                
                 if ($filters['uid']) {
                     echo '<input type=hidden name=fuid value="', $filters['uid'], ' />', $this->router->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
                 }
-                
+                /*
                 if ($filters['active']) {
                     ?><select name=fh onchange="this.form.submit()"></select><?php
                 }
-                
+                */
                 
                 ?><select name=fhl onchange="this.form.submit()"><?php
                 echo '<option value=0', $filters['lang']==0?' selected':'', '>', $this->lang['lg_sorting_0'],'</option>';
@@ -399,32 +414,32 @@ class MyAds extends UserPage {
                 }
                 
                 if ($filters['active']) {
-                    ?><input style="width:50%;margin-top:8px;border: 1px solid var(--mdc12);border-radius:4px;font-size:15px;color:var(--mdc80)" type=reset onclick="location.href='<?=$baseUrl?>?sub=pending'" value="<?=$this->lang['search_cancel']?>" /><?php
+                    ?><input class="maw" style="margin-top:8px;padding-inline-start:4px;border:1px solid var(--mdc12);border-radius:4px;font-size:15px;color:var(--mdc80)" type=reset onclick="location.href='<?=$baseUrl?>?sub=pending'" value="<?=$this->lang['search_cancel']?>" /><?php
                 }
                 ?></form></div><?php
             }
         }
 
         if (($this->user->isLoggedIn(9) && $this->getGetString('sub')==='pending') || $isSuperUser) {
-            if (!isset($filters) || !$filters['active']) {   
+            //if (!isset($filters) || !$filters['active']) {   
                 echo '<div id=editors class=account>';
-                ?><span class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'. $link .'69905">Robert</a>' : 'Robert' ?></span><?php
-                ?><span class="f3iw09ojp5 a1zvo4t2vk"><?= $isSuperUser ? '<a href="'. $link .'1">Bassel</a>' : 'Bassel' ?></span><?php
-                ?><span class="a1zvo4t4b8"><?= $isSuperUser ? '<a href="'. $link .'2100">Nooralex</a>':'Nooralex' ?></span><?php
-                ?><span class="f3iw09r6wn"><?= $isSuperUser ? '<a href="'. $link .'2100">Moe</a>':'Moe' ?></span><?php
-                ?><span class="n2u2hc8xil"><?= $isSuperUser ? '<a href="'. $link .'477618">Samir</a>':'Samir'?></span><?php
-                ?><span class="x1arwhzqsl"><?= $isSuperUser ? '<a href="'. $link .'38813">Editor 1</a>':'Editor1'?></span><?php
-                ?><span class="d2d9s5p1p2"><?= $isSuperUser ? '<a href="'. $link .'44835">Editor 2</a>':'Editor2'?></span><?php
-                ?><span class="b2ixe8tahr"><?= $isSuperUser ? '<a href="'. $link .'53456">Editor 3</a>':'Editor3'?></span><?php
-                ?><span class="hvn50s5hk"><?= $isSuperUser ? '<a href="'. $link .'166772">Editor 4</a>':'Editor4'?></span><?php
-                ?><span class="j1nz09nf5t"><?= $isSuperUser ? '<a href="'. $link .'516064">Editor 5</a>':'Editor5'?></span><?php
-                ?><span class="x1arwii533"><?= $isSuperUser ? '<a href="'. $link .'897143">Editor 6</a>':'Editor6'?></span><?php
-                ?><span class="hvn517t2q"><?= $isSuperUser ? '<a href="'. $link .'897182">Editor 7</a>':'Editor7'?></span><?php
-                ?><span class="hvn51amkw"><?= $isSuperUser ? '<a href="'. $link .'1028732">Editor 8</a>':'Editor8'?></span><?php
+                ?><span class="hvn50okt2 d2d9s5pl1g n2u2hbyqsn"><?= $isSuperUser ? '<a href="'.$link.'69905">Robert</a>':'Robert'?></span><?php
+                ?><span class="f3iw09ojp5 a1zvo4t2vk"><?= $isSuperUser ? '<a href="'.$link.'1">Bassel</a>':'Bassel'?></span><?php
+                ?><span class="a1zvo4t4b8"><?=$isSuperUser ? '<a href="'.$link.'2100">Nooralex</a>':'Nooralex'?></span><?php
+                ?><span class="f3iw09r6wn"><?=$isSuperUser ? '<a href="'.$link.'2100">Moe</a>':'Moe' ?></span><?php
+                ?><span class="n2u2hc8xil"><?=$isSuperUser ? '<a href="'.$link.'477618">Samir</a>':'Samir'?></span><?php
+                ?><span class="x1arwhzqsl"><?=$isSuperUser ? '<a href="'.$link.'38813">Editor 1</a>':'Editor1'?></span><?php
+                ?><span class="d2d9s5p1p2"><?=$isSuperUser ? '<a href="'.$link.'44835">Editor 2</a>':'Editor2'?></span><?php
+                ?><span class="b2ixe8tahr"><?=$isSuperUser ? '<a href="'.$link.'53456">Editor 3</a>':'Editor3'?></span><?php
+                ?><span class="hvn50s5hk"><?=$isSuperUser  ? '<a href="'.$link.'166772">Editor 4</a>':'Editor4'?></span><?php
+                ?><span class="j1nz09nf5t"><?=$isSuperUser ? '<a href="'.$link.'516064">Editor 5</a>':'Editor5'?></span><?php
+                ?><span class="x1arwii533"><?=$isSuperUser ? '<a href="'.$link.'897143">Editor 6</a>':'Editor6'?></span><?php
+                ?><span class="hvn517t2q"><?=$isSuperUser  ? '<a href="'.$link.'897182">Editor 7</a>':'Editor7'?></span><?php
+                ?><span class="hvn51amkw"><?=$isSuperUser  ? '<a href="'.$link.'1028732">Editor 8</a>':'Editor8'?></span><?php
                 echo '</div>';                               
-            }
+            //}
             
-            if ($standalone) { echo '</div>'; }
+            //if ($standalone) { echo '</div>'; }
         }
         $result=\ob_get_contents();
         \ob_end_clean();
@@ -539,7 +554,8 @@ class MyAds extends UserPage {
         //    $this->renderUserTypeSelector($this->user->data);
         //}
         $this->side->avatar()->menu();
-        if ($isSuperAdmin) {
+        //if ($isSuperAdmin) {
+        if ($isAdmin) {
             $this->side->addBlock('editors', $this->renderEditorsBox($state));
         }
         echo $this->side->build();
@@ -558,8 +574,8 @@ class MyAds extends UserPage {
             $as=\Core\Model\NoSQL::instance();
             $ips=[];
             $hasPrevious=($this->adList->page()>0);
-            $hasNext=(($this->adList->page()*$this->adList->limit())<$this->adList->dbCount());
-            
+            $hasNext=((($this->adList->page()+1)*$this->adList->limit())<$this->adList->dbCount());
+            //\error_log("{$this->adList->page()}*{$this->adList->limit()}<{$this->adList->dbCount()}");
             $renderAssignedAdsOnly=($state>0 && $state<4);
                                
             $isAdminProfiling=(boolean)($this->get('a') && $this->user()->level()===9);
@@ -1079,9 +1095,10 @@ class MyAds extends UserPage {
                 elseif ($state===9) {
                     if (!$isSystemAd) {
                         if (!$isSuspended) {
-                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$ad['ID'] : '') ?>" method="post"><?php
-                            ?><input type="hidden" name="adr" value="<?= $ad['ID'] ?>" /><?php
-                            ?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$cad->id() : '') ?>" method="post"><?php
+                            ?><input type="hidden" name="adr" value="<?= $cad->id() ?>" /><?php
+                            ?><button onclick="d.edit(this)"><?= $this->lang['edit_republish'] ?></button><?php
+                            /*?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php*/
                             ?></form><?php 
                             if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
                                 ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
@@ -1089,7 +1106,7 @@ class MyAds extends UserPage {
                         }
                     }
                     if (!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))) {
-                        ?><span class="lnk" onclick="adel(this,1)"><span class="rj del"></span><?= $this->lang['delete'] ?></span><?php 
+                        ?><button onclick="d.del(this)"><?= $this->lang['delete'] ?></button><?php
                     }
                     if ($this->router->config->get('enabled_ad_stats') && !$isAdminProfiling) {
                         ?><span class="stad load"></span><?php
@@ -1192,6 +1209,11 @@ class MyAds extends UserPage {
                         break;
                 }
                 
+                if ($this->showApproved===1) {
+                    $link.=$appendOp.'approved=1';
+                    $appendOp='&';
+                } 
+                
                 if(isset($_GET['u']) && $_GET['u']){
                     $link.=$appendOp.'u='.$_GET['u'];
                     $appendOp='&';
@@ -1228,6 +1250,7 @@ class MyAds extends UserPage {
                 }
                 echo '<span>'.($this->adList->page()+1).' '.$this->lang['of'].' '.ceil($dbCount/$this->adList->limit()).'</span>';
                 if ($hasNext) {
+                    //\error_log('has next '.$this->adList->dbCount());
                     ?><a href='<?=$link.$appendOp.'o='.($this->adList->page()+1)?>'><?=$this->lang['next_25']?></a><?php
                 }
                 

@@ -484,7 +484,7 @@ class Site {
                 }
                 else {
                     //$fields="id, 0 as newad, date_added, {$lng}";
-                    $search->expression('newad', 0);
+                    $search->expression('newad', "if(1=1,0,0)");
                 }
                 $search->setSource(['id', 'newad', 'date_added', 'lngmask']);
                 

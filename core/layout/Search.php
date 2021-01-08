@@ -3383,14 +3383,15 @@ class Search extends Page {
             }
         }
         
-        $isDynamic = false;
-        $q = "";
+        $isDynamic=false;
+        $q='';
         
         if ($this->router->params['q']) {
-            $q = htmlspecialchars($this->router->params['q'], ENT_QUOTES);
+            $q= \preg_replace('/[()]/', '', \htmlspecialchars($this->router->params['q'], ENT_QUOTES));
+            
         } 
         elseif ($this->router->force_search) {
-            $q = $this->lang['search_general'];
+            $q=$this->lang['search_general'];
         }
         
         $tempTitle = ''; 
@@ -3715,7 +3716,7 @@ class Search extends Page {
                 $this->subTitle = $sub_title;
             }
         }
-
+        
         $this->crumbTitle=\preg_replace("/{$q}|General Search/", '', $this->title);       
         
         if ($this->router->module==='search') {

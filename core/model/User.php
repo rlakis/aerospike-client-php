@@ -376,10 +376,11 @@ class User {
     
     function getAdminFilters() : array {
         $filters=[];
-        $filters['root'] = filter_input(INPUT_GET, 'fro', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-        $filters['purpose'] = filter_input(INPUT_GET, 'fpu', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-        $filters['lang'] = filter_input(INPUT_GET, 'fhl', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-        $filters['uid'] = filter_input(INPUT_GET, 'fuid', FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['root']=\filter_input(\INPUT_GET, 'fro', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['purpose']=\filter_input(\INPUT_GET, 'fpu', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['lang']=\filter_input(\INPUT_GET, 'fhl', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['uid']=\filter_input(\INPUT_GET, 'fuid', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
+        $filters['approved']=\filter_input(\INPUT_GET, 'approved', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         $filters['active']=false;
         
         foreach ($filters as $key => $value) {
@@ -967,13 +968,13 @@ class User {
     }
 
             
-    function hideAd($id) {
-        $res=false;
-        $res=$this->db->get('update ad_user set state=8 where id=? and web_user_id=? and state=9 returning id, content, state', [$id, $this->info['id']], true);
-        if ($res) {
-            $this->update();
-        }
-        return $res;
+    function hideAd(int $id) {
+        //$res=false;
+        return $res=$this->db->get('update ad_user set state=8 where id=? and web_user_id=? and state=9 returning id, content, state', [$id, $this->id()], true);
+        //if ($res) {
+        //    $this->update();
+        //}
+        //return $res;
     }
 
     
@@ -1160,21 +1161,21 @@ class User {
     }
 
     
-    function deletePendingAd($id,$hide=false) {
+    function deletePendingAd(int $id, bool $hide=false) : bool {
         $result=false;
-        if($hide) {
+        if ($hide) {
             $res=$this->hideAd($id);
         }
         else {
-            if ($this->info['level']==9) {
+            if ($this->level()===9) {
                 $res=$this->db->get(
                         'update ad_user set state=6, admin_id=?, admin_stamp=current_timestamp where id=? returning id, content, state',
-                        [$this->info['id'], $id], true);
+                        [$this->id(), $id], true);
             }
             else {
                 $res=$this->db->get(
                         'update ad_user set state=6 where id=? and web_user_id=? returning id, content, state',
-                        [$id, $this->info['id']], true);
+                        [$id, $this->id()], true);
             }
         }
         
@@ -2470,12 +2471,14 @@ class User {
 
     
     public function getFeature() : array {
+        $result=[];
         if (isset($this->params['feature']) && is_array($this->params['feature'])) {
-            return $this->params['feature'];
+            foreach ($this->params['feature'] as $ad_id) {
+                $result[]= \intval($ad_id);
+            }            
+            //return $this->params['feature'];
         }
-        else {
-            return [];
-        }        
+        return $result;
     }
     
     
@@ -2898,7 +2901,7 @@ class User {
         
         $newlook=\filter_input(\INPUT_GET, 'newlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
         if ($newlook===1) {
-            \error_log(__FUNCTION__.' newlook 1');
+            //\error_log(__FUNCTION__.' newlook 1');
             \setcookie('mourjan_site', '1', time()+31536000,'/', '.mourjan.com', false);
         }     
     }

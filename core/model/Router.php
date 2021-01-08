@@ -97,8 +97,8 @@ class Router extends \Core\Model\Singleton {
     protected function __construct() {
         global $argc;       
         $this->config=\Config::instance();
-        $this->db=new DB();
-        if (isset($argc)) { return; }
+        $this->db=new DB;
+        if (php_sapi_name()==='cli')  {  return;  }
 
         if (\filter_has_var(\INPUT_GET, 'shareapp')) {
             $device=new \Detection\MobileDetect();
@@ -337,11 +337,12 @@ class Router extends \Core\Model\Singleton {
                 if ($this->id<1000000000) {
                     if ($this->id>1000) {
                         $this->module='detail';
-                        $ad_url = $this->getAdURI($this->id);
+                        $ad_url=$this->getAdURI($this->id);                       
                         if ($ad_url!==$this->getLanguagePath($this->config->host.$this->uri).$this->id.'/') {
-                            if ($ad_url!=$this->config->baseURL) {
-                                $_SESSION['_u']['params'] = $_session_params;
-                                $this->redirect($ad_url, 301);
+                            if ($ad_url!==$this->config->baseURL) {
+                                $this->language=$this->cookie->lg??$this->language;
+                                $_SESSION['_u']['params']=$_session_params;
+                                $this->redirect($this->getLanguagePath($ad_url), 301);
                             } 
                             else {
                                 $this->id=0;
@@ -543,7 +544,7 @@ class Router extends \Core\Model\Singleton {
     
     
     public function getLanguagePath(string $url='') : string {
-        if ($url) {
+        if ($url!=='') {
             if (\substr($url, -1)!=='/') {
                 $url.='/';
             }
@@ -650,19 +651,14 @@ class Router extends \Core\Model\Singleton {
     }
     
     
-    function getAdURI($ad_id=0) {
-        $result = '';
+    function getAdURI(int $ad_id=0) : string {
+        $result='';
         $this->config->incModelFile('Classifieds');
-        $ad_class = new Classifieds($this->db);
-        $row = $ad_class->getById($ad_id);
-        
+        $ad_class=new Classifieds($this->db);
+        $row=$ad_class->getById($ad_id);
         if (!empty($row)) {
-            if ($this->language==='ar') {
-                $result = sprintf($row[18], '', $ad_id);
-            }
-            else {
-                $result = sprintf($row[18], $this->language.'/', $ad_id);
-            }
+            $result=\sprintf($row[18], $this->language==='ar'?'':$this->language.'/', $ad_id);
+            //\error_log(PHP_EOL.__FUNCTION__.'['.__LINE__.']: '.$result);
             $this->countryId = (int)$row[4];
             $this->cityId = (int)$row[5];
             $this->rootId = (int)$row[8];
@@ -670,17 +666,17 @@ class Router extends \Core\Model\Singleton {
             $this->purposeId = (int)$row[7];
         } 
         else {
-            $url_codes = $this->FetchUrl();
+            $url_codes=$this->FetchUrl();
             if ($url_codes) {
-                $result = $this->uri.'/'.$this->getLanguagePath();
+                $result=$this->uri.'/'.$this->getLanguagePath();
             } 
             else {
-                $_args = explode('/', $this->uri);
+                $_args=\explode('/', $this->uri);
                 unset($_args[2]);
-                $sss=  implode('/', $_args);
-                $url_codes = $this->FetchUrl($sss);
+                $sss=\implode('/', $_args);
+                $url_codes=$this->FetchUrl($sss);
                 if ($url_codes) {
-                    $result = $sss.'/'. $this->getLanguagePath();
+                    $result=$sss.'/'.$this->getLanguagePath();
                 }
             }
         }

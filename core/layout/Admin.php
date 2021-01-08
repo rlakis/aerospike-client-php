@@ -278,16 +278,17 @@ class Admin extends Page {
                         break;
                 }
 
-                $ttl=MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason);
+                $ttl=MCSessionHandler::checkSuspendedMobile($_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], $reason, $score);
                 if ($ttl) {
                     if ($release === -1) {
                         $_mobiles[$i]['suspended']['release'] = 'within few seconds';
                         $bins['suspended'] = '30s';
                         MCSessionHandler::setSuspendMobile($bins[\Core\Model\ASD\USER_PROFILE_ID], $_mobiles[$i][Core\Model\ASD\USER_MOBILE_NUMBER], 30, true, $_mobiles[$i]['suspended']['release']);
                     } 
-                    else {
-                        $_mobiles[$i]['suspended']['till'] = gmdate("Y-m-d H:i:s T", time() + $ttl);
-                        $_mobiles[$i]['suspended']['reason'] = strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':') + 1)) : $reason;
+                    else {                       
+                        $_mobiles[$i]['suspended']['till']=gmdate("Y-m-d H:i:s T", time() + $ttl);
+                        $_mobiles[$i]['suspended']['reason']=strpos($reason, ':') ? trim(substr($reason, strpos($reason, ':') + 1)) : $reason;
+                        $_mobiles[$i]['suspended']['score']=$score;
                         //var_dump($_mobiles[$i]['suspended']['reason']);
                         $bins['suspended'] = 'YES';
                         $bins['suspended_reason'] = $_mobiles[$i]['suspended']['reason'];

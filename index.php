@@ -28,12 +28,12 @@ if (php_sapi_name()!=='cli') {
 
 
 $router=Router::instance();
-$router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::DEBUG, ['filename' => 'site.log', 'logFormat'=>false]));
 
 if (!isset($argc)) {
+    $router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::DEBUG, ['filename' => 'site.log', 'logFormat'=>false]));
     $router->decode();
     $stop=false;
-    $provider=\strtolower(filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
    
     if (!$stop && \array_key_exists($router->module, $config['modules'])) {
         $mod_class = $config['modules'][$router->module][0];
@@ -42,7 +42,7 @@ if (!isset($argc)) {
     }
     else {
         include_once Config::instance()->baseDir.'/core/layout/NotFound.php';
-        header('HTTP/1.0 404 Not Found');
+        \header('HTTP/1.0 404 Not Found');
         new NotFound($router);    
     }
     

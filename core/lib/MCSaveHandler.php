@@ -111,13 +111,13 @@ class MCSaveHandler {
 
     
     public function checkFromDatabase(int $reference) {
-        $db = new DB(true);
-        $rs = $db->queryResultArray("select * from ad_user where id=?", [$reference], TRUE);
+        $db=new DB(true);
+        $rs=$db->queryResultArray("select id, content from ad_user where id=?", [$reference], TRUE);
         
         if ($rs && count($rs)==1) {
-            $rs = $rs[0];
+            $rs=$rs[0];
             
-            $rs['CONTENT'] = json_decode($rs['CONTENT']);
+            $rs['CONTENT']=json_decode($rs['CONTENT']);
             if (isset($rs['CONTENT']->attrs)) { unset($rs['CONTENT']->attrs); }
             if (isset($rs['CONTENT']->rera) && empty($rs['CONTENT']->rera)) { $rs['CONTENT']->rera=new \stdClass(); }
             $command = ['command'=>'normalize', 'json'=>\json_encode($rs['CONTENT'])];
@@ -125,10 +125,8 @@ class MCSaveHandler {
             $res=$this->apiV1normalizer($command['json']);
             
             if (isset($res['status']) && $res['status']==200) {
-                //if (!$extras) {
                 if (isset($res['data']['wordsList'])) { unset($res['data']['wordsList']); }
                 if (isset($res['data']['alterWordsList'])) { unset($res['data']['alterWordsList']); }
-                //}
                 if (isset($res['data']['log'])) { unset($res['data']['log']); }
                 
                 if (isset($res['data']['formatA'])) { 
@@ -148,53 +146,7 @@ class MCSaveHandler {
             }
             else if (isset($res['error']) && $res['error']==1) {
                 echo $res['except'];
-            }
-            /*
-            $buffer = json_encode($command);
-            $len = pack('N', strlen($buffer));
-            $buffer = $len.$buffer;
-            if ($this->Open()) {
-                if ($this->_Send($this->_socket, $buffer, strlen($buffer))) {
-                    $response = $this->_GetResponse($this->_socket, '');
-                                        
-                    if ($response) {
-                        //echo $response, "\n";
-                        $j = json_decode($response, TRUE);
-                        //$j['other'] = json_encode($j['other'], JSON_UNESCAPED_UNICODE);
-                        //$j = json_encode($j, JSON_UNESCAPED_UNICODE);
-                        $rs['CONTENT']=$j;
-                        //$j = json_decode($response);
-                        //print_r($j);
-                        //if (isset($j->attrs))
-                        //{
-                            //$ps = $db->prepareQuery("update ad_user set section_id=?, purpose_id=?, content=? where id=?");
-                            //$po = $db->prepareQuery("update or insert into ad_object (id, attributes) values (?, ?)");
-        
-                            //$ps->execute([$j->se, $j->pu, $response, $reference]);
-                                                
-                            //$po->bindValue(1, $reference, PDO::PARAM_INT);
-                            //$po->bindValue(2, preg_replace('/\s+/', ' ', json_encode($j->attrs, JSON_UNESCAPED_UNICODE)), PDO::PARAM_STR);
-                            //$po->execute();   
-                        
-                          //  if ($rs['STATE']=='1')
-                          //  {
-                                //$po = $db->prepareQuery("INSERT INTO INVALIDATE (TABLE_ID, RECORD_ID) VALUES (12, ?)");
-                                //$po->bindValue(1, $reference, PDO::PARAM_INT);
-                                //$po->execute(); 
-                           // }
-                        //}   
-                    
-                    } 
-                    else {
-                        echo $this->_error, "\n";
-                    }
-                }
-                else {
-                    echo $this->_error, "\n";
-                }
-                $this->Close();
-                return $rs;
-            }*/    
+            }        
         }
         return FALSE;
     }

@@ -1,5 +1,5 @@
 rootWidget=function(e){
-    console.log('rootWidget', e);
+    //console.log('rootWidget', e);
     let ses=JSON.parse(e.dataset.sections), assetsURL="https://dev.mourjan.com/css/2020/1.0/assets";
     let h=$$.query('div#rs.lrs');
     if (!e.classList.contains('open')) {       
