@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" >
+    <symbol id="home" viewBox="0 0 21 21">
+        <title>mhome</title>
+        <path fill="none" stroke="#1c415e" stroke-width="0.75px" stroke-linecap="round" stroke-linejoin="round"
+              d="M24.13,11.53V25.28a.7.7,0,0,1-.69.72H18.58a.72.72,0,0,1-.69-.72V17.84H14.07v7.44a.7.7,0,0,1-.69.72H8.52a.72.72,0,0,1-.69-.72V11.53M6,12.79l9.61-6.67a.66.66,0,0,1,.82,0L26,12.79" transform="translate(-5.63 -5.63)"/>
+    </symbol>
+    
+    <symbol id="post" viewBox="0 0 20 20">
+        <circle fill="#F26419" cx="10" cy="10" r="10"/>
+        <line fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" x1="4.91" y1="10" x2="15.09" y2="10"/>
+        <line fill="#fff" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" x1="10" y1="15.09" x2="10" y2="4.91"/>
+    </symbol>
+    
+    <symbol id="acct" viewBox="0 0 21 21">
+        <title>maccount</title>
+        <circle fill="none" stroke="#1c415e" stroke-width="0.75px" stroke-linecap="round" stroke-linejoin="round" cx="10.38" cy="10.38" r="10"/>
+        <path fill="none" stroke="#1c415e" stroke-width="0.75px" stroke-linecap="round" stroke-linejoin="round" d="M16,16.77a3.22,3.22,0,1,0-3.23-3.21A3.23,3.23,0,0,0,16,16.77Z" transform="translate(-5.63 -5.63)"/>
+        <path fill="none" stroke="#1c415e" stroke-width="0.75px" stroke-linecap="round" stroke-linejoin="round" d="M21.51,24.05A5.51,5.51,0,0,0,16,18.55a5.16,5.16,0,0,0-1,.1,5.48,5.48,0,0,0-4.46,5.4" transform="translate(-5.63 -5.63)"/>
+    </symbol>
+</svg>

@@ -1,19 +1,3 @@
-/*
-@charset "UTF-8";
-@font-face {
-  font-family: system;
-  font-style: normal;
-  font-weight: 300;
-  src: local(".SFNSText-Light"),local(".HelveticaNeueDeskInterface-Light"),local(".LucidaGrandeUI"),local("Ubuntu Light"),local("Segoe UI Light"),local("Roboto-Light"),local("Roboto"),local("DroidSans"),local("Tahoma")
-}
-*/
-
-a {
-  color: #007bff;
-  text-decoration: none;
-  align-self: center
-}
-
 .h1,
 h1 {
   font-size: 3.5em;
@@ -165,109 +149,112 @@ li > i {
 .fill-si {
   filter: invert(60%) sepia(13%) saturate(394%) hue-rotate(156deg) brightness(97%) contrast(86%)
 }
+/*
 .icn.ro.i1 {
-  background: url(/css/2020/1.0/assets/1.svg) no-repeat center/contain
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/1.svg) no-repeat center/contain
 }
 .icn.ro.i2 {
-  background: url(/css/2020/1.0/assets/2.svg) no-repeat center/contain
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/2.svg) no-repeat center/contain
 }
 .icn.ro.i3 {
-  background: url(/css/2020/1.0/assets/3.svg) no-repeat center/contain
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/3.svg) no-repeat center/contain
 }
 .icn.ro.i4 {
-  background: url(/css/2020/1.0/assets/4.svg) no-repeat center/contain
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/4.svg) no-repeat center/contain
 }
 .icn.ro.i99 {
-  background: url(/css/2020/1.0/assets/99.svg) no-repeat center/contain
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/99.svg) no-repeat center/contain
 }
-
+*/
 .icn-bars {
   background-color: #fff;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/bars.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/bars.svg) no-repeat 50% 50%
 }
+/*
 .icn-search {
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/search.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/solid/search.svg) no-repeat center
 }
+*/
 .icn-bars {
-  background: url(/css/2020/1.0/fa/duotone/bars.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/duotone/bars.svg) no-repeat center
 }
 .icn-bell {
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/bell.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/solid/bell.svg) no-repeat center
 }
 .icn-user {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/user.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/user.svg) no-repeat center
 }
 .icn-language {
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/solid/globe.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/solid/globe.svg) no-repeat center
 }
 .icn-globe {
   background-color: #87ceeb;
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/globe.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/globe.svg) no-repeat center
 }
 .icn-region {
-  background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/location.svg) no-repeat center
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/location.svg) no-repeat center
 }
 .icn-emblem {
   filter: invert(0)!important;
-  background: url(/css/2020/1.0/assets/LogoV5.svg) no-repeat 4px
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/LogoV5.svg) no-repeat 4px
 }
 .icn-map-marker {
   background-color: #3cb371;
-  -webkit-mask: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/map-marker-alt.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://dv.mourjan.com/css/2020/1.0/fa/regular/map-marker-alt.svg) no-repeat 50% 50%
 }
 .icn-rss {
   background-color: orange!important;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/rss.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/rss.svg) no-repeat 50% 50%
 }
 .icn-camera {
-  background: url(https://dev.mourjan.com/css/2020/1.0/assets/cam.svg) no-repeat 50% 50%
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/cam.svg) no-repeat 50% 50%
 }
 .icn-angle-left {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/angle-left.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/angle-left.svg) no-repeat 50% 50%
 }
 .icn-angle-right {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/angle-right.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/angle-right.svg) no-repeat 50% 50%
 }
 .icn-angle-down {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/angle-down.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/angle-down.svg) no-repeat 50% 50%
 }
 .icn-chevron-left {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/chevron-left.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/chevron-left.svg) no-repeat 50% 50%
 }
 .icn-chevron-right {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/regular/chevron-right.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/chevron-right.svg) no-repeat 50% 50%
 }
 .icn-whatsapp {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/brands/whatsapp.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/brands/whatsapp.svg) no-repeat 50% 50%
 }
 .icn-phone {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/solid/phone.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/solid/phone.svg) no-repeat 50% 50%
 }
 .icn-email {
   background-color: #fff!important;
-  -webkit-mask: url(/css/2020/1.0/fa/solid/envelope.svg) no-repeat 50% 50%
+  -webkit-mask: url(https://c6.mourjan.comcss/2020/1.0/fa/solid/envelope.svg) no-repeat 50% 50%
 }
 .icn-coin {
-  background: url(/css/2020/1.0/assets/coin.svg) no-repeat 50% 50%;
+  background: url(https://c6.mourjan.com/css/2020/1.0/assets/coin.svg) no-repeat 50% 50%;
   background-size: contain
 }
 .icn-ban {
-  background: url(/css/2020/1.0/fa/solid/ban.svg) no-repeat 50% 50%/contain;
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/solid/ban.svg) no-repeat 50% 50%/contain;
   filter: invert(37%) sepia(96%) saturate(7088%) hue-rotate(354deg) brightness(95%) contrast(124%)
 }
 .icn-alert {
-  background: url(/css/2020/1.0/fa/regular/exclamation-triangle.svg) no-repeat 50% 50%/contain;
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/exclamation-triangle.svg) no-repeat 50% 50%/contain;
   filter: invert(73%) sepia(84%) saturate(899%) hue-rotate(358deg) brightness(106%) contrast(105%)
 }
 .icn-thumbs-up {
-  background: url(/css/2020/1.0/fa/regular/thumbs-up.svg) no-repeat 50% 50%/contain;
+  background: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/thumbs-up.svg) no-repeat 50% 50%/contain;
   filter: invert(51%) sepia(86%) saturate(420%) hue-rotate(82deg) brightness(86%) contrast(87%)
 }
 body[dir=rtl] .icntop {
@@ -406,6 +393,7 @@ dt:hover {
   background-color: rgba(200,200,200,.2);
   color: var(--mourjanC)
 }
+.no-hover:hover{background-color:unset !important}
 .card li > a,
 dd > a {
   display: inherit;
@@ -933,26 +921,37 @@ body[dir=rtl] .image.seclogo i {
   font-weight: 700;
   opacity: .75
 }
+
 .modal {
-  display: none;
-  position: fixed;
-  z-index: 999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0,0,0,.55);
-  align-items: center;
-  justify-content: center;
-  overflow: auto;
-  overflow-x: hidden
+    display: none;
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: row;
+    justify-content: center;
+    padding: .625em;
+    overflow-x: hidden;
+    background: rgba(0,0,0,.4);
+    transition: background-color .1s;
+    transition-property: background-color;
+    transition-duration: 0.1s;
+    transition-timing-function: ease;
+    transition-delay: 0s;
+    -webkit-overflow-scrolling: touch;
 }
+
 .modal .card {
-  display: block;
+  display: flex;
   min-height: 60%;
+  height: fit-content;
   position: relative;
+  /*
   float: none!important;
   margin: 48px auto 32px;
+  */
   overflow: visible
 }
 .modal .card .card-image {

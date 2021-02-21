@@ -43,6 +43,7 @@ class UserPage extends Page {
     
     
     public function welcome() : void {
+        if ($this->user->level()===9) {  return;  }
         ?><div class=welcome><?php
         $name=\trim($this->user->getProfileOfUID($this->uid)->getFullName());
         $last_name=(\strpos($name, ' ')===false)?'':\preg_replace('#.*\s([\w-]*)$#', '$1', $name);

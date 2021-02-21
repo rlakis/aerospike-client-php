@@ -506,13 +506,18 @@ class Page extends Site {
 
         $sh=(isset($this->router->cookie->mu) && $this->router->cookie->mu==1)?'1':'0';
 
+        // TODO: to be moved to aerospike
         $redis=new Redis;
-        $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
-        $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
-        $redis->select(1);
-        $redis->setex(session_id(), 300, $this->router->config->serverId.':'.$sh);
-        $redis->close();
-
+        try {
+            $redis->connect($this->router->config->get('rs-host'), $this->router->config->get('rs-port'), 1, NULL, 100); 
+            $redis->setOption(Redis::OPT_PREFIX, 'SESS:');
+            $redis->select(1);
+            $redis->setex(session_id(), 300, $this->router->config->serverId.':'.$sh);
+            $redis->close();
+        }
+        catch (RedisException $re) {
+            \error_log(__FUNCTION__.' redis connect to '.$this->router->config->get('rs-host').'/'.$this->router->config->get('rs-port'). ' failed!');
+        }
         $data=\file_get_contents($qrfile);
         $type=\pathinfo($qrfile, PATHINFO_EXTENSION);
         $base64='data:image/' . $type . ';base64,' . base64_encode($data);                
@@ -1176,7 +1181,7 @@ class Page extends Site {
     }
     
     
-    function parsePageLabel($rname='',$sname='', $rootId, $sectionId, $purposeId=0){
+    function parsePageLabel($rname='',$sname='', $rootId=0, $sectionId=0, $purposeId=0){
         if($sname || $purposeId || $rname) {
             
             if(!$sname) $sname = $rname;
@@ -1637,7 +1642,9 @@ class Page extends Site {
             else {
                 echo $this->router->cities[$this->router->cityId][$this->name];                        
             }
-            ?><i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri']?> iborder"></i></a></li><?php
+            
+            ?><i class=flag><svg><use xlink:href="<?=Config::instance()->cssURL?>/flags/flag.svg#<?=$this->router->countries[$this->router->countryId]['uri']?>" /></svg></i><?php
+           /* ?><i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri']?> iborder"></i></a></li><?php*/
         }
         else {
             echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
@@ -1646,23 +1653,25 @@ class Page extends Site {
         ?><li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
         echo $this->user->isLoggedIn()?$this->lang['MyAccount']:$this->lang['signin'];?><i class="icn icn-user i20 invert"></i></a></li><li>&vert;</li><?php
         if ($this->user->isSuperUser() && $this->router->module!=='admin') {
-            ?><li class="desktop"><a href="<?=$this->router->getLanguagePath('/monitor/')?>"><?=$this->lang['monitor']?></a></li><?php 
-            ?><li class="desktop">&vert;</li><?php
-            ?><li class="desktop"><a href="<?=$this->router->getLanguagePath('/admin/')?>"><?=$this->lang['administration']?></a></li><?php 
-            ?><li class="desktop">&vert;</li><?php
+            ?><li class=desktop><a href="<?=$this->router->getLanguagePath('/monitor/')?>"><?=$this->lang['monitor']?></a></li><?php 
+            ?><li class=desktop>&vert;</li><?php
+            ?><li class=desktop><a href="<?=$this->router->getLanguagePath('/admin/')?>"><?=$this->lang['administration']?></a></li><?php 
+            ?><li class=desktop>&vert;</li><?php
         }
-        ?><li><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language invert"></i></a></li><?php
+        ?><li id=lng><a href="<?= $url ?>"><?= ($this->router->isArabic()?'English':'العربية') ?><i class="icn i20 icn-language invert"></i></a></li><?php
         ?></ul><div id=rgns></div></div></div><?php
         
         ?><header><div class="viewable ff-rows full-height sp-between"><?php  
-        ?><div id=hs><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>"><i class=ilogo></i><?php
+        ?><div id=hs><a href="<?= $this->router->getURL($this->router->countryId, $cityId) ?>" title="<?= $this->lang['mourjan'] ?>">
+                <i class=ilogo></i>
+                    <?php
         if ($this->router->config->serverId===99) {
             echo '<div style="font-size:0.75em;color:white;margin:6px 8px 0;">', $this->router->module, '</div>';
         }
         ?></a></div><?php
         ?><div id=he><?php
-        ?><a href="javascript:menu('msearch')"><i class="i magnifier i20 invert"></i></a><?php
-        ?><a href="javascript:menu('mmenu')"><i id=burger class="i burger i20 invert"></i></a><?php
+        ?><a href="javascript:menu('msearch')"><i class="i i20 invert"><svg><use xlink:href="<?=$this->router->config->cssURL?>/1.0/assets/hot.svg#magnifier" /></svg></i></a><?php
+        ?><a href="javascript:menu('mmenu')"><i class="i i20 invert"><svg><use xlink:href="<?=$this->router->config->cssURL?>/1.0/assets/hot.svg#burger" /></svg></i></a><?php
         ?><a class="btn pc" href=<?=$this->router->getLanguagePath('/post/')?>><?=$this->lang['placeAd']?></a></div><?php
         ?></div></header><?php
 
@@ -1706,7 +1715,7 @@ class Page extends Site {
                 
         ?><input id=q name=q class=searchTerm type=search placeholder="<?=$this->lang['search_what'];?>"><?php
         ?><input id=ro name=ro type=hidden value="0"><?php
-        ?><button class=searchButton type=submit><i class="icn icnsmall icn-search invert"></i><span class=mob>Search</span></button><?php
+        ?><button class=searchButton type=submit><i class="icnsmall invert"><svg><use xlink:href="<?=$this->router->config->cssURL?>/1.0/assets/hot.svg#magnifier" /></svg></i><span class=mob>Search</span></button><?php
         ?></form><?php        
         ?></div><?php
         ?></div></section><?php
@@ -1716,7 +1725,8 @@ class Page extends Site {
             ?><section class="search-box shortcut"><div class="viewable ha-center"><?php
             ?><div class=roots><?php
             foreach ($this->router->roots as $root) {                
-                ?><a href="#"><img src="<?=$this->router->config->cssURL.'/1.0/assets/'.$root[\Core\Data\Schema::BIN_ID].'.svg'?>"></a><?php
+                /*?><a href="#"><img src="<?=$this->router->config->cssURL.'/1.0/assets/ro.svg#'.$root[\Core\Data\Schema::BIN_ID]?>"></a><?php*/
+                ?><a href="#"><i class=icr><svg><use xlink:href="<?=Config::instance()->cssURL?>/1.0/assets/ro.svg#<?=$root[\Core\Data\Schema::BIN_ID]?>" /></svg></i></a><?php
                 /*
                 ?><a href="#"><object onload="this.contentDocument.querySelector('svg').setAttributeNS(null, 'stroke-width', '2px');" data="<?=$this->router->config->cssURL.'/1.0/assets/'.$root[\Core\Data\Schema::BIN_ID].'.svg'?>"></object></a><?php
                  */
@@ -2668,12 +2678,13 @@ class Page extends Site {
         ?><link rel=preconnect href="https://fonts.googleapis.com" crossorigin /><?php        
         ?><link rel=preconnect href="https://fonts.gstatic.com/" crossorigin /><?php
         */
-        ?><link rel=preconnect href='https://pagead2.googlesyndication.com' crossorigin /><?php
-        ?><link rel=preconnect href='https://googleads.g.doubleclick.net' crossorigin /><?php
+        ?><link rel=preconnect href="https://pagead2.googlesyndication.com" crossorigin /><?php
+        ?><link rel=preconnect href="https://googleads.g.doubleclick.net" crossorigin /><?php
         ?><link rel=preconnect href="https://adservice.google.com" crossorigin /><?php
         ?><link rel=preconnect href="https://www.googletagservices.com" crossorigin /><?php
-        ?><link rel=preconnect href='https://tpc.googlesyndication.com'crossorigin /><?php
-        ?><link rel=preconnect href="https://www.google-analytics.com crossorigin" /><?php
+        ?><link rel=preconnect href="https://tpc.googlesyndication.com" crossorigin /><?php
+        ?><link rel=preconnect href="https://www.google-analytics.com " crossorigin /><?php
+        ?><link rel=preconnect href="https://googleads.g.doubleclick.net" crossorigin /><?php
         
         ?><meta name="google-site-verification" content="v7TrImfR7LFmP6-6qV2eXLsC1qJSZAeKx2_4oFfxwGg" /><?php
         if ($this->userFavorites) {
@@ -2765,7 +2776,7 @@ class Page extends Site {
             'promote'=>['ar'=>'سّوق', 'en'=>'PROMOTE'], 'service'=>['ar'=>'خدماتــــــــــــــك', 'en'=>'YOUR SERVICES'],
             ];
         $ln=$this->router->language;
-        ?><div class="row ff-cols viewable pc"><div class="col-12 mhbanner"><img src="<?=$this->router->config->imgURL?>/grid.svg" /><?php
+        ?><div class="row ff-cols viewable pc"><div class="col-12 mhbanner"><i></i><?php
         ?><div><div class=p1><div><span class=um><?=$words['sell'][$ln]?></span><span class="sm l1"><?=$words['car'][$ln]?></span></div><?php
         if ($ln==='ar') {
             ?><div><span class="um"><?=$words['buy'][$ln]?></span><span class="sm l4"><?=$words['house'][$ln]?></span></div><?php                        
@@ -2816,10 +2827,10 @@ class Page extends Site {
             }
         }
         
-        ?><a href=<?=$this->router->getURL($this->router->countryId, $cityId)?>><div><img src="/css/2020/1.0/assets/mhome.svg" />Home</div></a><?php            
+        ?><a href=<?=$this->router->getURL($this->router->countryId, $cityId)?>><div><svg><use xlink:href="<?=$this->router->config->cssURL?>/1.0/assets/navbar.svg#home" /></svg>Home</div></a><?php
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msaved.svg" />Saved Items</div></a><?php */           
-        ?><a href=<?=$this->router->getLanguagePath('/post/')?>><div><img src="/css/2020/1.0/assets/mpost.svg" />Post An Ad</div></a><?php            
-        ?><a href=<?=$this->router->getLanguagePath('/myads/')?>><div><img src="/css/2020/1.0/assets/maccount.svg" />My Account</div></a><?php            
+        ?><a href=<?=$this->router->getLanguagePath('/post/')?>><div><svg><use xlink:href="<?=$this->router->config->cssURL?>/1.0/assets/navbar.svg#post" /></svg>Post An Ad</div></a><?php
+        ?><a href=<?=$this->router->getLanguagePath('/myads/')?>><div><svg><use xlink:href="<?=$this->router->config->cssURL?>/1.0/assets/navbar.svg#acct" /></svg>My Account</div></a><?php            
         /*?><a href="#"><div><img src="/css/2020/1.0/assets/msettings.svg" />Settings</div></a><?php */           
         ?></nav><?php
         ?><div class="viewable ff-rows"><div class=row><?php
@@ -3093,15 +3104,8 @@ class Page extends Site {
         }
 
         if ($this->router->config->get('enabled_ads') && \in_array($this->router->module,['search','detail', 'index'])) {
-            ?><script data-ad-client="ca-pub-2427907534283641" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script><?php
+            ?><script data-ad-client=ca-pub-2427907534283641 async src=https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js></script><?php
         }
-
-        /*
-        //if (!$this->isMobile){
-        ?><script type="text/javascript"> //<![CDATA[ 
-document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/javascript/trustlogo.js' type='text/javascript'%3E%3C/script%3E"));
-//]]></script><?php
-        //}*/
     }
     
     
@@ -3571,10 +3575,14 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
     
     
     protected function _header() : void {
-        \header("Link: <".$this->router->config->cssURL."/1.0/mc.css>; rel=preload; as=style;", false);
-        \header("Link: <".$this->router->config->cssURL."/1.0/fonts/roboto-v20-latin-regular.woff2>; rel=preload; as=font; crossorigin", false);
-        \header("Link: <{$this->router->config->cssURL}/1.0/fonts/almarai-v4-arabic-300.woff2>; rel=preload; as=font; crossorigin", false);
-        
+        //\header("Access-Control-Allow-Origin: *");
+        //\header("Link: <{$this->router->config->cssURL}/1.0/mc.css>; rel=preload; as=style;", false);
+        //\header("Link: <{$this->router->config->cssURL}/1.0/fonts/roboto-v20-latin-regular.woff2>; rel=preload; as=font; crossorigin", false);
+        //\header("Link: <{$this->router->config->cssURL}/1.0/fonts/almarai-v4-arabic-300.woff2>; rel=preload; as=font; crossorigin", false);
+       // \header("Link: </css/2020/1.0/fonts/roboto-v20-latin-regular.woff2>; rel=preload; as=font; crossorigin", false);
+        //\header("Link: </css/2020/1.0/fonts/almarai-v4-arabic-regular.woff2>; rel=preload; as=font; crossorigin", false);
+        //\header("Link: </css/2020/1.0/fonts/almarai-v4-arabic-300.woff2>; rel=preload; as=font; crossorigin", false);
+        //\header("Link: </css/2020/1.0/fonts/almarai-v4-arabic-700.woff2>; rel=preload; as=font; crossorigin", false);
         if ($this instanceof UserPage) {
             \header("Link: <".$this->router->config->cssURL."/1.0/user.css>; rel=preload; as=style;", false);
         }
@@ -3616,20 +3624,29 @@ document.write(unescape("%3Cscript src='https://secure.comodo.com/trustlogo/java
         }
         echo '<!doctype html>';
         echo '<html lang="', $this->router->language, $country_code,'" xmlns:og="http://ogp.me/ns#"';
-        echo '><head><meta charset="utf-8">';        
+        echo '><head><meta charset="utf-8">';
+        if ($this->router->module==='monitor') {
+            echo '<meta http-equiv=refresh content=120>';
+        }
         echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/mc.css />';
+        echo '<link rel=stylesheet media="screen and (min-width:769px)" href=', $this->router->config->cssURL, '/1.0/mcdesk.css />';
         if ($this instanceof UserPage || $this->router->module==='post') {
             echo '<link rel=stylesheet type=text/css href=', $this->router->config->cssURL, '/1.0/user.css />';
         }
-        echo '<link rel=preload type=font/woff2 href="', $this->router->config->cssURL, '/1.0/fonts/roboto-v20-latin-regular.woff2" />';
-        echo '<link rel=preload type=font/woff2 href="', $this->router->config->cssURL, '/1.0/fonts/almarai-v4-arabic-300.woff2" />';
-
-        /*
+        
+        //echo '<link rel=preload type=font/woff2 href="', $this->router->config->cssURL, '/1.0/fonts/roboto-v20-latin-regular.woff2" as="font" />';
+        //echo '<link rel=preload type=font/woff2 href="', $this->router->config->cssURL, '/1.0/fonts/almarai-v4-arabic-300.woff2" as="font" />';
+/*
+        echo '<link rel=preload type=font/woff2 href="', "https://dev.mourjan.com/css/2020/", '/1.0/fonts/roboto-v20-latin-regular.woff2" as="font" />';
+        echo '<link rel=preload type=font/woff2 href="', "https://dev.mourjan.com/css/2020/", '/1.0/fonts/almarai-v4-arabic-regular.woff2" as="font" />';
+        echo '<link rel=preload type=font/woff2 href="', "https://dev.mourjan.com/css/2020/", '/1.0/fonts/almarai-v4-arabic-300.woff2" as="font" />';
+*/
+        
         ?><link rel=preload as=style href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" /><?php
         ?><link rel=stylesheet href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&family=Roboto:wght@300;400;500;700&display=swap" media="print" onload="this.media='all'" /><?php
-         * 
-         */
-        switch ($this->router->module) {
+          
+         
+        switch ($this->router->module) {          
             case 'myads':
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/socket.io.slim.js></script><?php
                 ?><script async src=<?=$this->router->config->jsURL?>/1.0/chart-2.9.3/Chart.min.js></script><?php

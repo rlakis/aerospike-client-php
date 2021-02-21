@@ -270,8 +270,12 @@ var UI={
                     if(response.success===1){
                         Ad.init();
                         let rs=response.result;
-                        _.region=rs.regions;_.dic=rs.roots;_.ip=rs.ip;
+                        _.region=rs.regions;
+                        _.dic=rs.roots;
+                        _.ip=rs.ip;
+                        console.log('robert', _.ip.ipquality);
                         if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
+                        console.log('Prefs', rs.prefs);
                         Prefs.init(rs.prefs);
                         for(i in _.dic){
                             _.dic[i].menu=[];
@@ -435,6 +439,8 @@ var UI={
             card.style.setProperty('padding-left', '0');
             card.style.setProperty('padding-right', '0');            
         }
+        
+        
         let X = createElem('span', 'close', '&times;', true);
         if(name==='map'){                      
             var script=$.createElement('script');script.type="text/javascript";
@@ -460,7 +466,7 @@ var UI={
         $.body.append(dialog);  
         dialog.style.display="flex";
         dialog.dataset.views=parseInt(dialog.dataset.views)+1;
-        dialog.style.setProperty('max-height', window.innerHeight+'px');
+        //dialog.style.setProperty('max-height', window.innerHeight+'px');
         let card=dialog.query('div.card');
         let fw=(dialog.dataset.fullWidth==='true');
         let fh=(dialog.dataset.fullHeight==='true');
@@ -472,7 +478,8 @@ var UI={
             X.style.setProperty('top', '-42px');
             X.style.setProperty('right', '8px');
         }
-        
+        dialog.style.setProperty('max-width', $.body.clientWidth+'px');
+        console.log('clientWidth', $.body.clientWidth);
 
         if(dialog.id==='map' && (Ad.content.lat!==0||Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
         if(photo){
@@ -488,6 +495,7 @@ var UI={
     },
     
     chooseRootPurpose:function(){
+
         let _=this, dialog, card;
         if(!_.dialogs.roots){
             dialog=_.createDialog('roots', false, false);
@@ -528,7 +536,8 @@ var UI={
             dialog=_.createDialog(ref, false, true);
             card=dialog.query('div.card');                      
             let ul=createElem('ul');
-            ul.style.setProperty('height', window.innerHeight+'px');   
+            //ul.style.setProperty('height', window.innerHeight+'px');   
+            ul.style.setProperty('height', 'auto');   
             for(var i in r.sindex){
                 let se=r.sindex[i];
                 if(!Prefs.isBlockedSection(se) && r.sections[se]){
@@ -601,10 +610,7 @@ var UI={
                         break;                            
                 }
             };
-            //const keys = Object.keys(_.region);
-            //for (const key of keys) {
             Prefs.getAllowedCountriesForUserSource().forEach(function(key){
-                console.log('country', key);
                 let li=createElem('li', '', '<i class="icn icnsmall icn-'+_.region[key].c+'"></i><span>'+_.region[key][_.ar?'ar':'en']+'</span>', 1);
                 li.dataset.countryId=key;
                 
@@ -633,7 +639,7 @@ var UI={
                         default: p=blocks.ot; break;                            
                     }                    
                     
-                    let cli=createElem('li'); ul.append(cli);
+                    let cli=createElem('li', 'no-hover'); ul.append(cli);
                     if(p.childNodes.length>0){p.childNodes[p.childNodes.length-1].append(createElem('li','','&nbsp;',1));}
                     cli.append(cul);
                     p.append(ul);
@@ -681,6 +687,51 @@ var UI={
         }
 
         _.showDialog(dialog);                
+    },
+    
+    setRERA:function(broker){
+        if (!(Ad.sectionId>0)||Ad.regions.length!==1||Ad.regions[0]!==14)return;
+        if (broker) {
+            Swal.fire({
+                title: 'Required by Dubai land department',
+                html:
+                    '<label for="_orn" class="swal2-input-label">Office</label><input disabled id="_orn" class="swal2-input">' +
+                    '<label for="_brn" class="swal2-input-label">Broker</label><input disabled id="_brn" class="swal2-input">'+
+                    '<label for="_prm" class="swal2-input-label">Permit number</label><input id="_prm" type=number class="swal2-input" autofocus>',
+                footer:'<span>Please be advised that providing <b>wrongful information</b> might lead to account blocking as well as prosecution by concerned law agencies.</span>',
+                showCloseButton: true,
+                showCancelButton: true,
+                focusConfirm: true,
+                didRender: () => {
+                    const content = Swal.getContent();
+                    if (content) {
+                        const b = content.querySelector('#prm');
+                        if (b) {
+                            b.focus();
+                        }
+                    }
+                    //console.log($.body.query('input#_prm'));
+                    //$.body.query('input#_prm').focus();
+                }
+            });
+            
+        }
+        else {
+            Swal.fire({
+                title: 'Dubai land department info?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: `I am a broker`,
+                denyButtonText: `I a am the landlord`,
+            }).then((result) => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+                    Swal.fire('Saved!', '', 'success')
+                } else if (result.isDenied) {
+                    Swal.fire('Changes are not saved', '', 'info')
+                }
+            });
+        }
     },
     
     getCountryByCityId:function(cc){
@@ -763,6 +814,11 @@ var UI={
                 lbl+=country.cc[c][UI.ar?'ar':'en'];
             });
             rg.innerHTML=lbl;
+            
+            if (Ad.rootId===1 && Ad.regions.length===1 && Ad.regions[0]===14) {
+                let rr=this.adClass.query('li#rera');
+                rr.classList.remove('none');
+            }
         }
         else {
             rg.innerHTML=this.regionLabel;
@@ -1460,6 +1516,7 @@ var Prefs={
         let _=this, rules={}, index={};
         _.countries=[];
         _.chains={[kRule]:rules, [kIndex]:index};
+       
         for (var key in data) {
             let dict=data[key];
             if(key==='version'){
@@ -1544,7 +1601,7 @@ var Prefs={
         let rs=UI.adForm.dataset;
         
         if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}        
-        if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0' && rs.proxy==='0'){_.carrierCountryCode=rs.ipCountry;}
+        if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0'){_.carrierCountryCode=rs.ipCountry;}
         if(_.activationCountryCode===null&&($.body.dataset.level==='90'||$.body.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
         
         for(let i in UI.region){
@@ -1552,7 +1609,7 @@ var Prefs={
             if(UI.region[i].c.toUpperCase()===_.activationCountryCode){_.activationCountryId=parseInt(i);}
         }
         //console.log('UI.adForm.dataset', rs, _.activationCountryCode, _.activationCountryId);
-        console.log('Prefs', _);
+        console.log('Prefs', _, rs);
     },
     
     
@@ -1734,12 +1791,12 @@ var Prefs={
                     sectionSource=filter.source;
                 }
             }
-            
+            /*
             if(sectionSource===RegionType.Country){
                 if(this.carrierCountryId>0){}
                 if(this.activationCountryId>0){}
             }
-            
+            */
             let deny=rootPrefs[kSections][se][kDeny];
             for (let i in deny) {
                 let filter=deny[i];

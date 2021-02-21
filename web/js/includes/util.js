@@ -55,9 +55,9 @@ function hasWebP() {
 }
 
 regionWidget=function(e){
-    let a=$.querySelector('a#regions'), r=JSON.parse(a.dataset.regions), d=$.querySelector('div#rgns');
+    let a=$.querySelector('a#regions'), r=JSON.parse(a.dataset.regions), d=$.querySelector('div#rgns'), th=a.closest('div.top-header');
+    console.log(d);
     if (d.innerHTML>''){d.innerHTML='';return;}
-    th=$.querySelector('div.top-header');
     let y=th.offsetHeight+th.offsetTop+8;    
     let s='<div style="display:flex;position:absolute;flex-flow:column;align-self:center;top:'+y+'px;left:0px;width:100%;height:auto;z-index:9;"><div class="row viewable"><div class=col-12 style="padding:0"><div class="card regions">';
     s+='<header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px">mourjan</span> around The Middle East</h4></header>';
@@ -67,7 +67,8 @@ regionWidget=function(e){
         s+='<dl class="dl col-4">';
         g.forEach(c=>{
             let v=r[c];
-            s+='<dt><a href='+v.p+'><i class="icn icn-'+c+'"></i><span>'+v.n+'</span></a></dt>';
+            s+='<dt><a href='+v.p+'><i class=flag><svg><use xlink:href=https://'+window.location.hostname+'/css/2020/flags/flag.svg#'+c+'></use></svg></i><span>'+v.n+'</span></a></dt>';
+            /*s+='<dt><a href='+v.p+'><i class="icn icn-'+c+'"></i><span>'+v.n+'</span></a></dt>';*/
             v.c.forEach(t=>{
                 s+='<dd><a href='+t.p+'>'+t.n+'</a></dd>';
             });
@@ -103,8 +104,9 @@ initDialog=function(id) {
             }
             else {
                 a.style.setProperty('margin-inline-end', '18px');
-                a.query('i').classList.remove('burger');
-                a.query('i').classList.add('close2');
+                i=a.query('i');
+                str=i.innerHTML;
+                i.innerHTML=str.replace("#burger", "#close");
                 a.id='closeMenu';
                 a.dataset.menu=id;
             }
@@ -119,9 +121,9 @@ initDialog=function(id) {
 
 
 toggleDialog=function(id) {    
-    let dialogs=$$.queryAll('div.menu'), shown=null;    
+    let dialogs=$$.queryAll('div.menu'), shown=null;
     dialogs.forEach(container=>{
-        if (container.style.display==='flex') {
+        if (container.style.display!=='none') {
             shown=container;
         }
     });
@@ -142,11 +144,24 @@ menu=function(id) {
         e=initDialog(id);
         if (id==='mmenu') {
             let footer=$$.query('footer'), apps=footer.query('#mcapps'), info=footer.query('#mcinfo').cloneNode(true);
+            let th=$$.query('div.top-header'), lli=th.query('#lng'), rli=th.query('a#regions').closest('li'), ul=info.query('ul').cloneNode(true);
+            
             info.classList.remove('col-4');
-                
+            lli.classList.add('w100');
+            
+            if (lli.query('a').innerHTML.includes('العربية')) {
+                lli.style.setProperty('direction', 'rtl');
+            }
+            else {
+                lli.style.setProperty('direction', 'ltr');
+            }
+            rli.query('a').classList.add('sp-between');
+            lli.query('a').classList.add('sp-between');
             b=$.createElement('div');
-            b.style.padding='32px 44px 92px';        
-            b.append(info.query('ul').cloneNode(true));
+            b.style.padding='32px 44px 92px';
+            ul.insertBefore(rli, ul.childNodes[0]); 
+            ul.insertBefore(lli, ul.childNodes[0]); 
+            b.append(ul);
             
             aw=apps.query('ul').cloneNode(true);
             //aw.removeAttribute('id');

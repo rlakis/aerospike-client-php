@@ -316,7 +316,7 @@ class Ad {
                     return '$'.number_format($price);
                     break;
                 case 'AE':
-                    return 'AED '.number_format($price);
+                    return 'AED&nbsp;'.number_format($price);
                     break;
 
                 default:

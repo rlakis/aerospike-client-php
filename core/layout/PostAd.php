@@ -20,12 +20,12 @@ class PostAd extends Page {
         $this->router->config->disableAds();               
         
         $this->load_lang(array("post"));
-        //$this->set_require('css', array('post'));
         $this->title=$this->lang['title'];
 
         if ($this->user->params['country']) {
             $this->router->countryId=$this->user->params['country'];
         }
+        
         if ($this->user->params['city']) {
             $this->router->cityId=$this->user->params['city'];
         }
@@ -35,13 +35,17 @@ class PostAd extends Page {
         
         if ($this->user->isLoggedIn()) {
             if (!$this->isUserMobileVerified) {
-                $this->title=$this->lang['verify_mobile'];
-                //$this->set_require('css', array('select2'));                
+                $this->title=$this->lang['verify_mobile'];             
             }
             else {
                 $id=\filter_input(\INPUT_POST, 'ad' , \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
                 if ($id>0) {
                     $this->ad->getAdFromAdUserTableForEditing($id);     
+                }
+                else {
+                    $this->ad->setUID($this->user->id());
+                    //\error_log($this->user->id());
+                    $this->ad->setDataSet(new Core\Model\Content($this->ad));
                 }
 
                 if (isset($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {                    
@@ -67,6 +71,7 @@ class PostAd extends Page {
             //if (isset($stmt['balance'])) {
             //    $this->userBalance=$stmt['balance'];
             //}
+            //$this->userBalance=$this->user->getProfileOfUID($this->user->id())->getBalance();
             $this->userBalance=$this->ad->profile()->getBalance();
         }
 
@@ -129,7 +134,18 @@ class PostAd extends Page {
             echo '<li><a class=se href="javascript:void(0)" onclick="UI.chooseSection()">Choose section</a></li>';
             echo '<li><a class=lc href="javascript:void(0)" onclick="UI.openMap()">Map Address/Location</a></li>';
             echo '<li><a class=rg href="javascript:void(0)" onclick="UI.chooseRegions()">', $this->lang['m_h_city'], '</a></li>';
+            
+            if ($this->ad->countryId()===2 && $this->ad()->rootId()===1 && $this->ad->cityId()===14) {
+                echo '<li id=rera>';
+            }
+            else {
+                echo '<li id=rera class=none>';
+            }
+            echo '<a class=rg href="javascript:void(0)" onclick="UI.setRERA(true)">', 'I am a broker', '</a>';
+            echo '<a class=rg href="javascript:void(0)" onclick="UI.setRERA(false)">', 'I am the landlord', '</a>';
+            echo '</li>';
             echo '</ul></div></div>';
+            
             
             ?><div class=col-12><div class=card><?php
             ?><ul>

@@ -11,8 +11,9 @@ const TS_VALIDATION_REQUEST = 'requests';
 trait CallTrait {
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, int &$sequence) : int;
-    abstract public function getBins($pk, array $bins);
-    abstract public function setBins($pk, array $bins);
+    abstract public function getBins(array $pk, array $bins=[]);
+    
+    abstract public function setBins(array $pk, array $bins);
     abstract public function exists($pk) : int;
     abstract public function getRecord(array $pk, ?array &$record, array $bins=[]) : int;
     
@@ -96,7 +97,7 @@ trait CallTrait {
     }
         
     
-    public function issueNewValidataionRequestKey(int $type, int $number, int $did_number=0, string $app='', int $uid, int $platform=0) : string
+    public function issueNewValidataionRequestKey(int $type, int $number, int $did_number=0, string $app='', int $uid=0, int $platform=0) : string
     {
         $request_id = static::v5(static::v4(), "{$type}-{$number}-{$app}-{$platform}");
         $bins = 

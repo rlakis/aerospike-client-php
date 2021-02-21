@@ -12,9 +12,24 @@ use Hybridauth\Storage\Session;
 
 use Core\Model\Router;
 
-function redirectTo($user) : void {    
+function redirectTo(User $user) : void {    
     $router=Router::instance();
-    $router->language=$user->params['slang'];
+    if ($router->referer) {
+        $items=\explode('/', $router->referer);
+        $len=\count($items);
+        if ($len>1) {
+            if (!empty($items[$len-1])) {
+                $lg=$items[$len-1];
+            }
+            else {
+                $len--;
+                $lg=$items[$len-1];
+            }
+        }
+    }
+    if (isset($lg) && ($lg==='en'||$lg==='ar')) {
+        $router->language=$lg;
+    }
     $router->cache();
     $url=$router->getURL($user->params['country'], $user->params['city']);  
     $router->close();
@@ -38,7 +53,7 @@ $user->populate();
 
 if ($user->isLoggedIn()) {   
     $provider=\filter_input(\INPUT_GET, 'logout', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-    \error_log($provider);
+    \error_log($provider.PHP_EOL);
     if ($provider==='mourjan' || $provider==="mourjan-iphone" || $provider==='Android' || $provider==='mourjan-android') {
         $user->logout();
         redirectTo($user);
@@ -105,19 +120,19 @@ try {
         
         $adapter = $hybridauth->getAdapter($provider);                
                 
-        if ($adapter->isConnected()) {                      
+        if ($adapter->isConnected()) {
             
             $provider=strtolower(trim($provider));
-            if($provider == 'windowslive') $provider = 'live';            
-            if($provider == 'yahooopenid') $provider = 'yahoo';            
+            if ($provider==='windowslive') $provider = 'live'; 
+            if ($provider==='yahooopenid') $provider = 'yahoo';
             
-            $info = $auth_info = $adapter->getUserProfile();  
-            
+            $info=$auth_info=$adapter->getUserProfile();  
+            \error_log(var_export($info, true));
             //FIX FOR CHANGING API KEY OF FACEBOOK
-            if($provider == 'facebook' && $info->email){
-                $usr = $user->getUserByEmailAndProvider($info->email, $provider);
-                if(isset($usr[0]['ID'])){
-                    $auth_info->identifier = $usr[0]['IDENTIFIER'];
+            if ($provider==='facebook' && $info->email) {
+                $usr=$user->getUserByEmailAndProvider($info->email, $provider);
+                if (isset($usr[0]['ID'])) {
+                    $auth_info->identifier=$usr[0]['IDENTIFIER'];
                 }
             }
             
@@ -163,8 +178,8 @@ try {
                         }
                     }
                     else {
-                        if ($user->params['slang']!='ar') {
-                            $uri.=$user->params['slang'].'/';
+                        if ($user->params['lang']!='ar') {
+                            $uri.=$user->params['lang'].'/';
                         }
                     }
                 }
@@ -179,8 +194,8 @@ try {
                 }
 
                 $hasParam=0;
-                if ($user->params['slang']!='ar') {
-                    $uri.=$user->params['slang'].'/';
+                if ($user->params['lang']!='ar') {
+                    $uri.=$user->params['lang'].'/';
                 }            
 
                 if ($failed) {
@@ -226,8 +241,8 @@ try {
      * Redirects user to home page (i.e., index.php in our case)
      */
     $url = '/';
-    if (isset($user->params['slang']) && $user->params['slang']!='ar') {
-        $url .= $user->params['slang'].'/';
+    if (isset($user->params['lang']) && $user->params['lang']!='ar') {
+        $url .= $user->params['lang'].'/';
     }
     HttpClient\Util::redirect($url);
 } 

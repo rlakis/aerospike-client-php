@@ -65,6 +65,10 @@ class Classifieds {
     const AM_COUNTRY_CODE       = 50;
     const ATTRS                 = 80;
     const DONE                  = 99;
+    
+    // computed tags
+    const IS_FEATURED           = 100;
+    const IS_PREMIUM            = 101;
 
     private $stmt_get_ad = null;
     private $stmt_get_media = null;

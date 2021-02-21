@@ -8,8 +8,8 @@ const TS_MOBILE = 'mobiles';
 trait MobileTrait {
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, int &$sequence) : int;
-    abstract public function getBins($pk, array $bins);
-    abstract public function setBins($pk, array $bins);
+    abstract public function getBins(array $pk, array $bins=[]);
+    abstract public function setBins(array $pk, array $bins);
     abstract public function exists($pk) : int;
     
         

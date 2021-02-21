@@ -24,7 +24,6 @@ class Monitor extends Page {
         $this->load_lang(array("account"));
         
         
-        //$this->set_require('css', 'account');
         $this->title=$this->lang['title'];
         $this->description=$this->lang['description'];
         $this->forceNoIndex=true;

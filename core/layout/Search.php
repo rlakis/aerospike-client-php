@@ -818,7 +818,7 @@ class Search extends Page {
     }
     
 
-    function replacePhonetNumbers(string &$text, $countryCode=0, $mobiles, $phones, $undefined, $email=null, &$matches='') : string {
+    function replacePhonetNumbers(string &$text, $countryCode, $mobiles, $phones, $undefined, $email=null, &$matches='') : string {
         $REGEX_MATCH='/((?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|هاتف|فاكس|تلفاكس|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:(?:tel|call|ت|ه|ج)(?:\s|):))(?:(?:\s|):|\+|\/|)(?: |$)))/ui';
         $REGEX_CATCH='/(?:(?:(?:[ .,;:\-\/،])(?:mobile|viber|whatsapp|phone|fax|telefax|للتواصل|جوال|موبايل|واتساب|للاستفسار|للأستفسار|للإستفسار|فايبر|هاتف|فاكس|تلفاكس|الاتصال|للتواصل|للمفاهمة|للاتصال|الاتصال على|اتصال|(?:(?:tel|call|ت|ه|ج)(?:\s|):))(?:(?:\s|):|\+|\/|)(?: |$)))(.*)/ui';
         
@@ -1186,7 +1186,7 @@ class Search extends Page {
                     
                     $strip=\filter_input(\INPUT_GET, 'strip', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]])+0;
                                         
-                    $link='/?'.$_SERVER['QUERY_STRING'];
+                    $link='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'?'.$_SERVER['QUERY_STRING'];
                     ?><div style="height:auto;text-align:center;margin-bottom:8px;"><?php
                     if ($strip===1) {
                         $link=\trim(\preg_replace('/&strip=1/', '', $link));
@@ -1270,9 +1270,9 @@ class Search extends Page {
             //if ($end_user)
             if ($ad->isFeatured()) {  $c[]='p';  }
             if (!$end_user) {  $c[]='full';  }
-            ?><div class="<?=\implode(' ', $c).'" '.$ad->htmlDataAttributes($this->formatNumbers)?>><?php
-            ?><div class=widget id=<?=$ad->id().' itemprop=itemListElement'.$itemScope?>><?php
-            ?><a class=link href=<?=$ad->url()?>><?php
+            ?><div class="<?=\implode(' ', $c)?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><?php
+            ?><div class=widget id=<?=$ad->id()?> itemprop="itemListElement<?=$itemScope?>"><?php
+            ?><a class=link href="<?=$ad->url()?>"><?php
             if ($ad->isFeatured()) {
                 echo '<img class=mark src="', $this->router->config->imgURL, '/prtag-en.svg" />';
             }

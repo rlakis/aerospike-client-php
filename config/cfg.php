@@ -129,6 +129,7 @@ class Config extends \Core\Model\Singleton {
 }
 
 include_once 'shared.php';
+
 /*
 $aws = 'https://doxplxe8wce37.cloudfront.net';
 
@@ -450,9 +451,6 @@ $config=array(
                             ),
 );
 */
-$config['url_base']         = $config['host'];
-$config['url_bin']          = $config['url_base'].'/bin';
-$config['url_upload']       = $config['url_bin'].'/uploadLogo.php';
 
 //Config::instance()->init($config);
 
@@ -480,14 +478,33 @@ if ($globalSettings!==FALSE) {
 }
 */
 
+if (PHP_VERSION_ID>80000) {
+    $config['host']             = 'https://dv.mourjan.com';
+    $config['site_domain']      = 'dv.mourjan.com';
+}
+$config['url_base']             = $config['host'];
+$config['url_bin']              = $config['url_base'].'/bin';
+$config['url_upload']           = $config['url_bin'].'/uploadLogo.php';
+
 $config['dir_css']              = '/home/www/mourjan/web/css/2020';
 $config['url_resources']        = 'https://dev.mourjan.com';
 $config['url_js']               = 'https://dev.mourjan.com/js/2020';
+
 $config['url_css']              = 'https://dev.mourjan.com/css/2020';
-$config['url_img']              = 'https://dev.mourjan.com/css/2020/1.0/assets';
+//$config['url_css']              = 'https://doxplxe8wce37.cloudfront.net/css/2020';
+
+//$config['url_img']              = 'https://dev.mourjan.com/css/2020/1.0/assets';
+$config['url_img']              = 'https://c6.mourjan.com/css/2020/1.0/assets';
+
 $config['url_uploader']         = 'https://dev.mourjan.com';
 
 $config['server_id']=\get_cfg_var('mourjan.server_id');
 
+if (PHP_VERSION_ID>=80000) {
+    $config['url_resources']    = 'https://dv.mourjan.com';
+    $config['url_js']           = 'https://dv.mourjan.com/js/2020';
+    $config['url_css']          = 'https://dv.mourjan.com/css/2020';
+    $config['url_uploader']     = 'https://dv.mourjan.com';
+}
 
 Config::instance()->init($config);

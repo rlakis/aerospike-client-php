@@ -47,7 +47,7 @@ $hybridConfig = [
                 "secret" => "503bd119d9d8f0a80d3a736db8002683"
             ],
             // A comma-separated list of permissions you want to request from the user. See the Facebook docs for a full list of available permissions: http://developers.facebook.com/docs/reference/api/permissions.
-            "scope" => "email, public_profile",
+            "scope" => "public_profile,email",
             // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
             "display" => "popup"
         ],

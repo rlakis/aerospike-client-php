@@ -460,18 +460,18 @@ class MyAds extends UserPage {
                 break;
             case 6:
             case 7:
-                $section=$this->router->purposes[$ad->purposeId()][$this->name].' '.$this->router->sections[$ad->sectionId()][$this->name];
+                $section=$this->router->purposes[$ad->purposeId()][$this->name].' '.$this->router->sections[$ad->sectionId()][$this->name]??'';
                 break;
             case 3:
             case 4:
             case 5:
-                if(preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->name].'/', $this->router->sections[$ad->sectionId()][$this->name])){
+                if(preg_match('/'.$this->router->purposes[$ad->purposeId()][$this->name].'/', $this->router->sections[$ad->sectionId()][$this->name]??'')){
                     $section=$this->router->sections[$ad->sectionId()][$this->name];
                 }
                 else {
                     $in=' ';
                     if ($this->router->language==='en') { $in=' '.$this->lang['in'].' '; }
-                    $section=$this->router->purposes[$ad->purposeId()][$this->name].$in.$this->router->sections[$ad->sectionId()][$this->name];
+                    $section=$this->router->purposes[$ad->purposeId()][$this->name].$in.($this->router->sections[$ad->sectionId()][$this->name]??'');
                 }
                 break;
         }
@@ -701,11 +701,11 @@ class MyAds extends UserPage {
                                 $onlySuper = "requested by user #".$onlySuper."#";
                             }
                         }
-                    }                          
-                    $userMobile = $cad->profile()->getMobile(TRUE)->getNumber();                    
+                    }            
+                    
+                    $userMobile=$cad->profile()->getMobile(TRUE)->getNumber();                    
                     $needNumberDisplayFix=(!\preg_match('/span class=?pn/u', $text));
 
-                    //error_log(var_export($cad->dataset()->getContactInfo(), true).PHP_EOL);
                     $cui=$cad->dataset()->getContactInfo();
                     if (isset($cui['p']) && \is_array($cui['p'])) {
                         foreach ($cui['p'] as $p) { 
@@ -791,12 +791,21 @@ class MyAds extends UserPage {
                         $unum=$this->phoneUtil->parse('+'.$userMobile, 'LB');
                         $XX=$this->phoneUtil->getRegionCodeForNumber($unum);
                         $profileLabel = '+'.$userMobile;
-                        if ($XX) { $profileLabel = '('.$XX. ')' . $profileLabel; }
+                        
+                        if ($XX!=='') {
+                            $devices=$cad->profile()->getDevices();
+                            if ( \count($devices)>0 && $XX!==$devices[0]->getCarrierCountryCode()) {                           
+                                $profileLabel='" style="color:#F1948A">('.$XX. ')'.$profileLabel;
+                            }
+                            else {
+                                $profileLabel='">('.$XX. ')'.$profileLabel;
+                            }
+                        }
                     }
                     
                     $title='<div class=user><a target=_similar href="'.
                             ($isSuperAdmin ? $this->router->getLanguagePath('/admin/').'?p=' . $cad->uid() : $cad->profile()->getProfileURL()).
-                            '">'.$profileLabel.'</a><a target=_similar'.$style.' href="'.
+                            $profileLabel.'</a><a target=_similar'.$style.' href="'.
                             $this->router->getLanguagePath('/myads/').'?u='.$cad->uid().'">'.$name.'</a>';
                     
                     $geo = preg_replace('/,/', '' , preg_replace('/[0-9\.]|(?:^|\s|,)[a-zA-Z]{1,3}\s/', '', $cad->dataset()->getUserLocation()));
@@ -896,6 +905,15 @@ class MyAds extends UserPage {
                     echo ' data-ro=', $cad->rootId(), ' data-se=', $cad->sectionId(), ' data-pu='.$cad->purposeId(), ' data-uid='.$cad->uid();                     
                 }
                 echo ' data-hl="', $cad->dataset()->getUserLanguage(), '"'; 
+                
+                if ($this->user->isLoggedIn(9)) {
+                    if ($this->user->isSuperUser()) {
+                        echo ' style="color:var(--mdc80)"';
+                    }
+                    else {
+                        echo ' style="color:var(--mdc90)"';
+                    }
+                }
                
                 ?>><header><?php
                 switch ($cad->state()) {

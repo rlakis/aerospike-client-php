@@ -9,7 +9,7 @@ class Detail extends Search {
     private int $attrWidgetCount=0;
     private String $adCountry;
     private String $ipCountry;
-    private String $mobileCountry;
+    //.private String $mobileCountry;
     
     function __construct() {
         parent::__construct();
@@ -140,7 +140,7 @@ class Detail extends Search {
             $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
         }                               
                           
-        ?><div class=dtad><div class=row><?php
+        ?><div class=dtad><div class="row wrap"><?php
             
         if ($this->detailAd->isFeatured()) {
             ?><div class="col-8 ff-cols cntnt premium"><?php 
@@ -167,11 +167,11 @@ class Detail extends Search {
         */
         $this->ipCountry=$ipqs['ipquality']['country_code']??'XX';
         $this->adCountry=$this->detailAd->countryCode();
-        ?><div class="top ff-cols"><div class="col-12 sp-between"><?php
+        ?><div class="top ff-cols"><div class="col-12 sp-between" style="flex-wrap:nowrap"><?php
         if (!$this->detailAd->isJob()) {
-            ?><div class=fw-300>Posted on <?=$date->format('d.m.Y H:i e').$this->adCountry?></div><?php
+            ?><div class=fw-300>Posted on <?=$date->format('d.m.y H:i e')?></div><?php
         }
-        ?><div style="font-weight:700;font-size:30px"><?=$this->detailAd->formattedPrice()?></div></div><?php
+        ?><div style="font-weight:700;font-size:2em"><?=$this->detailAd->formattedPrice()?></div></div><?php
         /*?><div class="row fw-700"><?=$adSection?></div><?php*/
         ?></div><?php
         /*
@@ -270,6 +270,7 @@ class Detail extends Search {
                         break;
                 }
             }
+            
         
             $loc='';
             if ($hasMap||(isset($attrs['locales']) && !empty($attrs['locales']))) {
@@ -323,8 +324,9 @@ class Detail extends Search {
             
             if (isset($attrs[Core\Model\Ad::MILEAGE_ATTR]) && $attrs[Core\Model\Ad::MILEAGE_ATTR]>=0) {
                 $this->addAttributeWidget('odometer', 'Mileage KM', number_format($attrs[Core\Model\Ad::MILEAGE_ATTR]));   
-            }                       
+            }
             
+            $this->addAttributeWidget('question', 'Alert', 'Be carefull');
             //$this->addAttributeWidget('', '', '');   
             //$this->addAttributeWidget('', '', '');   
         ?></div><?php
@@ -443,9 +445,12 @@ class Detail extends Search {
         ?></div><?php
         
         ?><div class=row><div class=tail><div class="col-8 ff-cols report" onclick="reportAd(this)"><p>Any issue? <b>Report this ad</b></p></div><div class=col-4></div></div></div><?php
+        /*
         ?><div class=row><div class=col-12><?php
         print_r($this->detailAd->attrs());
         ?></div></div><?php
+         * 
+         */
         ?></div><?php        
     }
     

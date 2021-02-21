@@ -6,7 +6,7 @@ use Core\Model\Ad;
 
 class Home extends Page {
     
-    private bool $hasBottomBanner=false;
+    //private bool $hasBottomBanner=false;
     private array $cache=[];
 
     function __construct() {
@@ -29,7 +29,7 @@ class Home extends Page {
         //echo $this->fill_ad('zone_3', 'ad_s');
     }
 
-    
+    /*
     // deprecated
     function _main_pane(){        
         $adLang='';
@@ -49,7 +49,8 @@ class Home extends Page {
         parent::_main_pane();
     }
 
-
+    */
+    
     function main_pane() : void {
         echo '<!--googleoff: snippet-->';
         ?><section class="search-box main"><div class="viewable va-center ff-cols"><?php
@@ -106,7 +107,13 @@ class Home extends Page {
                     $this->router->logger()->info(\json_encode($items, \JSON_PRETTY_PRINT));
                 }
                 ?><div class=large data-ro="<?=$id?>" data-sections='<?=\json_encode($sections)?>' onclick="rootWidget(this);"><?php
-                ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php
+                //if ($id==2) {                    
+                    ?><i class=icr><svg><use xlink:href="<?=Config::instance()->cssURL?>/1.0/assets/ro.svg#<?=$id?>" /></svg></i><?php
+                //}
+                //else {                    
+                /*    ?><div class=row><i class="icn ro i<?=$id?>"></i></div><?php*/
+                //}
+
                 ?><span class=row><?=$this->router->roots[$id][$this->name]?></span><?php
                 /*?><div class=bar></div></div><?php*/
                 ?></div><?php
@@ -116,43 +123,6 @@ class Home extends Page {
         ?></section><?php
         
         echo '<main>';
-        /*
-        echo '<div class="row viewable home">';                
-        foreach ($sections as $root_id => $items) {
-            echo '<div class=col-4><div class=card>';
-            echo '<div class=card-header style="background-color:var(--color-',$root_id,');"><i class="icn icn-', $root_id, '"></i></div>';
-            echo '<div class=card-content>';
-            echo '<h4 class=card-title>', $this->router->pageRoots[$root_id]['name'],'</h4>';
-            echo '<ul>';
-            $i=0;
-            foreach ($items as $section_id => $section) {
-                if ($section['counter']==0) { break; }
-                $link = $this->router->getURL($this->router->countryId, $this->router->cityId, $root_id, $section_id);
-                $cls = $this->checkNewUserContent($section['unixtime']) ? ' hot': '';
-                echo '<li><a href="', $link,'">', $section['name'], '<span class="float-right', $cls, '">', \number_format($section['counter'],0), '</span></a></li>';
-                $i++;
-                if ($i>=10) { break; }
-            }
-            echo '</ul>';
-            echo '</div></div></div>';
-        }*/
-        
-        /*
-        echo '<div class=col-4><div class="card test"><div class=card-content>';
-        echo '<ul>';
-        echo '<li><a href="', $this->router->getLanguagePath('/post/'), '"><i class="icn s icn-82"></i><span>', $this->lang['postFree'], '</span></a></li>';
-        if ($this->user()->id()) {
-            $balance_label= $this->lang['myBalance']. ' is '.$this->user()->getBalance() . ' coins';
-            echo '<li><a href="', $this->router->getLanguagePath('/statement/'), '"><i class="icn icnsmall icn-84"></i><span>', $balance_label, '</span></a></li>';
-        }
-        echo '<li><a href="', $this->router->getLanguagePath('/contact/'), '"><i class="icn s icn-88"></i><span>', $this->lang['contactUs'], '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/about/'), '"><i class="icn s icn-83"></i><span>', $this->lang['aboutUs'], '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/terms/'), '"><i class="icn s icn-85"></i><span>', $this->lang['termsConditions'], '</span></a></li>';
-        echo '<li><a href="', $this->router->getLanguagePath('/privacy/'), '"><i class="icn s icn-81"></i><span>', $this->lang['privacyPolicy'], '</span></a></li>';
-        echo '</ul></div></div>', "\n"; // card
-        echo '</div>'; // col-4
-        echo '</div>', "\n";
-        */
         
         $this->recommendedForYou();
         $this->searchingNow();
@@ -303,10 +273,18 @@ class Home extends Page {
     }
     
     
-    public function recommendedForYou() : void {
+    public function recommendedForYou() : void {        
+        $ql=$this->router->db->ql->resetFilters()->setSelect('id')
+                ->region($this->router->countryId, $this->router->cityId)
+                ->media()
+                ->setSortBy('rand()')
+                ->setLimits(0, 5, 100)
+                ;
+        $rs=$ql->query();
+        /*
         $query=new Core\Lib\MCSearch($this->router->db->manticore);
         $rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort('rand()')->limit(5)->setSource(['id'])->result();
-        
+        */
         if ($rs['total_found']>0) {
             ?><div class="row viewable"><div class=col-12><div class=hscard><header class=plain><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
             ?><div class="col-12 wad"><?php
@@ -321,8 +299,16 @@ class Home extends Page {
 
     
     public function recentUploads() : void {
-         $query=new Core\Lib\MCSearch($this->router->db->manticore);
-         $rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort(Core\Lib\MCSearch::DATE_ADDED, 'desc')->limit(5)->setSource(['id'])->result();
+        $ql=$this->router->db->ql->resetFilters()->setSelect('id')
+                ->region($this->router->countryId, $this->router->cityId)
+                ->media()
+                ->setSortBy(Core\Lib\MCSearch::DATE_ADDED.' desc')
+                ->setLimits(0, 5, 100)
+                ;
+        $rs=$ql->query();
+
+         //$query=new Core\Lib\MCSearch($this->router->db->manticore);
+         //$rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort(Core\Lib\MCSearch::DATE_ADDED, 'desc')->limit(5)->setSource(['id'])->result();
          if ($rs['total_found']>0) {
              ?><div class="row viewable mb-64"><div class=col-12><div class=hscard><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
              ?><div class="col-12 wad"><?php

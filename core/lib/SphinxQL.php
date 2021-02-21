@@ -24,6 +24,8 @@ class SphinxQL {
     private string $indexName;
     private array $server;
     
+    private bool $noAttrs=false;
+    private bool $fetchMeta=true;
     private ?\mysqli $_sphinx = null;
     private string $clause = '*';
     private string $sortby = '';
@@ -83,14 +85,14 @@ class SphinxQL {
 
     function __construct(array $host, string $index) {
         \mysqli_report(\MYSQLI_REPORT_ERROR | \MYSQLI_REPORT_STRICT);
-        $this->indexName = $index;
+        $this->indexName=$index;
         //if (\is_array($host)) {
-            $this->server = $host;    
+            $this->server=$host;    
         //} 
         //else {
         //    $this->server = ($port==0) ? $host : "mysql:host={$host};port={$port};";
         //}
-        $this->connect();
+        //$this->connect();
     }
     
     
@@ -152,6 +154,18 @@ class SphinxQL {
     }
     
    
+    function skipAttributes(bool $value) : self {
+        $this->noAttrs=$value;
+        return $this;
+    }
+    
+    
+    function skipMetadata(bool $value) : self {
+        $this->fetchMeta=!$value;
+        return $this;
+    }
+    
+    
     /**
      * Returns the current \MySQLi connection established.
      *
@@ -169,7 +183,7 @@ class SphinxQL {
 
     
     public function id(int $value, bool $exclude=false) : SphinxQL {
-        if ($value) {
+        if ($value>0) {
             $this->intFilter(static::ID, $value, $exclude);
         }
         return $this;
@@ -187,10 +201,10 @@ class SphinxQL {
     
     
     public function region(int $country_id, int $city_id=0) : SphinxQL {
-        if ($city_id) {
+        if ($city_id>0) {
             return $this->setFilter('ANY('.static::CITY.')', $city_id);
         }        
-        elseif ($country_id) {
+        elseif ($country_id>0) {
             return $this->setFilter('ANY('.static::COUNTRY.')', $country_id);
         }        
         return $this;
@@ -430,11 +444,13 @@ class SphinxQL {
     
     
     function execute(string $queryQL) : bool {
+        $this->connect();
         return ($this->_sphinx->multi_query($queryQL."; SHOW META LIKE 'total%';"));
     }
 
 
     function directQuery(string $queryQL, int $fetchMode=\MYSQLI_NUM) : array {
+        $this->connect();
         $records = [];
         try {
             if ($this->_sphinx->multi_query($queryQL)) {
@@ -467,19 +483,30 @@ class SphinxQL {
     }
     
     
-    function search(string $queryQL, int $fetchMode=\MYSQLI_ASSOC) : array {
+    function search(string $queryQL='', int $fetchMode=\MYSQLI_ASSOC) : array {
+        $this->connect();
         if (empty($queryQL)) {
             $this->build();
             $queryQL = $this->_query;            
         }
 
+        if ($this->noAttrs===false && $this->clause==='id') {
+            $this->noAttrs=true;
+        }
+        
         $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$queryQL];
-
         try {
             if ($this->_sphinx->multi_query($queryQL)) {
                 do {
-                    if ($rs = $this->_sphinx->store_result()) {
-                        $result['matches'][] = $rs->fetch_all($fetchMode);
+                    if ($rs=$this->_sphinx->store_result()) {
+                        if ($this->noAttrs) {
+                            while ($row=$rs->fetch_row()) {
+                                $result['matches'][]=$row[0];
+                            }
+                        }
+                        else {
+                            $result['matches'][] = $rs->fetch_all($fetchMode);
+                        }
                         $rs->free();
                     }                 
                     if(!$this->_sphinx->more_results()) {
@@ -496,16 +523,19 @@ class SphinxQL {
                             'result'=>$result]);
             }
             
-            if (\count($result['matches'])===1) {
+            if (\count($result['matches'])===1 && \is_array($result['matches'][0])) {
                 $result['matches']=$result['matches'][0];
             }            
             
         } 
         catch (\Exception $ex) {
-            $this->Log(['Exception'=>$ex, 'query'=>$queryQL]);
+            \error_log(__FUNCTION__.__LINE__.PHP_EOL.$queryQL.PHP_EOL);
+            $this->Log($queryQL.PHP_EOL.$ex->getTraceAsString());
         } 
         finally {
-            $this->fetchMetaData($result);
+            if ($this->fetchMeta) {
+                $this->fetchMetaData($result);
+            }
         }
         return $result;
     }
@@ -688,7 +718,7 @@ class SphinxQL {
     }
     
         
-    function setLimits (int $offset=0, int $limit=10, int $max=1000) : SphinxQL {
+    function setLimits (int $offset=0, int $limit=10, int $max=2000) : SphinxQL {
         assert( is_int($offset) );
         assert( is_int($limit) );
         assert( $offset>=0 );
@@ -696,8 +726,12 @@ class SphinxQL {
         assert( $max>0 );
         $this->offset = $offset+0;
         $this->limit = $limit+0;
+        if ($max>0) {
+            $this->max_matches=$max;
+        }
         return $this;
     }
+    
     
     
     function setSortBy(string $sortby) : SphinxQL {
@@ -845,6 +879,20 @@ class SphinxQL {
 
 
     public function build(string $keywords='') : void {
+        $arabic_indic_digits = [
+            "\xD9\xA0",
+            "\xD9\xA1",
+            "\xD9\xA2",
+            "\xD9\xA3",
+            "\xD9\xA4",
+            "\xD9\xA5",
+            "\xD9\xA6",
+            "\xD9\xA7",
+            "\xD9\xA8",
+            "\xD9\xA9",
+        ];
+        $keywords=str_replace($arabic_indic_digits, array_keys($arabic_indic_digits), \trim($keywords));
+        
         if ($this->indexName==='classifier') {
             $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 ";
         } 
@@ -856,7 +904,6 @@ class SphinxQL {
             $this->_query.="and {$key}{$value} ";
         }
         
-        $keywords = \trim($keywords);
         if ($keywords) {
             if ($keywords[0]==='-') {
                 $keywords = 'qwerty '.$keywords;
@@ -910,5 +957,13 @@ class SphinxQL {
             error_log(PHP_EOL.json_encode($dbt[0], JSON_PRETTY_PRINT).PHP_EOL, 3, "/var/log/mourjan/LogFile.txt");
         }
     }
+    
+}
+
+class MCConnection {
+    
+}
+
+class MCQuery {
     
 }

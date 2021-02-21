@@ -114,22 +114,6 @@ class Bin extends AjaxHandler {
             $this->_JPOST=$_POST;
         }
         
-        /*
-        // set default language if matched
-        if (isset($this->user->params['slang']) &&  \in_array($this->user->params['slang'], ['en', 'ar'])) {
-            $this->router->language=$this->user->params['slang'];
-        }
-        else {
-            $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
-            if ($referer) {
-                $r=\parse_url($referer);
-                if (\is_array($r) && $r['scheme']==='https' && ($r['host']==='www.mourjan.com'||$r['host']==='dv.mourjan.com'||$r['host']==='h1.mourjan.com'||$r['host']==='dev.mourjan.com')) {
-                    \preg_match('/(:?\/)(en|fr|)(:?\/|)$/', $r['path'], $matches);
-                    if ($matches && $matches[2]==='en') { \Core\Model\Router::instance()->language=$matches[2]; }
-                }
-            }
-        }
-        */
         
         $this->name='name_'.$this->router->language;
         $this->actionSwitch();        

@@ -1,6 +1,6 @@
 .dtad{display:flex;flex-flow:column}
 .dtad [class*="col-"]{padding:0}
-.dtad .cntnt{background-color:white;padding:32px;line-height:1.25em;border-radius:6px}
+.dtad .cntnt{background-color:white;padding:8px;line-height:1.25em;border-radius:6px}
 .dtad .pics{display:inline-flex;flex-flow:column}
 .dtad .pics img{margin-bottom:16px;object-fit:cover;object-position:center;max-height:600px}
 .dtad .pics img{margin-inline-end:8px;}
@@ -58,17 +58,19 @@
     display: inherit;
     line-height: 1em;
     margin-bottom: 32px;
+    flex-wrap: wrap;
 }
 .dtad .info{font-size:24px;line-height: 1.4em; color:#475660}
-.dtad .attrs{display:inherit;flex-flow:row;height:162px;margin-bottom:16px;justify-content:flex-start}
+.dtad .attrs{display:inherit;flex-flow:row; flex-wrap: wrap;margin:8px 0 0;justify-content:flex-start}
 .dtad .attrs .widget{
     display:inline-flex; 
     flex-flow: column;
     align-items: center;
-    width:130px;
-    height:130px;
+    width:122px;
+    height:122px;
     border-radius:8px;
-    margin-inline-end:16px;
+    margin-inline-end:12px;
+    margin-block-end:12px;
     border:1px solid var(--mdc40)
 }
 dtad .attrs .widget:last-child {
@@ -91,7 +93,7 @@ dtad .attrs .widget:last-child {
 .dtad .attrs .widget div {
     overflow: hidden;
     text-align: center;
-    font-size: 16pt;
+    font-size: 15pt;
     font-weight: 700;
     line-height: 1.5em;
     word-break: normal;
@@ -129,7 +131,7 @@ dtad .attrs .widget:last-child {
 .dtad .tail .report{cursor:pointer}
 .dtad .tail p{display:inherit;align-self:flex-end;margin-top:8px;font-size:14px}
 .dtad .tail p>b{color:#FF6167;margin:0 4px 0 8px}
-.dtad .banners{margin-inline-start:16px}
+.dtad .banners{padding-inline-start:16px}
 
 .dtad .loc {
     display:inherit;
@@ -143,4 +145,8 @@ dtad .attrs .widget:last-child {
 
 .icn.share {
   background: url(https://dev.mourjan.com/css/2020/1.0/fa/regular/share-alt.svg) no-repeat center
+}
+
+@media only screen and (min-width:769px) {
+    .dtad .cntnt{padding:32px;}
 }

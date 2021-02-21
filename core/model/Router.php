@@ -15,7 +15,9 @@ class Router extends \Core\Model\Singleton {
     public object $cookie;
     public array $pageTitle=['ar'=>'', 'en'=>''];
     public string $language='';
+    private string $urlLanguage='';
     public string $extendedLanguage='';
+    public string $httpAcceptLanguage;
     public string $siteTranslate='';
     public string $module='index';
     public int $userId=0;
@@ -120,7 +122,7 @@ class Router extends \Core\Model\Singleton {
         
         $this->session_key=\session_id();
         $_session_params=$_SESSION['_u']['params'] ?? [];
-                
+                        
         $this->isAcceptWebP=(\strpos(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]), 'image/webp')!==false);
 
         if (isset($_SESSION['webp']) && $_SESSION['webp']) {
@@ -140,6 +142,9 @@ class Router extends \Core\Model\Singleton {
         $this->referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         $this->internal_referer=(\strpos($this->referer, 'https://'.$this->config->get('site_domain'))===0);
         
+        $http_accept_language=\substr(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]), 0, 2);
+        $this->httpAcceptLanguage=\in_array($http_accept_language, ['en', 'ar']) ? $http_accept_language : 'en';
+             
         $user_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
         if ($user_agent) {
             if (\array_key_exists($user_agent, $this->config->get('blocked_agents'))) {
@@ -174,6 +179,7 @@ class Router extends \Core\Model\Singleton {
             $this->isMobile=$_session_params['mobile'];
         }
                 
+        $session_language=$_session_params['lang']??'';
         $this->explodedRequestURI=\explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));        
         $len=\count($this->explodedRequestURI);
         
@@ -200,44 +206,86 @@ class Router extends \Core\Model\Singleton {
                                                 
             if ($len>0) {
                 if ($this->explodedRequestURI[$lastIdx]==='en') {
-                    $this->language='en';  
+                    $this->urlLanguage='en';
+                    
+                    $this->language='en';
+                    $this->cookie->lg=$this->language;
                     unset($this->explodedRequestURI[$lastIdx]);
+                   
                 }
                 elseif ($this->explodedRequestURI[$lastIdx]==='fr') {
+                    $this->urlLanguage='en';
+                    
                     $this->language='en';
+                    $this->cookie->lg=$this->language;
                     $this->extendedLanguage='fr';
                     unset($this->explodedRequestURI[$lastIdx]);
                 }
                 elseif ($len>1) {
                     $lastIdx=$len-2;
                     if ($this->explodedRequestURI[$lastIdx]==='en') {
+                        $this->urlLanguage='en';
+                        
                         $this->language='en';  
+                        $this->cookie->lg=$this->language;
                         $this->explodedRequestURI[$lastIdx]=$this->explodedRequestURI[$len-1];
                         unset($this->explodedRequestURI[$len-1]);
                     }
                     elseif ($this->explodedRequestURI[$lastIdx]==='fr') {
+                        $this->urlLanguage='en';
+                        
                         $this->language='en';
+                        $this->cookie->lg=$this->language;
                         $this->extendedLanguage='fr';
                         $this->explodedRequestURI[$lastIdx]=$this->explodedRequestURI[$len-1];
                         unset($this->explodedRequestURI[$len-1]);
                     }                    
                 }
             }
-            
+
             if ($___p) { $this->explodedRequestURI[\count($this->explodedRequestURI)]=$___p; }
         }   
         $this->uri='/'.\implode('/', $this->explodedRequestURI);
         
         $isAjax=(\strpos($this->uri, '/ajax-')===0);
-        if (empty($this->language)) {
-            if (isset($this->cookie->lg) && ($this->cookie->lg!=='en' || $isAjax || $this->uri==='/')) {
+        if ($isAjax===true) {
+            //\error_log('is ajax'.PHP_EOL);                
+            if (isset($this->cookie->lg) && \in_array($this->cookie->lg, ['en', 'ar'])) {
                 $this->language=$this->cookie->lg;
             }
             else {
-                $this->language='ar';
+                $this->language=$this->httpAcceptLanguage;
             }
         }
-                        
+        else if ($this->language==='') {
+            $this->language='ar';
+        }
+        
+        if ($this->language==='') {
+            \error_log('1- language not set'.PHP_EOL);
+            if (\in_array($session_language, ['en', 'ar'])) {
+                $this->language=$session_language;
+            }                        
+        }
+        
+        if ($this->language==='') {
+            \error_log('2- language not set'.PHP_EOL);
+            if (isset($this->cookie->lg) && \in_array($this->cookie->lg, ['en', 'ar'])) {
+                $this->language=$this->cookie->lg;
+            }
+            else {
+                $this->language=$this->httpAcceptLanguage;
+            }                       
+        }
+             
+        /*
+        \error_log(
+            $this->language.
+            ' - http: '.$this->httpAcceptLanguage.
+            ' - cookie: '.($this->cookie->lg??'xx').
+            ' - session: '.$session_language.
+            PHP_EOL);
+            */
         $_session_params['lang']=$this->language;
                 
         if (\preg_match('/translate\.google\.com/', $this->referer)) {
@@ -260,7 +308,7 @@ class Router extends \Core\Model\Singleton {
                 $this->uri.='/';
             }
             $_SESSION['_u']['params']=$_session_params;
-            $this->redirect($this->uri, 301);
+            $this->redirect($this->uri, 301, __LINE__);
         }
         
         if (\substr($this->uri, -10)==='/index.php') {
@@ -342,7 +390,7 @@ class Router extends \Core\Model\Singleton {
                             if ($ad_url!==$this->config->baseURL) {
                                 $this->language=$this->cookie->lg??$this->language;
                                 $_SESSION['_u']['params']=$_session_params;
-                                $this->redirect($this->getLanguagePath($ad_url), 301);
+                                $this->redirect($this->getLanguagePath($ad_url), 301, __LINE__);
                             } 
                             else {
                                 $this->id=0;
@@ -450,14 +498,14 @@ class Router extends \Core\Model\Singleton {
                         
                         if ($this->uri!==$curi) {
                             $_SESSION['_u']['params']=$_session_params;
-                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:''), 301, __LINE__);
                         }
                     } 
                     else {
                         $_SESSION['_u']['params']=$_session_params;
                         $this->setGeoByIp();
                         if ($this->uri!=$curi) {                            
-                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:''), 301, __LINE__);
                         }
                     }                    
                 }
@@ -468,7 +516,7 @@ class Router extends \Core\Model\Singleton {
                 $_SESSION['_u']['params']=$_session_params;
                 $this->setGeoByIp();
                 if ($current_uri!==$this->uri) {                    
-                    $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)==='/') ? '':'/' ).($this->language!=='ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                    $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)==='/') ? '':'/' ).($this->language!=='ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:''), 301, __LINE__);
                 }
                 
                 if ($this->countryId===0) {
@@ -484,7 +532,7 @@ class Router extends \Core\Model\Singleton {
                         }
                         if ($current_uri!=$this->uri) {
                             $_SESSION['_u']['params']=$_session_params;
-                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                            $this->redirect($this->config->baseURL.$this->uri.( strlen($this->uri)>1 && (substr($this->uri, -1)=='/') ? '':'/' ).($this->language != 'ar' ? $this->language .'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:''), 301, __LINE__);
                         }
                     }
                 }
@@ -514,7 +562,8 @@ class Router extends \Core\Model\Singleton {
             if (!isset($_GET['app']) && isset($this->cookie->lg) && \in_array($this->cookie->lg, ['ar','en'])) {
                 $this->language=$_session_params['lang']=$this->cookie->lg;
                 $_SESSION['_u']['params']=$_session_params;
-                $this->redirect($this->config->baseURL.$this->uri.( \strlen($this->uri)>1 && (\substr($this->uri, -1)=='/') ? '':'/' ).$this->getLanguagePath().($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:'') );
+                
+                $this->redirect($this->getLanguagePath($this->config->baseURL.$this->uri).($this->id ? $this->id.'/':'').(isset($this->params['q']) && $this->params['q'] ? '?q='.$this->params['q']:''), 301, __LINE__);
             } 
             else {
                 $_session_params['lang']=$this->language;
@@ -524,7 +573,9 @@ class Router extends \Core\Model\Singleton {
             $_session_params['lang']=$this->language;
         }
         
-        $_SESSION['_u']['params']=$_session_params;        
+        $_SESSION['_u']['params']=$_session_params;
+        
+        //\error_log(PHP_EOL.__CLASS__.'.'.__FUNCTION__.PHP_EOL.\json_encode($_session_params).PHP_EOL);
     }
         
     
@@ -685,7 +736,7 @@ class Router extends \Core\Model\Singleton {
     }
     
     
-    function redirect(string $url, int $status=301) : void {
+    function redirect(string $url, int $status=301, int $line=0) : void {
         switch ($status) {
             case 302:
                 header('HTTP/1.1 302 Found');
@@ -706,8 +757,8 @@ class Router extends \Core\Model\Singleton {
                 break;
         }
         $this->close();
-        
-        header('Location: '. $url);
+        //\error_log(__CLASS__.'.'.__FUNCTION__.'['.$line.'-'.$status.'] '.$url);
+        \header('Location: '. $url);
         exit(0);
     }
     
@@ -1023,12 +1074,12 @@ class Router extends \Core\Model\Singleton {
                     }
                     
                     if (isset($url_codes[9]) && !empty($url_codes[9])) {
-                        $this->redirect($url_codes[9], 301);
+                        $this->redirect($url_codes[9], 301, __LINE__);
                     }
                 } 
                 else {                 
                     if ($this->uri==='/kw/al-jahra-governorate') {
-                        $this->redirect($this->getLanguagePath('/kw/jahra'), 301);
+                        $this->redirect($this->getLanguagePath('/kw/jahra'), 301, __LINE__);
                     }
                     if (\strstr($this->uri, '/facebook')) {
                         $this->module='facebook';
@@ -1119,11 +1170,9 @@ class Router extends \Core\Model\Singleton {
     
     function getURL(int $cn=0, int $c=0, int $ro=0, int $se=0, int $pu=0, bool $appendLanguage=true) : string {
         $words=['/'];
-        //$result = '/';
 
-        if ($cn) {
+        if ($cn>0) {
             if (isset($this->countries[$cn])) {
-                //$result.=$this->countries[$cn]['uri'].'/';
                 $words[]=$this->countries[$cn]['uri'];
                 $words[]='/';
             }
@@ -1133,13 +1182,11 @@ class Router extends \Core\Model\Singleton {
             }
         }
 
-        if ($c && isset($this->cities[$c])) {
+        if ($c>0 && isset($this->cities[$c])) {
             
             if ($cn===0) {
                 $cn = $this->cities[$c][\Core\Data\Schema::BIN_COUNTRY_ID];
                 if (isset($this->countries[$cn])) {
-                    //$result.=$this->countries[$cn]['uri'].'/'.$this->cities[$c][3].'/';
-                    
                     $words[]=$this->countries[$cn][\Core\Data\Schema::BIN_URI];
                     $words[]='/';
                     $words[]=$this->cities[$c][\Core\Data\Schema::BIN_URI];
@@ -1147,42 +1194,32 @@ class Router extends \Core\Model\Singleton {
                 }
             } 
             else {
-                //$result.=$this->cities[$c][\Core\Data\Schema::BIN_URI].'/';
-                
                 $words[]=$this->cities[$c][\Core\Data\Schema::BIN_URI];
                 $words[]='/';
             }
         }
        
-        if ($se && isset($this->sections[$se])) {
-            //$result.=$this->sections[$se][\Core\Data\Schema::BIN_URI].'/';
-            
+        if ($se>0 && isset($this->sections[$se])) {
             $words[]=$this->sections[$se][\Core\Data\Schema::BIN_URI];
             $words[]='/';
         }
-        else if($ro) {
-            //$result.=$this->roots[$ro][\Core\Data\Schema::BIN_URI].'/';
-            
+        else if($ro>0) {
             $words[]=$this->roots[$ro][\Core\Data\Schema::BIN_URI];
             $words[]='/';
         }
         
         if ($ro!==4 && $pu && isset($this->purposes[$pu])) {
-            //$result.=$this->purposes[$pu][\Core\Data\Schema::BIN_URI].'/';
-            
             $words[]=$this->purposes[$pu][\Core\Data\Schema::BIN_URI];
             $words[]='/';
             
         }
         
-        if ($appendLanguage && $this->language!=='ar') {
-            //$result.=$this->language.'/';
+        if ($appendLanguage===true && $this->language!=='ar') {
             $words[]=$this->language;
             $words[]='/';
 
         }
             
-        //return $result;        
         return implode($words);
     }
 

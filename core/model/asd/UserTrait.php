@@ -27,6 +27,9 @@ const USER_PUBLISHER_STATUS = 'pblshr_status';
 const USER_LAST_AD_RENEWED  = 'last_renewed';
 const USER_BALANCE          = 'balance';
 const USER_DEPENDANTS       = 'dependants';
+const USER_PIC              = 'pic_social';
+const USER_CARD_PIC         = 'pic_card';
+const USER_CARD_NAME        = 'name_card';
 
 const USER_OPTIONS          = 'options';
 const USER_OPTIONS_E                = 'e';
@@ -88,8 +91,9 @@ trait UserTrait {
 
     abstract public function getConnection() : \Aerospike;
     abstract public function genId(string $generator, int &$sequence) : int;
-    abstract public function getBins($pk, array $bins);
-    abstract public function setBins($pk, array $bins);
+    abstract public function getBins(array $pk, array $bins=[]);
+    
+    abstract public function setBins(array $pk, array $bins);
     abstract public function exists($pk) : int;
     abstract public function isReadError(int $status) : bool;
 

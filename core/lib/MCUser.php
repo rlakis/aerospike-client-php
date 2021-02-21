@@ -2,10 +2,10 @@
 
 namespace Core\Lib;
 
-\Config::instance()->incModelFile('NoSQL')->incLibFile('Jabber/JabberClient');
+//\Config::instance()->incModelFile('NoSQL')->incLibFile('Jabber/JabberClient');
 
 use Firebase\JWT\JWT;
-use lib\Jabber\JabberClient;
+//use lib\Jabber\JabberClient;
 use Core\Model\NoSQL;
 use Core\Model\ASD;
         
@@ -39,24 +39,24 @@ class MCJsonMapper {
 
 
 class MCUser extends MCJsonMapper {   
-    public int $id = 0;
+    public int $id=0;
     public string $pid;           // Provider identifier
     protected string $email;
-    protected $prvdr;             // Provider
-    protected $fn;                // Full name
+    protected string $prvdr;             // Provider
+    protected string $fn;                // Full name
     protected $dn;                // Display name
     protected $pu;                // Provider profile URL
     protected $rd;                // registration date
     protected $lvts;              // Last visit timestamp
     protected int $lvl;           // User level --> 0: normal, 4: warned, 5: blocked, 6: publisher, 9: administrator
-    protected $name;              // User name
+    protected string $name;              // User name
     protected $um;                // User mail
     protected $up;                // User Password
-    protected $rnk;               // User Rank
+    protected int $rnk;               // User Rank
     protected $pvts;              // Previous visit timestamp
     protected $ps;                // Publisher status;
     protected $lrts;              // last ad renew timestamp
-    protected float $balance;
+    protected float $balance=0;
     
     protected MCUserOptions $opts;  // MCUserOptions    
     protected MCMobile $mobile;     // MCMobile
@@ -64,8 +64,12 @@ class MCUser extends MCJsonMapper {
     protected $devices = false;     // MCDevice ArrayList;
     protected $prps;                // MCPropSpace
     protected $xmpp = 0;
-     
-    private $jwt = ['token'=>false, 'secret'=>false]; //, 'claim'=>[]];
+    
+    protected bool $havePurchased=false;
+    protected string $picture='';
+    protected string $picture_social='';
+    
+    private array $jwt = ['token'=>false, 'secret'=>false]; //, 'claim'=>[]];
     
     public ?MCDevice $device = null; // used to deal with current logged in device
     
@@ -143,6 +147,14 @@ class MCUser extends MCJsonMapper {
             $this->balance = $record[ASD\USER_BALANCE] ?? 0;
             $this->dependants = $record[ASD\USER_DEPENDANTS] ?? [];
 
+            $this->dn = $record[ASD\USER_DISPLAY_NAME] ?? '';
+            $this->dn = isset($record[ASD\USER_CARD_NAME]) ? $record[ASD\USER_CARD_NAME] : $this->dn;
+        
+            $this->picture = $this->picture_social = $record[ASD\USER_PIC] ?? '';
+            $this->picture = isset($record[ASD\USER_CARD_PIC]) ? $record[ASD\USER_CARD_PIC] : $this->picture;
+        
+            $this->havePurchased = isset($record[ASD\USER_BALANCE]);
+        
             $this->opts->parseAssoc($record[ASD\USER_OPTIONS] ?? []);
 
             $this->mobile=new MCMobile;
@@ -235,6 +247,16 @@ class MCUser extends MCJsonMapper {
     
     public function getProvider() : string {
         return $this->prvdr;
+    }
+    
+    
+    public function getPicture() : string {
+        return $this->picture;
+    }
+    
+    
+    public function getSocialPicture() : string {
+        return $this->picture_social;
     }
     
     
@@ -339,6 +361,7 @@ class MCUser extends MCJsonMapper {
         $date->setTimestamp($this->lrts);
         return $date;
     }
+
     
     public function getBalance() : float {
         return $this->balance;
@@ -421,8 +444,9 @@ class MCUser extends MCJsonMapper {
     
     
     public function createToken() {
-        if ($this->genDistributedXMPPassword()) {
+        if ($this->genDistributedXMPPassword()) {            
             NoSQL::instance()->setJsonWebToken($this->getID(), $this->jwt);
+            /*
             $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
             if ($this->xmpp) {
                 $jabber->changePassword((string)$this->getID(), strval($this->jwt['token']));
@@ -439,17 +463,17 @@ class MCUser extends MCJsonMapper {
                     } 
                     catch (Exception $e) {}
                 }
-            }
+            }*/
         }              
     }
     
     
     
     public function destroyToken() {
-        $jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
-        if ($jabber->checkAccount( (string) $this->getID()) ) {
-            $jabber->kickUser((string) $this->getID());
-        }
+        //$jabber = new JabberClient(['server'=>'https://dv.mourjan.com:5280/api']);
+        //if ($jabber->checkAccount( (string) $this->getID()) ) {
+        //    $jabber->kickUser((string) $this->getID());
+        //}
         NoSQL::instance()->unsetJsonWebTocken($this->getID());            
     }
     
@@ -806,6 +830,10 @@ class MCDevice extends MCJsonMapper {
         return $this->sn;
     }
     
+
+    public function getCarrierCountryCode() : string {
+        return $this->ccc??'';
+    }
     
     public function getChangedToUID() : int {
         return $this->cuid ? $this->cuid : 0;

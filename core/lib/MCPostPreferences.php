@@ -347,6 +347,21 @@ class MCPostPreferences implements \JsonSerializable {
       
     }
     
+    public function reraSetup(array $rs) : array {
+        $rera = [CT=>[14], PRPS=>[P_FOR_SALE , P_RENTAL, P_TRADE_IN], 
+            'rexse'=>[
+                SR_FACTORIES=>[P_FOR_SALE, P_RENTAL], SR_INTERNATIONAL_REALESTATE=>[P_FOR_SALE, P_RENTAL], 
+                SR_CAMPS=>[P_RENTAL], SR_SHARING=>[P_FOR_SALE, P_RENTAL], SR_RESTAURANTS_COFFEE_SHOPS=>[P_FOR_SALE, P_RENTAL] ],
+            'orn'=>0, 'brn'=>0];
+        $brn=$rs[0]['BRN']??0;
+        $orn=$rs[0]['ORN']??0;
+        if ($brn>0 && $orn>0) {
+            $rera['brn']=$brn;
+            $rera['orn']=$orn;
+        }
+        return $rera;
+    }
+    
     
     public function setup() {  
         $this->countries = [CN_LEBANON, CN_EMIRATES, CN_BAHRAIN, CN_SAUDI_ARABIA, CN_EGYPT, /*SN_SYRIA,*/ CN_KUWAIT, 

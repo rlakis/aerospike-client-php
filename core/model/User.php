@@ -1,6 +1,7 @@
 <?php
 
-Config::instance()->incLibFile('MCUser')->incLibFile('MCAudit')->incModelFile('NoSQL');
+Config::instance()->incLibFile('MCUser')->incLibFile('MCAudit')->incModelFile('NoSQL')->incModelFile('Router');
+
 
 //use mourjan\Hybrid;
 use Core\Lib\SphinxQL;
@@ -155,30 +156,31 @@ class User {
         return $params;
     }
     
-    
-    function __construct(?Site $site , $init=1) {
-        $this->db = \Core\Model\Router::instance()->db;
-        $this->config = \Config::instance();
+     
+    function __construct(?Site $site, int $init=1) {
+        $this->db=\Core\Model\Router::instance()->db;
+        $this->config=\Config::instance();
         $this->reset();
-        if ($site) {
-            $_SESSION['_u']['params']['slang'] = $site->router->language;
-        }
+        
         if ($init) {
             $this->site=$site;
             //$this->sysAuthById(44835);
+
             $this->populate();
+            //\error_log(PHP_EOL.__CLASS__.'.'.__FUNCTION__.PHP_EOL.\json_encode($_SESSION['_u']['params']).PHP_EOL);
+
             $this->getSessionHandlerCookieData();
             
-            if($this->info['id']) {
-                $refreshUser=$this->db->getCache()->get('re'.$this->info['id']);
-                if($refreshUser) {
-                    $this->reloadData($this->info['id']);
+            if ($this->isLoggedIn()) {
+                $refreshUser=$this->db->getCache()->get('re'.$this->id());
+                if ($refreshUser) {
+                    $this->reloadData($this->id());
                     $this->db->getCache()->delete('re'.$this->info['id']);
                 }
                 $this->params['mourjan_user']=1;
             }
             
-            if (isset($_GET['sort']) && in_array($_GET['sort'], array(0,1,2))) {
+            if (isset($_GET['sort']) && \in_array($_GET['sort'], [0,1,2]) ) {
                 $this->params['sorting'] = (int)$_GET['sort'];
             }
             
@@ -2736,16 +2738,16 @@ class User {
     }
 
     
-    function reset() {
+    function reset() : void {
         $this->session_id=null;
         unset ($this->info);
         unset ($this->params);
         unset ($this->pending);
         unset ($this->favorites);
         unset ($this->data);
-        $this->info=array('id'=>0, 'inc'=>0, 'app-user'=>0);
-        $this->params=array('last_visit'=>0,'country'=>0,'city'=>0);
-        $this->pending=array();
+        $this->info=['id'=>0, 'inc'=>0, 'app-user'=>0];
+        $this->params=['last_visit'=>0,'country'=>0,'city'=>0];
+        $this->pending=[];
         $this->data=null;
         $this->favorites=[];
     }
@@ -2781,23 +2783,17 @@ class User {
     }
     
     
-    function getSessionHandlerCookieData() : void {        
-        $cookie=\filter_input(\INPUT_COOKIE, 'mourjan_user', \FILTER_DEFAULT, ['options'=>['default'=>'{}']]);
-        $data=\json_decode($cookie);
-        if (\json_last_error()===\JSON_ERROR_NONE) {
-            if (isset($data->mu)) {
-                $this->params['mourjan_user']=1;
-                if (isset($data->lg) && ($data->lg==='ar'||$data->lg==='en'||$data->lg==='fr')) {
-                    $this->params['slang']=$data->lg;
-                }                
+    function getSessionHandlerCookieData() : void {
+        $data=$this->site->router->cookie;
+        if (isset($data->cv) && $data->cv>0) {
+            $this->params['cv']=$data->cv;
+        }
+        if (isset($data->mu) && $data->mu) {
+            $this->params['mourjan_user']=1;
+            if (isset($data->lg) && ($data->lg==='ar'||$data->lg==='en'||$data->lg==='fr')) {
+                $this->params['lang']=$data->lg;
                 $this->update();
             }
-            if (isset($data->cv) && $data->cv>0) {
-                $this->params['cv']=$data->cv;
-            }
-        }
-        else {
-            error_log(__FUNCTION__.'('.json_last_error().') '.json_last_error_msg().PHP_EOL.$cookie);
         }
     }
 
@@ -2848,14 +2844,16 @@ class User {
         if ($this->config->modules[$this->site->router->module][0]==='Bin') { return; }
         $info=['lv'=>time(), 'ap'=>($this->site->router->isApp?1:0)];       
         
-        if (isset($this->params['lang']) && $this->params['lang']) {
-            $info['lg']=$this->params['lang'];
-        }
+        
+        //\error_log(__FUNCTION__.': '.\Core\Model\Router::instance()->language.' <-> '. $this->params['lang'].PHP_EOL);
+        //if (isset($this->params['lang']) && $this->params['lang']) {
+        //    $info['lg']=$this->params['lang'];
+        //}
+        $info['lg']=\Core\Model\Router::instance()->language;
+        
         
         if (isset($this->site->router->cookie->cn) && $this->site->router->countryId>0 && $this->site->router->countryId!==$this->site->router->cookie->cn) {            
             $this->params['country']=$this->site->router->countryId;
-            //$this->user->update();
-            //$this->user->setCookieData();
         }
         
         if (isset($this->params['country']) && $this->params['country']) {
@@ -2897,6 +2895,11 @@ class User {
             $info['cv']=$this->params['cv'];
         }
         
+        //\error_log(__FUNCTION__ .'.'.$this->config->get('site_domain').' '.\json_encode($info).PHP_EOL);
+        //\error_log($this->config->get('site_domain').' '.\json_encode($this->params).PHP_EOL);
+        //\error_log($this->config->get('site_domain').' '.\json_encode($_SESSION).PHP_EOL);
+        
+        
         \setcookie('mourjan_user', \json_encode($info), time()+31536000,'/', $this->config->get('site_domain'), false);
         
         $newlook=\filter_input(\INPUT_GET, 'newlook', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>-1]])+0;
@@ -2913,18 +2916,39 @@ class User {
     }
 
     
-    function populate() {
+    function populate() : void {
         $this->session_id=session_id();
-        $_u = $_SESSION['_u'] ?? [];
+        $_u=$_SESSION['_u']??[];
+        //\error_log(__FUNCTION__.PHP_EOL. \json_encode($_u).PHP_EOL);
         
         if (isset($_u['info'])) { $this->info=$_u['info']; }
-        if (isset($_u['params'])) { $this->params=$_u['params']; }
+        
+        if (isset($_u['params'])) { 
+            $this->params=$_u['params'];
+                       
+            /*
+            
+            \error_log(__FUNCTION__.': '.\Core\Model\Router::instance()->language
+                    .' - http: '.\Core\Model\Router::instance()->httpAcceptLanguage
+                    .' - cookie: '.(\Core\Model\Router::instance()->cookie->lg??'xx')
+                    .' - session: '.$this->params['lang'].PHP_EOL);
+            */
+            $this->params['lang']=\Core\Model\Router::instance()->language;
+            
+            /*
+            if (!isset($this->site) || $this->site==null) {
+                \error_log(__CLASS__.'.'.__FUNCTION__.' Site is not initiated!!!');
+            }
+            else if (!isset($this->site->router) || $this->site->router==null) {
+                \error_log(__CLASS__.'.'.__FUNCTION__.' Router is not initiated!!!');
+            }*/
+        }
         if (isset($_u['pending'])) { $this->pending=$_u['pending']; }
 
-        if ($this->info['id']) {            
-            $this->data = new MCUser($this->info['id']);
+        if ($this->isLoggedIn()) {            
+            $this->data=new MCUser($this->id());
             
-            if ($this->data->getID()==$this->info['id']) {
+            if ($this->data->getID()===$this->id()) {
                 $this->info['level'] = $this->data->getLevel();
                 $this->info['verified'] = $this->data->isMobileVerified();
                 $this->data->getOptions()->setSuspensionTime($this->data->getMobile()->getSuspendSeconds());
@@ -2998,15 +3022,29 @@ class User {
     
 
     function update() : void {
+        if (isset($this->info['options'])) {
+            if (isset($this->info['options']['user_agent'])) { unset($this->info['options']['user_agent']); }
+            if (isset($this->info['options']['nb'])) { unset($this->info['options']['nb']); }
+            if (\array_key_exists('calling_time', $this->info['options'])) { unset($this->info['options']['calling_time']); }
+            if (\array_key_exists('lang', $this->info['options'])) { unset($this->info['options']['lang']); }
+            if (\array_key_exists('bmail', $this->info['options']) && $this->info['options']['bmail']==null) { unset($this->info['options']['bmail']); }
+            if (\array_key_exists('bmailKey', $this->info['options']) && $this->info['options']['bmailKey']==null) { unset($this->info['options']['bmailKey']); }
+            if (\array_key_exists('subscriptions', $this->info['options']) && $this->info['options']['subscriptions']==null) { unset($this->info['options']['subscriptions']); }
+            if (\array_key_exists('contact_info', $this->info['options']) && $this->info['options']['contact_info']==null) { unset($this->info['options']['contact_info']); }
+        }
+        
+        //\error_log(__FUNCTION__.': '.var_export($this->params, true).PHP_EOL);
+        
+        if (isset($this->params['slang'])) { unset($this->params['slang']); }
         $_SESSION['_u']=['info'=>$this->info, 'params'=>$this->params, 'pending'=>$this->pending];
     }
 
     
     function logout() : bool {
-        \error_log(__FUNCTION__);
+        //\error_log(__FUNCTION__);
         $countryId=$this->params['country']??0;
         $cityId=$this->params['city']??0;
-        $lang=isset($this->params['slang'])?$this->params['slang']:'ar';
+        $lang=isset($this->params['lang'])?$this->params['lang']:'ar';
         $sorting=isset($this->params['sorting'])?$this->params['sorting']:-1;
         $sortingLang=isset($this->params['list_lang'])?$this->params['list_lang']:-1;
         $mourjanUser = isset($this->params['mourjan_user']) ? 1 : NULL;
@@ -3023,7 +3061,7 @@ class User {
             $this->params['country']=$countryId;
             $this->params['city']=$cityId;
             $this->params['visit']=1;
-            $this->params['slang']=$lang;
+            $this->params['lang']=$lang;
             if ($sorting > -1) { $this->params['sorting']=$sorting; }
             if ($sortingLang > -1) { $this->params['list_lang']=$sortingLang; }
             if ($mourjanUser!==NULL) { $this->params['mourjan_user']=1; }
@@ -3066,7 +3104,7 @@ class User {
     }
     
     
-    function displayContactNumbers($contacts, $email='', $lang) {
+    function displayContactNumbers($contacts, $email, $lang) {
         $result='';
         $mobileStr='';
         $phoneStr='';

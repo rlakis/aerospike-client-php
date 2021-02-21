@@ -1,7 +1,7 @@
 <?php
 
-require get_cfg_var('mourjan.path'). '/config/cfg.php';
-require_once get_cfg_var('mourjan.path'). '/core/model/NoSQL.php';
+include_once __DIR__ . '/../config/cfg.php';
+require_once __DIR__.'/../core/model/NoSQL.php';
 
 use Core\Model\NoSQL;
 
@@ -9,8 +9,7 @@ $call_id=null;
 $method = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
 //$request = array_merge($_GET, $_POST);
 
-if ($method=='GET')
-{
+if ($method=='GET') {
     $msisdn = filter_input(INPUT_GET, 'msisdn', FILTER_VALIDATE_INT)+0;
     $to = filter_input(INPUT_GET, 'to', FILTER_SANITIZE_STRING);
     $networkcode = filter_input(INPUT_GET, 'network-code', FILTER_VALIDATE_INT)+0;
@@ -26,8 +25,7 @@ if ($method=='GET')
     $call_id = filter_input(INPUT_GET, 'call_id', FILTER_SANITIZE_STRING);
     error_log('GET: '.json_encode($_GET).PHP_EOL, 3, "/var/log/mourjan/sms.log");
 }
-else
-{        
+else {        
     $msisdn = filter_input(INPUT_POST, 'msisdn', FILTER_VALIDATE_INT)+0;
     $to = filter_input(INPUT_POST, 'to', FILTER_SANITIZE_STRING);
     $networkcode = filter_input(INPUT_POST, 'network-code', FILTER_VALIDATE_INT)+0;
@@ -45,8 +43,7 @@ else
 }
 
 
-if ($call_id)
-{
+if ($call_id) {
     /*
      * {"call_id":"a35b0bc680649d3907c8cf8566f83c99",
      *  "call-id":"a35b0bc680649d3907c8cf8566f83c99",
@@ -58,10 +55,8 @@ if ($call_id)
     $to = intval(filter_input(INPUT_GET, 'to', FILTER_VALIDATE_INT));
     $from = intval(filter_input(INPUT_GET, 'from', FILTER_VALIDATE_INT));
     $call_direction = filter_input(INPUT_GET, 'call_direction', FILTER_SANITIZE_STRING);
-    if ($call_direction==='in' && in_array($to, [358841542210, 442039061160, 46850927966]))
-    {
-        error_log(sprintf("Inbound call: %s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");
-        
+    if ($call_direction==='in' && in_array($to, [358841542210, 442039061160, 46850927966])) {
+        error_log(sprintf("Inbound call: %s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d H:i:s"), $msisdn, $to, $networkcode, $messageId, $price, $status, $scts, $errCode, $messageTimestamp, $reference, $text).PHP_EOL, 3, "/var/log/mourjan/sms.log");        
     }
     return;
 }
@@ -70,26 +65,19 @@ error_log(sprintf("%s\t%d\t%s\t%d\t%s\t%f\t%s\t%d\t%d\t%s\t%d\t%s", date("Y-m-d 
 
 $uid=0;
 
-if ($errCode==0 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401"))
-{
-    if (strlen($reference)>1)
-    {
+if ($errCode==0 && ($to=="Mourjan"||$to=="12242144077"||$to=="mourjan"||$to=="33644630401")) {
+    if (strlen($reference)>1) {
         $json = json_decode($reference, false);
         $uid = $json->uid ?? 0;
     }
     
-    if (NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn, $messageId))
-    {
+    if (NoSQL::getInstance()->mobileSetDeliveredCode($uid, $msisdn, $messageId)) {
         error_log(sprintf("%s\t%d\tis written", date("Y-m-d H:i:s"), $msisdn).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     }
-    else
-    {
+    else {
         error_log(sprintf("%s\t%d\t%d\t%s\twrite failed", date("Y-m-d H:i:s"), $msisdn, $uid, $messageId).PHP_EOL, 3, "/var/log/mourjan/sms.log");
     }
 }
-else
-{
+else {
     //error_log( json_encode($_GET) );
 }
-
-

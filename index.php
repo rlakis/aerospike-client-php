@@ -4,9 +4,10 @@ if (!isset($argc)) {tideways_xhprof_enable();}
 include_once __DIR__ . '/config/cfg.php';
 include_once __DIR__ . '/deps/autoload.php';
 
+use Core\Model\Router;
+
 Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSessionHandler')->incLibFile('Logger');
 
-use Core\Model\Router;
 
 if (\filter_has_var(\INPUT_GET, 'provider') && \filter_has_var(\INPUT_GET, 'connect')) {
     $connect=\strtolower(\filter_input(\INPUT_GET, 'connect', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
@@ -18,8 +19,8 @@ if (\filter_has_var(\INPUT_GET, 'provider') && \filter_has_var(\INPUT_GET, 'conn
     exit(0);
 }
 
-
-if (php_sapi_name()!=='cli') {
+$isWeb=(php_sapi_name()!=='cli');
+if ($isWeb===true) {
     MCSessionHandler::instance();
     //require_once( $config['dir'].'/core/model/User.php');
     //$user = new User(new DB($config), $config, null, 0);
@@ -29,7 +30,7 @@ if (php_sapi_name()!=='cli') {
 
 $router=Router::instance();
 
-if (!isset($argc)) {
+if ($isWeb===true) {
     $router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::DEBUG, ['filename' => 'site.log', 'logFormat'=>false]));
     $router->decode();
     $stop=false;
@@ -48,19 +49,20 @@ if (!isset($argc)) {
     
     $router->close();
     
-    /*
-    $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
-    $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);    
-    
-    if ($contentType!=='application/json' && \strpos($requestURI, 'ajax-')==false) {
-        $data=tideways_xhprof_disable();
-        $XHPROF_ROOT= realpath(dirname(__FILE__).'/web/xhprof');
-        include_once $XHPROF_ROOT."/lib/utils/xhprof_lib.php";
-        include_once $XHPROF_ROOT."/lib/utils/xhprof_runs.php";
-    
-        $xhprof_runs=new XHProfRuns_Default();
+    if ($router->user->id()===69905 || PHP_VERSION_ID>80000) {    
+        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+        $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);    
 
-        $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
-        echo '<p style="background-color:var(--mlc);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a rel=noopener style="color:white;" target=_blank href="', "https://h1.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
-    }*/
+        if ($contentType!=='application/json' && \strpos($requestURI, 'ajax-')==false) {
+            $data=tideways_xhprof_disable();
+            $XHPROF_ROOT= realpath(dirname(__FILE__).'/web/xhprof');
+            include_once $XHPROF_ROOT."/lib/utils/xhprof_lib.php";
+            include_once $XHPROF_ROOT."/lib/utils/xhprof_runs.php";
+
+            $xhprof_runs=new XHProfRuns_Default();
+
+            $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
+            echo '<p style="background-color:var(--mlc);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a rel=noopener style="color:white;" target=_blank href="', "https://dv.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
+        }        
+    }
 }

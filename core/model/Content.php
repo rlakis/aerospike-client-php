@@ -92,7 +92,13 @@ class Content {
     
     
     public function __construct(?Ad $ad=null) {
-        if ($ad) { $this->ad=$ad; }
+        if ($ad) { 
+            if (!isset($this->ad)) {
+                $this->profile=new \Core\Lib\MCUser($ad->uid());
+            }
+            $this->ad=$ad;
+        }
+        
         $this->content = [
             self::ID                => 0,
             self::UID               => 0,
@@ -205,7 +211,7 @@ class Content {
    
     
     public function getCountryId() : int {
-        return $this->countryId;
+        return $this->countryId??0;
     }
     
     

@@ -1,0 +1,329 @@
+@media only screen and (min-width:769px) {
+    .viewable {
+        padding: 0;
+        max-width: 1280px;
+        align-self: center;
+    }
+
+    .pc {
+        display: inherit;
+    }
+
+    .mob {
+        display: none;
+    }
+    
+    body {
+        flex-flow: row wrap;
+        align-content: flex-start;
+    }
+    
+    body > * {
+        flex-basis: 100%;
+    }
+    
+    body > footer {
+        position: relative;
+        padding: 76px 0;
+        background-color: var(--mlc);
+        box-shadow: 0 8px var(--mbc) inset;
+        height: auto;
+    }
+
+    aside {
+        display: flex;
+    }
+
+    .cw1 { flex-basis: 8.33% }
+    .cw2 { flex-basis: 16.66% }
+    .cw3 { flex-basis: 25% }
+    .cw4 { flex-basis: 33.33% }
+    .cw5 { flex-basis: 41.66% }
+    .cw6 { flex-basis: 50% }
+    .cw7 { flex-basis: 58.33% }
+    .cw8 { flex-basis: 66.66% }
+    .cw9 { flex-basis: 75% }
+    .cw10 { flex-basis: 83.33% }
+    .cw11 { flex-basis: 91.66% }
+    .cw12 { flex-basis: 100% }
+    
+    .col-1 { width: 8.33% }
+    .col-2 { width: 16.66% }
+    .col-3 { width: 25% }
+    .col-4 { width: 33.33% }
+    .col-5 { width: 41.66% }
+    .col-6 { width: 50% }
+    .col-7 { width: 58.33% }
+    .col-8 { width: 66.66% }
+    .col-9 { width: 75% }
+    .col-10 { width: 83.33% }
+    .col-11 { width: 91.66% }
+    .col-12 { width: 100% }
+    [class*=col-] {
+        display: inline-flex;
+        align-items: inherit;
+        padding: 8px
+    }
+    
+    body[dir=ltr] .ilogo {
+        background-image: url(https://c6.mourjan.com/css/2020/1.0/assets/LogoV5e.svg)
+    }
+
+    body[dir=rtl] .ilogo {
+        background-image: url(https://c6.mourjan.com/css/2020/1.0/assets/LogoV5a.svg);
+        width: 308px
+    }
+
+    
+    body>header div a:not(:last-child) {
+        display: none
+    }
+    
+    main {
+        /*min-height: 33vh;*/
+        background: var(--mdc03);        
+        margin-bottom: 0;
+        padding-top:30px;
+    }
+    
+    body footer nav {
+        display: none;
+    }
+    
+    body>footer>div:first-child{
+        display: none;
+    }
+    
+    body>footer>div:last-child{
+        display: inherit;
+    }
+
+
+    .mhbanner {
+        margin:0;
+        height:auto;
+        overflow: hidden;
+        justify-content: space-around
+    }
+
+.mhbanner > div {
+    display: inline-flex;
+    flex-flow: column;    
+}
+
+.mhbanner .p1 {
+  display: inherit;
+  flex-flow: row;
+  color: var(--mdc70);
+  margin: -14px 0 20px;
+  font-size: 52px
+}
+
+.mhbanner .p1 div {
+  display: inherit;
+  flex-direction: column;
+  padding-inline-end: 6px
+}
+.mhbanner .p1 div:last-child {
+  padding-inline-end:0
+}
+
+.mhbanner .p1 div:nth-child(even) .um {
+  color: rgba(28,65,94,.5)
+}
+.mhbanner .p1 .sm {
+  font-weight: 400
+}
+.mhbanner .p1 .um {
+  font-weight: 700
+}
+.mhbanner i {
+    display: none;
+}
+
+    .search {
+        /*display: inline-flex;*/
+        flex-grow:1;
+        flex-flow: column;
+        max-width: 1024px;
+        margin: 36px 0 6px;
+    }
+    
+    .search form {
+        justify-content: space-between;
+        height: 58px;
+        border: 1px solid var(--mbc50);
+        border-radius: 3px;
+        flex-direction: row
+    }
+    
+    /*
+    .search form {
+  width: 100%;
+  display: inherit;
+  border-bottom: 1px solid var(--mbc50);
+  border-radius: 0;
+  justify-content: space-between;
+  align-self: flex-start;
+}
+
+    */
+    .search form>* {
+        height: 56px;
+        border-bottom: 0;
+        margin: 0
+    }
+
+    
+    .search-box {
+        background-color:var(--mdc03);
+        /*padding-bottom: 30px;*/
+    }
+    
+    .search-box.main {
+        padding-top: 32px;
+        margin-bottom:8px;
+        box-shadow:0 1px 4px aliceblue;
+    }
+
+    /*
+    .search-box.shortcut {
+        background-color: var(--mdc03);
+    }
+    */
+    
+    .search-box.shortcut .roots {  
+        justify-content: flex-start;
+    }
+    
+    
+    
+    
+    
+    .search-box:not(:last-of-type) {
+        padding-bottom: 0;
+    }
+    
+    .strg {
+        justify-content: space-between;
+        padding: 0 8px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        border-inline-end: 1px solid var(--mbc50)
+    }
+
+    .strg:hover {
+        background-color: var(--mlc);
+    }
+    
+    .strg > * {
+        margin: 0 12px
+    }
+
+    .options {
+        top: calc(100% + 8px);
+        padding: 16px 16px 32px;
+        border: 1px solid #bec9ce;
+        border-radius: 3px;
+        width: fit-content;
+    }
+    
+    .sbe.open .options {
+        height: auto;
+    }
+    
+    .option {
+        padding: 0 16px 0;
+        font-weight: 700;
+        font-size: 1.1em
+    }
+
+    .searchTerm {
+        padding-inline-start: 20px;
+    }
+    
+    .searchButton {
+        align-self: flex-start;
+        border: none;
+        border-left: 1px solid var(--mbc);
+        border-radius: 0 3px 3px 0;
+        background-color: var(--mlc)
+    }
+    
+    .ad.p {
+        border-radius: 4px;
+        box-shadow: 0 1px 4px 0 rgba(227,183,136,.5);
+    }
+    
+    .ad .image {
+        height: 205px;
+        max-height: 205px;
+    }
+    
+    .ad .image.seclogo img {
+        max-width: 90px!important;
+        max-height: 90px;
+    }
+
+    .ad .widget {
+        box-shadow: 0 1px 4px 0 rgba(0,0,0,.14);
+    }
+    
+    .ad .content p {        
+        color: var(--mdc80);
+    }
+    
+    .ad .tail {
+        padding-bottom: 0;
+    }
+    
+    .ad .tail li {
+        border-top: 0.5px solid var(--mdc12);
+    }
+    
+    .ad.p .tail li {
+        border-top-color: var(--premium);
+    }
+}
+
+
+@media only screen and (min-width:1920px) {
+    body {
+        margin: 0 auto;
+        width: 1920px;
+    }
+    .viewable {
+        max-width: 1600px
+    }
+}
+
+@media only screen and (min-width:1280px) {
+    .ad {
+        width: 308px;
+        min-width: 308px;
+        max-width: 308px;
+    }
+    
+    .ad .widget {
+        height: 340px;
+    }
+    
+    .mhbanner i {
+        position: relative;
+        height:250px;
+        width:250px;
+        top: -8px;
+        object-fit: cover;
+        display: inline-flex;
+        background-image: url(https://c6.mourjan.com/css/2020/1.0/assets/grid.svg);      
+    }
+}
+
+@media only screen and (min-width:1600px) {
+    .ad {
+        width: 360px;
+        min-width: 360px;
+        max-width: 360px;
+    }
+}

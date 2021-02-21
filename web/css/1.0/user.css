@@ -140,7 +140,7 @@ aside #editors span+span{
     box-shadow: none;    
     width:159px;
     height: 149px;
-    background:url(/web/css/1.0/assets/empty-coin.svg) no-repeat center;
+    background:url(https://c6.mourjan.com/css/2020/1.0/assets/empty-coin.svg) no-repeat center;
     background-size: cover;
     margin-inline-end:20px;
 }

@@ -1,4 +1,9 @@
 <?php
+
+if (PHP_VERSION_ID>80000) {
+    if (!isset($argc)) {tideways_xhprof_enable();}
+}
+
 ob_start();
 header('Cache-Control: no-cache, must-revalidate');
 header('Expires: Mon, 26 Jul 1997 00:00:00 GMT');
@@ -104,58 +109,76 @@ const API_SIMPLE_TEXT_NORMALIZE                 = 89;
 
 const API_GET_USER_ALBUM                        = 90;
 
+const API_SET_DISPLAY_NAME                      = 91;
+const API_GET_PUB_PROFILE                       = 92;
+const API_REMOVE_DISPLAY_PICTURE                = 93;
+const API_USE_SOCIAL_PIC                        = 94;
+
+const API_ANDROID_PURCHASE_V3                   = 95;
+
 const API_RELOAD_INDEX                          = 990;
 const API_POST_PREFERENCES                      = 991;
 const API_DB_EVENT                              = 998;
 const API_LOG                                   = 999;
 
 
-$appVersion=filter_input(INPUT_GET, 'av', FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.1']]);
+$appVersion=\filter_input(\INPUT_GET, 'av', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.1']]);
 
-require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
-include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
+//require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
+//include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
 
-include_once $config['dir']."/api/MobileApi-{$appVersion}.php";
-include_once $config['dir'].'/core/model/Db.php';
-include_once $config['dir'].'/core/model/NoSQL.php';
-include_once $config['dir'].'/core/model/MobileValidation.php';
-include_once $config['dir'].'/core/lib/MCSessionHandler.php';
-include_once $config['dir'].'/core/lib/MCUser.php';
-include_once $config['dir'].'/core/lib/MCAudit.php';
+include_once dirname(__DIR__).'/config/cfg.php';
+include_once dirname(__DIR__).'/deps/autoload.php';
 
-ini_set('memory_limit', '256M');
+include_once __DIR__."/MobileApi-{$appVersion}.php";
+
+if ($appVersion==='1.1') {
+    include_once $config['dir'].'/core/model/Db.php';
+    include_once $config['dir'].'/core/model/NoSQL.php';
+    include_once $config['dir'].'/core/model/MobileValidation.php';
+    include_once $config['dir'].'/core/lib/MCSessionHandler.php';
+    include_once $config['dir'].'/core/lib/MCUser.php';
+    include_once $config['dir'].'/core/lib/MCAudit.php';
+    include_once $config['dir'].'/core/lib/IPQuality.php';
+}
+
+\ini_set('memory_limit', '256M');
 
 class ElapseTime {
-    private $_total = 0;
-    private $_start = 0;
-    private $_stop = 0;
+    private float $_total = 0;
+    private float $_start = 0;
+    private float $_stop = 0;
 
-    public function start() {
+    public function start() : void {
         $this->_start = microtime(TRUE);
     }
 
-    public function stop() {
+    public function stop() : void {
         $this->_stop = microtime(TRUE);
         $this->_total = $this->_total + $this->_stop - $this->_start;
     }
 
-    public function get_elapse() {
+    public function get_elapse() : float {
         return sprintf("%.6f",($this->_stop - $this->_start)*1000.0);
     }
 
-    public function get_total_elapse() {
+    public function get_total_elapse() : string {
         return sprintf("%.6f", $this->_total*1000.0);
     }
 }
 
-$timer = new ElapseTime();
+$timer=new ElapseTime;
 $timer->start();
-$api = new MobileApi($config);
-if ($api->isIOS() && version_compare($api->appVersion, '1.1.3', '>')) {    
-    header('Content-type: application/msgpack; charset=UTF-8');
-    $api->json = 0;
+$api=new MobileApi($config);
+if ($api->isIOS() && version_compare($api->appVersion, '1.1.3', '>')) { 
+    $u_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
+    if (preg_match('/^Mourjan\/\d+/', $u_agent)) {
+       header('Content-type: application/msgpack; charset=UTF-8');
+       $api->json = 0;
+    }
 }
-else {
+
+if ($api->json!==0) {
     header('Content-type: application/json; charset=UTF-8');
 }
 
@@ -165,6 +188,18 @@ if (!$api->hasError()) {
     
     
     switch ($action) {
+        case API_SET_DISPLAY_NAME:
+            $api->setUserDisplayName();
+            break;
+        case API_REMOVE_DISPLAY_PICTURE:
+            $api->removeUserPicture();
+            break;
+        case API_USE_SOCIAL_PIC:
+            $api->deleteUserPicturePref();
+            break;
+        case API_GET_PUB_PROFILE:
+            $api->getPublisherProfile();
+            break;
         case API_NORMALIZE_TEXT:
             $api->normalizeText();
             break;
@@ -308,6 +343,7 @@ if (!$api->hasError()) {
         case API_ANDROID_GET_PROMO:
         case API_ANDROID_CLAIM_PROMO:
         case API_ANDROID_PURCHASE:
+        case API_ANDROID_PURCHASE_V3:
         case API_ANDROID_SYNC_ACCOUNT:
         case API_ANDROID_SYNC_WATCHLIST:
         case API_ANDROID_SET_NOTE:
@@ -409,6 +445,14 @@ if (!$api->hasError()) {
 
 $timer->stop();
 $api->result['elapsed-time']=$timer->get_elapse();
+if (PHP_VERSION_ID>80000) {
+    $data=tideways_xhprof_disable();
+    $XHPROF_ROOT= Config::instance()->baseDir .'/web/xhprof';
+    include_once $XHPROF_ROOT."/lib/utils/xhprof_lib.php";
+    include_once $XHPROF_ROOT."/lib/utils/xhprof_runs.php";
+
+    $xhprof_runs=new XHProfRuns_Default();
+    $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
+    $api->result['profiler']="https://dv.mourjan.com/web/xhprof/html/index.php?run={$run_id}&source=xhprof_mourjan";
+}
 $api->done();
-
-
