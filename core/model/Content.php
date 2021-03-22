@@ -471,6 +471,9 @@ class Content {
     
     
     public function getORN() : int {
+        //if (!empty($this->content[self::RERA])) {
+        //    \error_log(var_export($this->content[self::RERA], true));
+        //}
         return $this->content[self::RERA]['orn'] ?? 0;
     }
     

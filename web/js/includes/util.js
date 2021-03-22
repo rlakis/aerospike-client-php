@@ -9,7 +9,7 @@ $.addEventListener("DOMContentLoaded",function(e){
     $.documentElement.setAttribute('data-useragent', navigator.userAgent);
 });
 
-var byId=function(id){return $.getElementById(id);}
+var byId=function(id){return $.getElementById(id);};
 
 createElem=function(tag, className, content, isHtml) {
     var el=$.createElement(tag);
@@ -54,15 +54,57 @@ function hasWebP() {
     return false;
 }
 
-regionWidget=function(e){
+mobileMedia=function() {
+    return window.matchMedia("(max-width: 768px)").matches;
+}
+
+setMenu=function(v) {
+    let mn=$.querySelector('div#mmenu');
+    if (mn.query('ul#cr')) {
+        mn.query('ul#cr').style.display=v?'none':'block';
+    }
+    mn.query('ul#bb').style.display=v?'block':'none';
+    mn.query('ul#bf').style.display=v?'block':'none';
+}
+
+regionWidget=function() {
     let a=$.querySelector('a#regions'), r=JSON.parse(a.dataset.regions), d=$.querySelector('div#rgns'), th=a.closest('div.top-header');
-    console.log(d);
+    let aa=[['ae', 'qa', 'om'], ['sa', 'bh'], ['kw', 'jo','ma', 'tn'], ['lb','eg','iq','dz']];
+    if (mobileMedia()) {
+        let mn=$.querySelector('div#mmenu');
+        if (mn) {
+            if (mn.query('ul#cr')===null) {
+                let cr=createElem('ul');
+                cr.id='cr';
+                aa.forEach(g=>{
+                    g.forEach(c=>{
+                        let v=r[c];
+                        li=$.createElement('li');
+                        li.innerHTML='<a href='+v.p+'><i class=flag><svg><use xlink:href=https://'+window.location.hostname+'/css/2020/flags/flag.svg#'+c+'></use></svg></i><span>'+v.n+'</span></a>';
+                        cr.append(li);
+                        v.c.forEach(t=>{
+                            li=$.createElement('li');
+                            li.innerHTML='<a href='+t.p+'><i class=flag></i><span>'+t.n+'</span></a>';
+                            cr.append(li);
+                        });
+                    });
+                });           
+                mn.query('div#mnb').append(cr);
+            }
+            setMenu(false);
+            return;
+        }
+    }
+    
     if (d.innerHTML>''){d.innerHTML='';return;}
+    
+    
+    
     let y=th.offsetHeight+th.offsetTop+8;    
     let s='<div style="display:flex;position:absolute;flex-flow:column;align-self:center;top:'+y+'px;left:0px;width:100%;height:auto;z-index:9;"><div class="row viewable"><div class=col-12 style="padding:0"><div class="card regions">';
     s+='<header><i class="icn icn-region invert"></i><h4><span style="color:white;font-size:36px">mourjan</span> around The Middle East</h4></header>';
     s+='<div class=card-content><div class=row>';
-    let aa=[['ae', 'qa', 'om'], ['sa', 'bh'], ['kw', 'jo','ma', 'tn'], ['lb','eg','iq','dz']];
+   
     aa.forEach(g=>{
         s+='<dl class="dl col-4">';
         g.forEach(c=>{
@@ -145,7 +187,7 @@ menu=function(id) {
         if (id==='mmenu') {
             let footer=$$.query('footer'), apps=footer.query('#mcapps'), info=footer.query('#mcinfo').cloneNode(true);
             let th=$$.query('div.top-header'), lli=th.query('#lng'), rli=th.query('a#regions').closest('li'), ul=info.query('ul').cloneNode(true);
-            
+            ul.id='bb';
             info.classList.remove('col-4');
             lli.classList.add('w100');
             
@@ -158,13 +200,14 @@ menu=function(id) {
             rli.query('a').classList.add('sp-between');
             lli.query('a').classList.add('sp-between');
             b=$.createElement('div');
+            b.id='mnb';
             b.style.padding='32px 44px 92px';
             ul.insertBefore(rli, ul.childNodes[0]); 
             ul.insertBefore(lli, ul.childNodes[0]); 
             b.append(ul);
             
             aw=apps.query('ul').cloneNode(true);
-            //aw.removeAttribute('id');
+            aw.id='bf';
         
             aw.removeChild(aw.query('li#rwdgt')); 
             
@@ -207,8 +250,12 @@ menu=function(id) {
                         }
                     }
                 });
-    }
+            }
         }
+    }
+    
+    if (id==='mmenu' && mobileMedia()) {
+        setMenu(true);
     }
     toggleDialog(id);  
 };

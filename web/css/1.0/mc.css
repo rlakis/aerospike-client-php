@@ -440,6 +440,10 @@ body > * {
     margin-top: 20px;
 }
 
+ul#cr i {
+    margin-inline-end: 8px;
+}
+
 .menu a {
     color: white;
 }
@@ -1218,6 +1222,9 @@ html[data-useragent*='Android'] .mios {
   display: none!important
 }
 
+body[dir=rtl] .ilogo {
+  background-image: url(https://c6.mourjan.com/css/2020/1.0/assets/LogoMa.svg);
+}
 
 body[dir=rtl] .mhbanner .p1{
     margin: 5px 0 20px;

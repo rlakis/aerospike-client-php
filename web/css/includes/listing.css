@@ -120,7 +120,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
 }
 
 .ls .adsbygoogle {
-    margin-block-end:4px;
+    margin-block-end:8px;
 }
 
 .ls .ad {
@@ -129,7 +129,7 @@ ul.breadcrumb li a:hover {color: #01447e;text-decoration: underline;}
     width: -webkit-fill-available;
     max-width: -moz-available;
     max-width: -webkit-fill-available;
-    margin-block-end:4px;
+    margin-block-end:8px;
 }
 
 .ls .ad.full {

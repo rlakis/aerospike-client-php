@@ -48,18 +48,6 @@ class MyAds extends UserPage {
     function __construct() {
         parent::__construct();    
         $this->showApproved=\filter_input(\INPUT_GET, 'approved', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
-        /*
-        if (!$this->user->isLoggedIn()) {
-            $this->user->redirectTo($this->router->getLanguagePath('/signin/'));
-        }
-               
-        if ($this->router->config->isMaintenanceMode()) {
-            $this->user->redirectTo($this->router->getLanguagePath('/maintenance/'));
-        }
-         * 
-         */
-        //$this->checkBlockedAccount();
-        //$this->userBalance=$this->user->getBalance(); 
         
         $this->adList=new AdList();
         $this->adList->cacheProfile($this->user()->data);

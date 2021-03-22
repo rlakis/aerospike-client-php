@@ -25,7 +25,7 @@ class Search extends Page {
     
     
     function __construct() {
-        header('Vary: User-Agent');
+        \header('Vary: User-Agent');
         parent::__construct(); 
         
         $this->tmpPurposeId=0;

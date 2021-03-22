@@ -130,7 +130,8 @@ $appVersion=\filter_input(\INPUT_GET, 'av', \FILTER_SANITIZE_STRING, ['options'=
 include_once dirname(__DIR__).'/config/cfg.php';
 include_once dirname(__DIR__).'/deps/autoload.php';
 
-include_once __DIR__."/MobileApi-{$appVersion}.php";
+//include_once __DIR__."/MobileApi-{$appVersion}.php";
+include_once __DIR__."/MobileApi-1.2.php";
 
 if ($appVersion==='1.1') {
     include_once $config['dir'].'/core/model/Db.php';

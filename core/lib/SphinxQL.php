@@ -1,6 +1,7 @@
 <?php
 namespace Core\Lib;
 
+
 class SphinxQL {
     const ID                = 'id';
     const UID               = 'user_id';
@@ -26,7 +27,7 @@ class SphinxQL {
     
     private bool $noAttrs=false;
     private bool $fetchMeta=true;
-    private ?\mysqli $_sphinx = null;
+    private ?\mysqli $_sphinx=null;
     private string $clause = '*';
     private string $sortby = '';
     
@@ -111,16 +112,19 @@ class SphinxQL {
     
     function connect() : void {
         if ($this->_sphinx==NULL) {
+            
             $this->_sphinx=new \mysqli($this->server['host'], '', '', '', $this->server['port'], $this->server['socket']);
             if ($this->_sphinx->connect_error) {
                 $this->Log(['host'=>$this->server['host'], 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
-                die('Connect Error ' . $this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
+                die('Connect Error '.$this->server['host'] .' (' . $this->_sphinx->connect_errno . ') ' . $this->_sphinx->connect_error);
             }
             else {
-                $this->_sphinx->options(\MYSQLI_OPT_INT_AND_FLOAT_NATIVE, true);
+                $this->_sphinx->options(\MYSQLI_OPT_READ_TIMEOUT, 1);
+                $this->_sphinx->options(\MYSQLI_OPT_INT_AND_FLOAT_NATIVE, 1);                
             }
         }
     }
+    
 
     /**
     * Pings the Sphinx server.
@@ -432,7 +436,7 @@ class SphinxQL {
     
     
     function addDirectQuery(string $name, string $q, bool $assoc=FALSE) : void {
-        $this->_batch[$name] = [$q, $assoc];
+        $this->_batch[$name]=[$q, $assoc];
     }
     
     
@@ -487,14 +491,14 @@ class SphinxQL {
         $this->connect();
         if (empty($queryQL)) {
             $this->build();
-            $queryQL = $this->_query;            
+            $queryQL=$this->_query;            
         }
 
         if ($this->noAttrs===false && $this->clause==='id') {
             $this->noAttrs=true;
         }
         
-        $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$queryQL];
+        $result=['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$queryQL];
         try {
             if ($this->_sphinx->multi_query($queryQL)) {
                 do {
@@ -548,6 +552,7 @@ class SphinxQL {
     
     
     function executeBatchNew() : array {
+        $this->connect();
         $result=[];
         $q='';
         $i=0;
@@ -569,7 +574,7 @@ class SphinxQL {
         $this->_sphinx->multi_query($q);
         if ($this->_sphinx->error) {
             $this->Log(['query'=>$q, 'error'=>'['.$this->_sphinx->connect_errno . '] ' . $this->_sphinx->connect_error]);
-            $result[$name] = '['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$q.']';
+            $result[$name]='['.$this->_sphinx->errno.'] '.$this->_sphinx->error.' [ '.$q.']';
             $result[$name]=$rs;
             return $result;
         }
@@ -878,20 +883,28 @@ class SphinxQL {
     }
 
 
+    private function normalizeDigits(string $keywords='') : string {
+        if (!empty($keywords)) {
+            $arabic_indic_digits = [
+               "\xD9\xA0",
+                "\xD9\xA1",
+                "\xD9\xA2",
+                "\xD9\xA3",
+                "\xD9\xA4",
+                "\xD9\xA5",
+                "\xD9\xA6",
+                "\xD9\xA7",
+                "\xD9\xA8",
+                "\xD9\xA9",
+            ];
+            return \str_replace($arabic_indic_digits, \array_keys($arabic_indic_digits), \trim($keywords));
+        }
+        return \trim($keywords);
+    }
+    
+    
     public function build(string $keywords='') : void {
-        $arabic_indic_digits = [
-            "\xD9\xA0",
-            "\xD9\xA1",
-            "\xD9\xA2",
-            "\xD9\xA3",
-            "\xD9\xA4",
-            "\xD9\xA5",
-            "\xD9\xA6",
-            "\xD9\xA7",
-            "\xD9\xA8",
-            "\xD9\xA9",
-        ];
-        $keywords=str_replace($arabic_indic_digits, array_keys($arabic_indic_digits), \trim($keywords));
+        $keywords=$this->normalizeDigits($keywords);
         
         if ($this->indexName==='classifier') {
             $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 ";
@@ -906,7 +919,7 @@ class SphinxQL {
         
         if ($keywords) {
             if ($keywords[0]==='-') {
-                $keywords = 'qwerty '.$keywords;
+                $keywords='qwerty '.$keywords;
             }
 
             $keywords=$this->halfEscapeMatch($keywords);
@@ -933,8 +946,8 @@ class SphinxQL {
     
     
     public function fetchMetaData(?array &$resultQuery=NULL) : void {
-        if (($rs = $this->_sphinx->query('SHOW META LIKE \'total%\''))!==FALSE) {
-            $res = $rs->fetch_all();
+        if (($rs=$this->_sphinx->query('SHOW META LIKE \'total%\''))!==FALSE) {
+            $res=$rs->fetch_all();
             foreach ($res as $rec) {
                 $resultQuery[$rec[0]] = $rec[1]+0;
             }
@@ -960,10 +973,3 @@ class SphinxQL {
     
 }
 
-class MCConnection {
-    
-}
-
-class MCQuery {
-    
-}

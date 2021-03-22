@@ -270,6 +270,19 @@ header.plain h4 {
     color:var(--mdc20);
 }
 
+body[dir=rtl] .search-box .roots::before {
+    content: "كل ما كنت";
+    top: 126px;
+    height: 100px;
+    line-height: 40pt;
+}
+
+body[dir=rtl] .search-box .roots::after {
+    content: "تبحث عنه";
+    width: 142px;
+    top: 230px;
+    line-height: 40pt;
+}
 
 .rbc1{}
 .rbc2{border: .5px solid #3fb0ac}
@@ -382,6 +395,7 @@ header.plain h4 {
 .lrs {
     position: absolute;
     left:104px;
+    right: unset;
     top:24px;
     width: calc( 100% - 104px );
     padding: 4px 0!important;
@@ -390,6 +404,10 @@ header.plain h4 {
     transform: translate(0);
     opacity: 0;
     z-index: 5;
+}
+body[dir=rtl] .lrs {
+    right: 104px;
+    left: unset;
 }
 
 .lrs .card {
@@ -424,6 +442,14 @@ header.plain h4 {
     -moz-transform:rotate(-45deg);
     transform:rotate(-45deg);
     right:8px;
+}
+body[dir=rtl] .card:before {
+    right: unset;
+    left:8px;
+}
+body[dir=rtl] .card:after {
+    right: unset;
+    left:8px;
 }
 
 .lrs .card ul {

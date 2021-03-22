@@ -27,7 +27,7 @@ class Site {
         
     function __construct() {
         global $argc;        
-        $this->router = Router::instance();
+        $this->router=Router::instance();
         if ($this->router->language==='en') {
             $this->lnIndex=1;
         }
@@ -342,14 +342,14 @@ class Site {
         $ql=$this->router->db->ql->setLimits($offset, $this->num);
         
         
-        $search=new MCSearch($this->router->db->manticore);
-        $search->limit($this->num)->offset($offset);
+        //$search=new MCSearch($this->router->db->manticore);
+        //$search->limit($this->num)->offset($offset);
                 
         //$this->initSphinx($forceInit);
         
         $rootId=$this->router->rootId;
         $q=\preg_replace('/@/', '\@', $this->router->params['q']);
-        
+        /*
          $arabic_indic_digits = [
             "\xD9\xA0",
             "\xD9\xA1",
@@ -362,7 +362,9 @@ class Site {
             "\xD9\xA8",
             "\xD9\xA9",
         ];
-        $q=str_replace($arabic_indic_digits, array_keys($arabic_indic_digits), \trim($q));
+        $q=\str_replace($arabic_indic_digits, \array_keys($arabic_indic_digits), \trim($q));
+        */
+        
         
         if ($this->router->watchId) {
             $this->searchResults=false;
@@ -421,6 +423,7 @@ class Site {
                 //$fq->starred($id)->setSource('id')->offset($offset)->limit($this->num)->sort('date_added', 'desc');
                 //$this->searchResults['body']=$fq->result();
                 $this->searchResults['body']=$ql->query();
+                
                 /*
                  * TO BE MIGRATED
                 $this->router->db->index()
@@ -437,7 +440,7 @@ class Site {
                 $__compareID=$this->router->getPositiveVariable('cmp', \INPUT_GET);
                 $__compareAID=$this->router->getPositiveVariable('aid', \INPUT_GET);
                 $__stripPremium=$this->router->getPositiveVariable('strip', \INPUT_GET);
-                
+                /*
                 $search->regionFilter($this->router->countryId, $this->router->cityId)
                         ->idFilter($__compareID, true)
                         ->uidFilter($this->router->userId)
@@ -448,10 +451,9 @@ class Site {
                         ->tagFilter($this->extendedId)
                         ;
                         
-                /*
+                /*/
                 
-                $this->router->db->index()
-                        ->region($this->router->countryId, $this->router->cityId)
+                $ql->region($this->router->countryId, $this->router->cityId)
                         ->id($__compareID, true)
                         ->uid($this->router->userId)                        
                         ->root($rootId)
@@ -460,53 +462,54 @@ class Site {
                         ->locality($this->localityId)
                         ->tag($this->extendedId)
                         ;
-                */
+                
                 
                 if ($__stripPremium===1) {  
-                    //$this->router->db->index()->featured(false);
-                    $search->filter(MCSearch::FEATURED_TTL, 'lt', time());
+                    $ql->featured(false);
+                    //$search->filter(MCSearch::FEATURED_TTL, 'lt', time());
                 }
                                 
                 if ($this->publisherTypeSorting && \in_array($rootId, [1, 2, 3]) && 
                     ($rootId!==3 || ($rootId===3 && $this->router->purposeId===3)) && 
                     ($rootId!==2 || ($rootId===2 && $this->router->purposeId===1)) ) {
                     
-                    $search->filter(MCSearch::PUBLISHER_TYPE, 'equals', $this->publisherTypeSorting==1?1:3);
-                    //$this->router->db->index()->publisherType($this->publisherTypeSorting==1 ? 1 : 3);
+                    //$search->filter(MCSearch::PUBLISHER_TYPE, 'equals', $this->publisherTypeSorting==1?1:3);
+                    $ql->publisherType($this->publisherTypeSorting==1 ? 1 : 3);
                 }
                 
                 switch ($this->langSortingMode) {
                     case 0:
-                        $lexpr=0;
-                        //$lng='0 as lngmask';
+                        //$lexpr=0;
+                        $lng='0 as lngmask';
                         break;
                     case 1:
-                        //$lng='IF(rtl>0,0,1) as lngmask';
-                        $lexpr='IF(rtl>0,0,1)';
+                        $lng='IF(rtl>0,0,1) as lngmask';
+                        //$lexpr='IF(rtl>0,0,1)';
                         break;
                     case 2:
-                        //$lng='IF(rtl<>1,0,1) as lngmask';
-                        $lexpr='IF(rtl<>1,0,1)';
+                        $lng='IF(rtl<>1,0,1) as lngmask';
+                        //$lexpr='IF(rtl<>1,0,1)';
                         break;
                     default:
-                        $lexpr=($this->router->language==='ar') ? 'IF(rtl>0,0,1)' : 'IF(rtl<>1,0,1)';
-                        //$lng=($this->router->language==='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
+                        //$lexpr=($this->router->language==='ar') ? 'IF(rtl>0,0,1)' : 'IF(rtl<>1,0,1)';
+                        $lng=($this->router->language==='ar') ? 'IF(rtl>0,0,1) as lngmask' : 'IF(rtl<>1,0,1) as lngmask';
                         break;
                 }
-                $search->expression('lngmask', $lexpr);
+                //$search->expression('lngmask', $lexpr);
 
                 //\error_log(PHP_EOL.$lng.PHP_EOL);
                 
                 if (($last_visited=$this->user->getLastVisited())) {
-                    //$fields="id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";
-                    $search->expression('newad', "if(date_added>{$last_visited}, 1, 0)");
+                    $fields="id, if(date_added>{$last_visited}, 1, 0) newad, date_added, {$lng}";
+                    //$search->expression('newad', "if(date_added>{$last_visited}, 1, 0)");
                 }
                 else {
-                    //$fields="id, 0 as newad, date_added, {$lng}";
-                    $search->expression('newad', "if(1=1,0,0)");
+                    $fields="id, 0 as newad, date_added, {$lng}";
+                    //$search->expression('newad', "if(1=1,0,0)");
                 }
-                $search->setSource(['id', 'newad', 'date_added', 'lngmask']);
+                //$search->setSource(['id', 'newad', 'date_added', 'lngmask']);
                 
+                /*
                 if ($this->sortingMode) {
                     $search->sort('lngmask')->sort('media', 'desc')->sort('date_added', 'desc');
                 }
@@ -517,8 +520,9 @@ class Site {
                 if (\trim($q)!=='') {
                     $search->search($q);
                 }
+                */
                 
-                $this->searchResults['body']=$search->result();// ['total_found'=>$rs->getTotal(), 'matches'=>$rs];
+                //$this->searchResults['body']=$search->result();// ['total_found'=>$rs->getTotal(), 'matches'=>$rs];
                 
                 
                 //if ($__compareID>0) {
@@ -526,13 +530,12 @@ class Site {
                 //}
                 //\error_log(var_export($search->getBody(), true));
                 //var_dump($search->get()->current());
-                /*
-                $this->router->db->index()
-                        ->setSelect($fields)
-                        ->setSortBy($this->sortingMode?'lngmask asc, media desc, date_added desc':'lngmask asc, date_added desc')
-                        ->setLimits($offset, $this->num)
-                        ->addQuery('body', $q);
-                */                
+                
+                $ql->setSelect($fields)
+                    ->setSortBy($this->sortingMode?'lngmask asc, media desc, date_added desc':'lngmask asc, date_added desc')
+                    ->setLimits($offset, $this->num)
+                    ->addQuery('body', $q);
+                                
                 if ($this->router->module==='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId && $__compareID===0 && $__compareAID===0) {
                     $this->getFeaturedAds();
                     $this->getMediaAds();
@@ -542,12 +545,13 @@ class Site {
                 if ($__compareAID>0) {  
                     $this->router->config->incLibFile('MCSaveHandler');
                     $handler=new MCSaveHandler($this->router->cfg);              
-                    $this->searchResults=$handler->similarByAdId($__compareAID, $__stripPremium);
-                    //$this->searchResults=$handler->searchByAdId($__compareAID, $__stripPremium);
+                    //$this->searchResults=$handler->similarByAdId($__compareAID, $__stripPremium);
+                    $this->searchResults=$handler->searchByAdId($__compareAID, $__stripPremium);
                 }
-                //else {
-                    //$this->searchResults=$this->router->db->index()->executeBatchNew();   
-                //}                
+                else {
+                    $this->searchResults=$ql->executeBatchNew();   
+                    //\error_log(var_export($this->searchResults, true));
+                }                
             }       
         }
         
@@ -557,18 +561,7 @@ class Site {
        
     
     function getMediaAds() : void { 
-        /*
-        $this->router->db->index()->resetFilters()
-                ->region($this->router->countryId, $this->router->cityId)
-                ->media()
-                ->setFilter(Core\Lib\SphinxQL::SECTION, [834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279])
-                ->rtl($this->router->isArabic() ? [1,2] : [0,2])
-                ->setSelect('id')
-                ->setSortBy('rand()')
-                ->setLimits(0, 4)
-                ->addQuery('media');
-        */
-        $rs=$this->router->db->ql->resetFilters()
+        $this->router->db->ql->resetFilters()
             ->region($this->router->countryId, $this->router->cityId)
             ->media()
             ->setFilter(Core\Lib\SphinxQL::SECTION, [834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279])
@@ -576,111 +569,40 @@ class Site {
             ->setSelect('id')
             ->setSortBy('rand()')
             ->setLimits(0, 4, 100)
-            ->search();
-                
-        $this->searchResults['media']=$rs;
-        /*
-        $search=new MCSearch($this->router->db->manticore);
-        
-        $search->setSource('id')
-                ->regionFilter($this->router->countryId, $this->router->cityId)
-                ->mediaFilter()
-                ->rtlFilter($this->router->isArabic() ? [1,2] : [0,2])
-                ->filter(MCSearch::SECTION, 'in', [834,1079,1314,1112,617,513,293,298,343,350,515,539,108,84,85,114,214,116,123,125,135,144,279])
-                ->offset(0)
-                ->limit(4)
-                ->sort('rand()')
-                ;
-        
-        $rs=$search->get();
-        \error_log(\json_encode($rs));
-        $this->searchResults['media']=['total_found'=>$rs->getTotal(), 'matches'=>$rs];*/
+            ->addQuery('media');
     }
 
 
-    function getFeaturedAds() {            
-        $q=\preg_replace('/@/', '\@', $this->router->params['q']);
+    function getFeaturedAds() : void {            
         $ql=$this->router->db->ql;
         $currentPage=($this->router->params['start']?$this->router->params['start']:1);
         
         // 1 - get top column paid ads related to query
-        if ($this->router->module==='search' && $currentPage==1) {
+        if ($this->router->module==='search' && $currentPage===1) {
             $publisher_type=0;
-            if ($this->publisherTypeSorting && in_array($this->router->rootId,[1,2,3]) && 
-               ($this->router->rootId!=3 || ($this->router->rootId==3 && $this->router->purposeId==3)) && 
-               ($this->router->rootId!=2 || ($this->router->rootId==2 && $this->router->purposeId==1)) ) {
+            if ($this->publisherTypeSorting && \in_array($this->router->rootId,[1,2,3]) && 
+               ($this->router->rootId!==3 || ($this->router->rootId===3 && $this->router->purposeId===3)) && 
+               ($this->router->rootId!==2 || ($this->router->rootId===2 && $this->router->purposeId===1)) ) {
                 $publisher_type=$this->publisherTypeSorting==1?1:3;
             }
             
             $ql->resetFilters()->featured()
-                    ->region($this->router->countryId, $this->router->cityId)
-                    ->root($this->router->rootId)
-                    ->section($this->router->sectionId)
-                    ->purpose($this->router->purposeId)
-                    ->locality($this->localityId)
-                    ->tag($this->extendedId)
-                    ->rtl($this->router->isArabic() ? [1,2] : [0,2])
-                    ->publisherType($publisher_type)                    
-                    ->setSelect("id")
-                    ->setSortBy("rand()")
-                    ->setLimits(0, 40, 400);
-            
-            
-            $this->searchResults['zone1']=$ql->query($q);
-            //\error_log(\json_encode($this->searchResults['zone1']));
-            /*        
-            $search=new MCSearch($this->router->db->manticore);
-            $search->featuredFilter()
-                    ->regionFilter($this->router->countryId, $this->router->cityId)
-                    ->rootFilter($this->router->rootId)
-                    ->sectionFilter($this->router->sectionId)
-                    ->purposeFilter($this->router->purposeId)
-                    ->localityFilter($this->localityId)
-                    ->tagFilter($this->extendedId)
-                    ->rtlFilter($this->router->isArabic()?[1,2]:[0,2])
-                    ->publisherTypeFilter($publisher_type)
-                    ->setSource("id")
-                    ->sort("rand()")
-                    ->offset(0)
-                    ->limit(40);
-            if (!empty($q)) {
-                $search->match($q);
-            }
-            $rs=$search->result();
-            $this->searchResults['zone1']=$rs;                    
-             * 
-             */
-            
-            /*
-            $this->router->db->index()->resetFilters()
-                    ->featured()
-                    ->region($this->router->countryId, $this->router->cityId)
-                    ->root($this->router->rootId)
-                    ->section($this->router->sectionId)
-                    ->purpose($this->router->purposeId)
-                    ->locality($this->localityId)
-                    ->tag($this->extendedId)
-                    ->rtl($this->router->isArabic() ? [1,2] : [0,2])
-                    ->publisherType($publisher_type)
-                    ->setSelect("id")
-                    ->setSortBy("rand()")
-                    ->setLimits(0, 40)
-                    ->addQuery('zone1', $q);         */              
+                ->region($this->router->countryId, $this->router->cityId)
+                ->root($this->router->rootId)
+                ->section($this->router->sectionId)
+                ->purpose($this->router->purposeId)
+                ->locality($this->localityId)
+                ->tag($this->extendedId)
+                ->rtl($this->router->isArabic() ? [1,2] : [0,2])
+                ->publisherType($publisher_type)                    
+                ->setSelect("id")
+                ->setSortBy("rand()")
+                ->setLimits(0, 40, 400)
+                ->addQuery('zone1', $this->router->params['q']);                   
         }
         
         // 2 - get side column paid ads related
         if (true) {
-            /*
-            $this->router->db->index()->resetFilters()
-                ->region($this->router->countryId, $this->router->cityId)
-                ->featured()
-                ->root($this->router->rootId)
-                ->section($this->router->sectionId)  
-                ->setSelect("id")
-                ->setSortBy("rand()")
-                ->setLimits(0, 4)
-                ->addQuery('zone2');
-            */
             $ql->resetFilters()
                 ->region($this->router->countryId, $this->router->cityId)
                 ->featured()
@@ -688,29 +610,14 @@ class Site {
                 ->section($this->router->sectionId)  
                 ->setSelect("id")
                 ->setSortBy("rand()")
-                ->setLimits(0, 4, 400);
-            $this->searchResults['zone2']=$ql->search();
-            
-            /*
-            $search=new MCSearch($this->router->db->manticore);
-            $search->featuredFilter()
-                    ->regionFilter($this->router->countryId, $this->router->cityId)
-                    ->rootFilter($this->router->rootId)
-                    ->sectionFilter($this->router->sectionId)
-                    ->setSource("id")
-                    ->sort("rand()")
-                    ->offset(0)
-                    ->limit(4);
-            $rs=$search->result();
-            $this->searchResults['zone2']=$rs;
-             * 
-             */
+                ->setLimits(0, 4, 400)
+                ->addQuery('zone2');
         }
         
         // 1 - get top column featured ads related to query
         if ($this->router->module==='search') {
             $publisher_type=0;
-            if ($this->publisherTypeSorting && in_array($this->router->rootId,[1,2,3])) {
+            if ($this->publisherTypeSorting && \in_array($this->router->rootId, [1,2,3])) {
                 $publisher_type=$this->publisherTypeSorting==1?1:3;
             }
             
@@ -726,22 +633,6 @@ class Site {
                     $rtlFilter=($this->router->language==='ar')?[1,2]:[0,2];
                     break;
             }
-            /*
-            $this->router->db->index()->resetFilters()
-                ->region($this->router->countryId, $this->router->cityId)                
-                ->root($this->router->rootId)
-                ->section($this->router->sectionId)
-                ->purpose($this->router->purposeId)
-                ->locality($this->localityId)
-                ->tag($this->extendedId)
-                ->rtl($rtlFilter)
-                ->publisherType($publisher_type)
-                ->exclude($this->user()->getFeature())
-                ->SetSelect('id, (impressions + ((IF(now()-date_added<3600,20,impressions)/(now()-date_added))*(date_ended-now()))) as forecast')
-                ->setSortBy('forecast asc')
-                ->setLimits(0, 2)
-                ->addQuery('zone0', $q);
-            */
             
             $ql->resetFilters()
                 ->region($this->router->countryId, $this->router->cityId)                
@@ -756,29 +647,8 @@ class Site {
                 ->SetSelect('id, (impressions + ((IF(now()-date_added<3600,20,impressions)/(now()-date_added))*(date_ended-now()))) as forecast')
                 ->setSortBy('forecast asc')
                 ->setLimits(0, 2, 200)
-                ->skipAttributes(true);
-            $this->searchResults['zone0']=$ql->query($q);
-
-/*            
-            $search=new MCSearch($this->router->db->manticore);
-            $search->regionFilter($this->router->countryId, $this->router->cityId)                
-                ->rootFilter($this->router->rootId)
-                ->sectionFilter($this->router->sectionId)
-                ->purposeFilter($this->router->purposeId)
-                ->localityFilter($this->localityId)
-                ->tagFilter($this->extendedId)
-                ->rtlFilter($rtlFilter)
-                ->publisherTypeFilter($publisher_type)
-                ->expression('forecast', '(impressions + ((IF(now()-date_added<3600,20,impressions)/(now()-date_added))*(date_ended-now())))')
-                ->notFilter(MCSearch::ID, 'in', $this->user()->getFeature())
-                ->SetSource('id, forecast')
-                ->sort('forecast')
-                ->limit(2);
-            if (!empty($q)) {
-                $search->match($q);
-            }
-            $this->searchResults['zone0']=$search->result();
-            \error_log(\json_encode($this->searchResults['zone0']).PHP_EOL);*/
+                ->skipAttributes(true)
+                ->addQuery('zone0', $this->router->params['q']);
         }                      
     }
     

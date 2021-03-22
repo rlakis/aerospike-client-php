@@ -594,7 +594,7 @@ class MCMobile extends MCJsonMapper {
     protected bool $dlvrd;
     protected int $sc;       // SMS sent count
     protected int $flag=0;     // 2: ios    
-    protected string $secret;  // ios users only
+    protected string $secret='';  // ios users only
     protected int $type;
 
     
@@ -637,17 +637,17 @@ class MCMobile extends MCJsonMapper {
     
     
     public function getNumber() : int {
-        return $this->number ? $this->number : 0;
+        return $this->number ?? 0;
     }
 
     
     public function getCode() : string {
-        return $this->code ? $this->code : '';
+        return $this->code ?? '';
     }
     
     
     public function getSecret() : string {
-        return $this->secret ? $this->secret : '';
+        return $this->secret ?? '';
     }
 
     

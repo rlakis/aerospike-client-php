@@ -483,8 +483,9 @@ class MCSaveHandler {
     function searchByAdId(int $reference, int $stripPremuim=0) : array {
         $db=new DB(true);
         Config::instance()->incLibFile('SphinxQL');
-        $sphinx=new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>NULL], 'ad');
-        $sphinx->connect();
+        //$sphinx=new SphinxQL(['host'=>'p1.mourjan.com', 'port'=>8307, 'socket'=>NULL], 'ad');
+        $sphinx=$db->ql;
+        //$sphinx->connect();
         $rs=$db->queryResultArray("select section_id, purpose_id, rtl, WEB_USER_ID, content from ad_user where id=?", [$reference])[0];
         $db->close();        
 
@@ -502,9 +503,7 @@ class MCSaveHandler {
         $words=\explode(' ', $obj->attrs->ar);
         
         $q="select id, attrs, locality_id, IF(featured_date_ended>=NOW(),1,0) featured, section_id, purpose_id";
-        $sbPhones="";
-        $sbMails="";
-        $sbGeoKeys="";
+        $sbPhones=$sbMails=$sbGeoKeys="";
         
         //error_log($reference.PHP_EOL.var_export($obj->attrs, true));
         
@@ -531,7 +530,7 @@ class MCSaveHandler {
             }
         }
         
-        $names = [];
+        $names=[];
         if (!isset($obj->attrs->geokeys)) { $obj->attrs->geokeys=[]; }        
         if (isset($obj->attrs->price)) { $names['price']=0; }        
         if (isset($obj->attrs->rooms)) { $names['rooms']=0; }
@@ -649,7 +648,7 @@ class MCSaveHandler {
         $searchResults['body']['total'] = count($searchResults['body']['matches']);
         $searchResults['body']['total_found'] = $searchResults['body']['total'];
                 
-        \error_log(PHP_EOL.__FUNCTION__.var_export($searchResults, true));
+        //\error_log(PHP_EOL.__FUNCTION__.var_export($searchResults, true));
         return $searchResults;
     }
     

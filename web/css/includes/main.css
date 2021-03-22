@@ -756,6 +756,10 @@ body[dir=rtl] .image.seclogo i {
   margin: auto;
   max-height: 750px!important
 }
+body[dir=rtl] .adsbygoogle {
+    margin-right: 0 !important;
+}
+
 #results {
   flex-flow: column;
   width: 100%
