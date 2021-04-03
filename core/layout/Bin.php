@@ -1759,13 +1759,13 @@ class Bin extends AjaxHandler {
                     }
                     else {
                         Config::instance()->incLibFile('MCPostPreferences');
-                        $pref = new MCPostPreferences();
+                        $pref=new MCPostPreferences();
                         $result['prefs']=[];
                         //$result['prefs']['version']=$pref->getVersion();
                         //$dataVersion = filter_input(INPUT_GET, 'version', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
                         //if ($dataVersion != $pref->getVersion()) {
-                        $pref->setup();                        
-                        $this->response('prefs', $pref);
+                        $pref->setup();
+                       
                         $cndic=$this->router->db->asCountriesDictionary();
                         $regions=[];
                         foreach ($cndic as $country_id => $country) {
@@ -1783,9 +1783,35 @@ class Bin extends AjaxHandler {
                             $ad = new Core\Model\Ad();
                             $ad->getAdFromAdUserTableForEditing($aid);
                             if ($ad->id()>0) {
-                                $this->response('ad', $ad->dataset()->getForEditor());
-                            }                                                       
+                                $this->response('ad', $ad->dataset()->getForEditor());                                
+                            }
                         }
+                        
+                        $rs=$this->router->db->queryResultArray(
+                            'select b.BRN, a.NAME_AR as agent_name_ar, a.NAME_EN as agent_name_en, o.NAME_AR as co_name_ar, 
+                            o.NAME_EN as co_name_en, a.TELEPHONE, a.MOBILE, o.EMIRATE, o.orn,
+                            a.EXPIRY_DATE broker_expiry_date, o.EXPIRY_DATE office_expiry_date
+                            from RERA_BROKER b 
+                            left join CACHE_BRN_AE a on a.ID=b.CACHE_BRN_ID 
+                            left join CACHE_ORN_AE o on o.ID=a.CACHE_ORN_ID
+                            where b.uid=?  
+                            and b.valid=1
+                            and a.EXPIRY_DATE>current_date
+                            order by b.ID desc', [$aid>0?$ad->uid():$this->user->id()]);
+                               
+                                
+                        if (!empty($rs)) {
+                            //$this->response('rera', $pref->reraSetup($rs)); 
+                            $rera=$pref->reraSetup($rs);
+                            if (isset($rera['brn'])) {
+                                $rera['orn_ar']=$rs[0]['CO_NAME_AR'];
+                                $rera['orn_en']=$rs[0]['CO_NAME_EN'];
+                                $rera['brn_ar']=$rs[0]['AGENT_NAME_AR'];
+                                $rera['brn_en']=$rs[0]['AGENT_NAME_EN'];
+                            }
+                            $this->response('rera', $rera); 
+                        }                        
+                        $this->response('prefs', $pref);
                     }
                     
                     $this->success();

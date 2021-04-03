@@ -1,9 +1,9 @@
 <?php
-\ini_set('error_reporting', E_ALL);
+\ini_set('error_reporting', \E_ALL);
 \ini_set('aerospike.shm.use', 1);
 \ini_set('display_errors', \get_cfg_var('mourjan.server_id')=='99'?1:0);
 
-include_once dirname(__DIR__) . '/core/model/Singleton.php';
+include_once \dirname(__DIR__) . '/core/model/Singleton.php';
 
 class Config extends \Core\Model\Singleton {
     protected array $config;

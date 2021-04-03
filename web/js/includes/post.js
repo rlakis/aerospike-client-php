@@ -277,6 +277,9 @@ var UI={
                         if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
                         console.log('Prefs', rs.prefs);
                         Prefs.init(rs.prefs);
+                        if (rs.hasOwnProperty('rera')) {
+                            Prefs.broker=rs.rera;
+                        }
                         for(i in _.dic){
                             _.dic[i].menu=[];
                             let m=_.dic[i].menu;
@@ -695,8 +698,8 @@ var UI={
             Swal.fire({
                 title: 'Required by Dubai land department',
                 html:
-                    '<label for="_orn" class="swal2-input-label">Office</label><input disabled id="_orn" class="swal2-input">' +
-                    '<label for="_brn" class="swal2-input-label">Broker</label><input disabled id="_brn" class="swal2-input">'+
+                    '<label for="_orn" class="swal2-input-label">Office</label><input disabled id="_orn" class="swal2-input" value='+Prefs.orn()+'>'+
+                    '<label for="_brn" class="swal2-input-label">Broker</label><input disabled id="_brn" class="swal2-input" value='+Prefs.brn()+'>'+
                     '<label for="_prm" class="swal2-input-label">Permit number</label><input id="_prm" type=number class="swal2-input" autofocus>',
                 footer:'<span>Please be advised that providing <b>wrongful information</b> might lead to account blocking as well as prosecution by concerned law agencies.</span>',
                 showCloseButton: true,
@@ -1505,6 +1508,7 @@ const kPublishLevel = "level";
 var Prefs={
     major:0,
     minor:0,
+    broker:null,
     countries:null,
     chains:null,
     activationCountryCode:null,
@@ -1817,6 +1821,15 @@ var Prefs={
     
     getActivationCountryCode:function(){
         return this.activationCountryCode;
+    },
+    
+    orn:function(wn){
+        return Prefs.broker.orn?Prefs.broker.orn:'';
+    },
+    
+    brn:function(wn){
+        console.log(UI.ar);
+        return Prefs.broker.brn?Prefs.broker.brn:'';
     }
     
 };

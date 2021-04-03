@@ -3,8 +3,7 @@
  * @copyright Copyright PayFort 2012-2016 
  * 
  */
-class PayfortIntegration
-{
+class PayfortIntegration {
 
     public $gatewayHost        = 'https://checkout.payfort.com/';
     public $gatewaySandboxHost = 'https://sbcheckout.payfort.com/';

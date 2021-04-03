@@ -1,6 +1,8 @@
 <?php
 use Core\Model\DB;
 
+if (PHP_SAPI!=='cli') { return; }
+
 include_once __DIR__.'/../../../config/cfg.php';
 include_once __DIR__.'/../../../deps/autoload.php';
 Config::instance()->incModelFile('Db')->incModelFile('Ad')->incModelFile('Content')->incLibFile('MCSaveHandler')->incLibFile('Logger');

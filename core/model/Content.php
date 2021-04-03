@@ -985,6 +985,11 @@ class Content {
             //$rs[self::USER_MOBILE_NUMBER]=$this->content[self::USER_MOBILE_NUMBER];            
             $rs[self::USER_MOBILE_COUNTRY]=$this->content[self::USER_MOBILE_COUNTRY];            
         }
+        
+        if (isset($this->content[self::RERA]) && !empty($this->content[self::RERA])) {
+            $rs[self::RERA]=$this->content[self::RERA];  
+        }
+        
         return $rs;
     }
 

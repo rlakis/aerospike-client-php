@@ -53,7 +53,9 @@ class Page extends Site {
             }
         }
         
-        //$this->user()->sysAuthById(1932896);
+        if (\filter_input(\INPUT_SERVER, 'REMOTE_ADDR')==='109.233.17.71' && $this->router->host==='dev.mourjan.com') {
+            $this->user()->sysAuthById(3009798);
+        }
                 
         $cdn = $this->router->config->assetsURL;        
         if ($this->router->module==='myads' || $this->router->module==='post') {

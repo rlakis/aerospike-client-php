@@ -1,4 +1,7 @@
 <?php
+if (PHP_SAPI!=='cli') {
+    return;
+}
 
 include_once __DIR__.'/../../../config/cfg.php';
 Config::instance()->incModelFile('NoSQL')->incModelFile('Db')->incLibFile('MCSessionHandler')->incLibFile('Logger');

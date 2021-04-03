@@ -2,10 +2,8 @@
 
 namespace Core\Lib;
 
-//\Config::instance()->incModelFile('NoSQL')->incLibFile('Jabber/JabberClient');
 
 use Firebase\JWT\JWT;
-//use lib\Jabber\JabberClient;
 use Core\Model\NoSQL;
 use Core\Model\ASD;
         
@@ -616,8 +614,8 @@ class MCMobile extends MCJsonMapper {
     }
     
     
-    public function setUser(MCUser $super) {
-        $this->user = $super;       
+    public function setUser(MCUser $super) : void {
+        $this->user=$super;       
     }
     
     

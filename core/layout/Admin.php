@@ -206,6 +206,7 @@ class Admin extends Page {
                     left join CACHE_ORN_AE o on o.ID=a.CACHE_ORN_ID
                     where b.uid=?  
                     and b.valid=1
+                    and a.EXPIRY_DATE>current_date
                     order by b.ID desc', [$this->userdata[0]['id']]);            
             if (!empty($rs)) {
                  $this->userdata[0]['rera']=$rs[0];
