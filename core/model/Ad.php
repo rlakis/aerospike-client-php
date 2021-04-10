@@ -119,7 +119,8 @@ class Ad {
     public function setNativeText(string $value) : Ad {
         $this->data[Classifieds::CONTENT]=\trim($value);
         $success = \preg_match_all('/\p{Arabic}/u', $this->data[Classifieds::CONTENT]);
-        if ($success/\mb_strlen($this->data[Classifieds::CONTENT])>0.4) {
+        $len=\mb_strlen($this->data[Classifieds::CONTENT]);
+        if ($len>0 && $success/$len>0.4) {
             $this->setRTL();
         }
         else {
@@ -178,12 +179,18 @@ class Ad {
     
     
     public function countryCode() : string {        
-        return $this->data[Classifieds::COUNTRY_CODE] ?? '';
+        return $this->data[Classifieds::COUNTRY_CODE]??'';
     }
     
     
     public function documentId() : int {
         return $this->data['DOC_ID']??0;
+    }
+    
+    
+    public function setDocumentId(int $docId) : self {
+        $this->data['DOC_ID']=$docId;
+        return $this;
     }
     
     
@@ -288,6 +295,14 @@ class Ad {
     }
 
     
+    public function setCountryId(int $countryId) : self {
+        $this->data[Classifieds::COUNTRY_ID]=$countryId;
+        if ($this->dataset()!==null) {
+            $this->dataset()->setCountryId($countryId);
+        }
+        return $this;
+    }
+                
     public function cityId() : int {
         return ($this->dataset!==null) ? $this->dataset()->getCityId() : ($this->data[Classifieds::CITY_ID] ?? 0);
     }
@@ -307,6 +322,13 @@ class Ad {
         return 0.0;
     }
 
+    
+    public function setPrice(int $amount) : self {
+        if ($this->isForSale() || $this->isForRent()) {
+            $this->data[Classifieds::PRICE]=$amount;
+        }
+        return $this;
+    }
     
     public function formattedPrice() : string {
         $price=$this->price();

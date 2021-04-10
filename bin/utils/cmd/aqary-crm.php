@@ -92,7 +92,8 @@ const COUNTRY_MAP = [
 ];
 
 const PURPOSE_MAP = [
-    'sale'  => 1
+    'sale'  => 1,
+    'lease' => 2
     
 ];
 
@@ -137,15 +138,31 @@ foreach ($feed['property'] as $k=>$item) {
     $ad->setUID(2)->setDataSet(new Core\Model\Content($ad));
     
     $ad->setSectionID(SECTION_MAP[$item['property_type']]??0)
-        ->setPurposeId(PURPOSE_MAP['purpose']??0);
+        ->setPurposeId(PURPOSE_MAP[$item['purpose']]??0)
+        ->setCountryId(COUNTRY_MAP[$item['country']][0]??0)
+        ->setPrice($item['price']??0);
     
             
-    $ad->data()[Classifieds::COUNTRY_ID]=COUNTRY_MAP[$item['country']][0]??0;
-    $ad->data()[Classifieds::COUNTRY_CODE]=COUNTRY_MAP[$item['country']][1]??0;
-    $ad->dataset()->setCountryId(COUNTRY_MAP[$item['country']][0]??0)
+    $ad->data()[Classifieds::COUNTRY_CODE]=COUNTRY_MAP[$item['country']][1]??'';
+    
+    $ad->dataset()->setApp('web', '1.0')
+        ->setIpAddress('127.0.0.1')
+        ->setIpCountry(strtolower(COUNTRY_MAP[$item['country']][1]??''))
+        ->setAdCountry(strtolower(COUNTRY_MAP[$item['country']][1]??''))
+        
         ->setCityId(CITY_MAP[$item['city']]??0);
     $ad->data()[Classifieds::CITY_ID]=CITY_MAP[$item['city']]??0;
     
+    if (isset($item['description_ar']) && is_string($item['description_ar'])) {
+        $ad->setNativeText($item['description_ar']);
+    }
+    if (isset($item['description_en']) && is_string($item['description_en'])) {
+        $ad->setNativeText($item['description_en']);
+    }
+    $reference_number=$item['reference_number']??'';
+    $ad->setDocumentId($item['property_id']??0);
+    
+    echo '----------------------------------------------------------------------------------------------------------',"\n";
     if ($ad->sectionId()===0) {
         echo 'Invalid section: ', $item['property_type'], "\n";
     }
@@ -158,7 +175,8 @@ foreach ($feed['property'] as $k=>$item) {
     if ($ad->purposeId()===0) {
         echo 'Invalid purpose: ', $item['purpose'], "\n";
     }
-    
+    print_r($ad->data());
+    print_r($ad->dataset()->getAsVersion(3));
     //echo "==================================\n";    
 }
 

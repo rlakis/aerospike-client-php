@@ -943,7 +943,7 @@ class Content {
     
     
     private function getAsVersion2() : array {
-        
+        return [];
     }
     
     
