@@ -27,7 +27,7 @@ class Ad {
     function __construct(array $data=[]) {
         $this->profile=null;
         $this->dataset=null;
-        $this->numberValidator= \libphonenumber\PhoneNumberUtil::getInstance();
+        $this->numberValidator=\libphonenumber\PhoneNumberUtil::getInstance();
         $this->data=$data;
         if (!isset($this->data[Classifieds::ID])) { $this->data[Classifieds::ID]=0; }
         if (!isset($this->data[Classifieds::RTL])) { $this->data[Classifieds::RTL]=0; }
@@ -36,10 +36,10 @@ class Ad {
         if (!isset($this->data[Classifieds::PURPOSE_ID])) { $this->data[Classifieds::PURPOSE_ID]=0; }
         
         if (isset($this->data[Classifieds::CONTENT]) && !empty($this->data[Classifieds::CONTENT])) {
-            $this->text = preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
+            $this->text=\preg_split("/\x{200b}/u", $this->data[Classifieds::CONTENT])[0];
         }
         if (isset($this->data[Classifieds::ALT_CONTENT]) && !empty($this->data[Classifieds::ALT_CONTENT])) {
-            $this->translation = preg_split("/\x{200b}/u", $this->data[Classifieds::ALT_CONTENT])[0];
+            $this->translation=\preg_split("/\x{200b}/u", $this->data[Classifieds::ALT_CONTENT])[0];
         }
     }
     
