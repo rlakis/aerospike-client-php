@@ -354,8 +354,7 @@ class IPQuality {
     public static function getEMailStatus(string $email, bool $force=false) : array {
         $email=\strtolower(\trim($email));
         $ipq=new IPQuality;
-        if (!$force && $ipq->get_from_cache($email, $result)===\Aerospike::OK) {
-            
+        if (!$force && $ipq->get_from_cache($email, $result)===\Aerospike::OK) {            
             return $result;
         }  
         

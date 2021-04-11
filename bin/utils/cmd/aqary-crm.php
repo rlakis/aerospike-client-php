@@ -106,10 +106,10 @@ if ($argc!==2) {
     return;
 }
 
-if (!file_exists($argv[1])) {
-    echo $argv[1], " File does not exists!\n";
-    return;    
-}
+//if (!file_exists($argv[1])) {
+//    echo $argv[1], " File does not exists!\n";
+//    return;    
+//}
 
 if (substr($argv[1], -3)!=='xml') {
     echo $argv[1], " File is not xml!\n";
@@ -120,7 +120,7 @@ include_once __DIR__.'/../../../config/cfg.php';
 include_once __DIR__.'/../../../deps/autoload.php';
 
 Config::instance()->incModelFile('Router')->incModelFile('Db')->incModelFile('Classifieds')
-        ->incLibFile('MCUser');
+        ->incLibFile('MCUser')->incLibFile('IPQuality');
 
 
 //Config::instance()->incModelFile('NoSQL')->incLibFile('MCSessionHandler')->incLibFile('Logger');
@@ -132,18 +132,17 @@ $json=\json_encode($xml);
 $feed=\json_decode($json, true);
 //print_r(array_keys($feed));
 
-foreach ($feed['property'] as $k=>$item) {    
-    //print_r($item);
+foreach ($feed['property'] as $k=>$item) {
     $ad=new \Core\Model\Ad([]);
     $ad->setUID(2)->setDataSet(new Core\Model\Content($ad));
     
     $ad->setSectionID(SECTION_MAP[$item['property_type']]??0)
         ->setPurposeId(PURPOSE_MAP[$item['purpose']]??0)
         ->setCountryId(COUNTRY_MAP[$item['country']][0]??0)
+        ->setCountryCode(COUNTRY_MAP[$item['country']][1]??'')
         ->setPrice($item['price']??0);
     
             
-    $ad->data()[Classifieds::COUNTRY_CODE]=COUNTRY_MAP[$item['country']][1]??'';
     
     $ad->dataset()->setApp('web', '1.0')
         ->setIpAddress('127.0.0.1')
@@ -163,6 +162,9 @@ foreach ($feed['property'] as $k=>$item) {
     $ad->setDocumentId($item['property_id']??0);
     
     echo '----------------------------------------------------------------------------------------------------------',"\n";
+    echo $item['agent']['phone'], "\n";
+    echo $item['agent']['email'], "\n";
+    parseCUI($item['agent'], $ad);
     if ($ad->sectionId()===0) {
         echo 'Invalid section: ', $item['property_type'], "\n";
     }
@@ -180,3 +182,36 @@ foreach ($feed['property'] as $k=>$item) {
     //echo "==================================\n";    
 }
 
+
+function parseCUI(array $agent, Ad $ad) {
+    if (isset($agent['phone'])) {
+        $mobileValidator=libphonenumber\PhoneNumberUtil::getInstance();        
+        $num=$mobileValidator->parse($agent['phone'], $ad->countryCode());
+        $type=0;
+        if ($num && $mobileValidator->isValidNumber($num)) {
+            $type=$mobileValidator->getNumberType($num);
+            switch($type) {
+                case 0:
+                    $type=7;
+                    break;
+                case 1:
+                case 2:
+                case 5:
+                    $type=1;
+                    break;
+                default:
+                    $type=0;
+                    break;
+            }
+        }
+        
+        if ($type>0) {            
+            $ad->dataset()->addPhone($num->getCountryCode(), $mobileValidator->getRegionCodeForNumber($num), $num->getNationalNumber(), $type, $mobileValidator->format($num, libphonenumber\PhoneNumberFormat::E164));
+        }
+    }
+    if (isset($agent['email']) && strlen($agent['email']>0)) {
+        $email=IPQuality::getEMailStatus($agent['email']);
+        if (($email['valid']??0)===1)
+            $ad->dataset()->setEmail($agent['email']);
+    }
+}

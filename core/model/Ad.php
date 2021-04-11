@@ -183,6 +183,12 @@ class Ad {
     }
     
     
+    public function setCountryCode(string $isoCode) : self {
+        $this->data[Classifieds::COUNTRY_CODE]=trim(strtoupper($isoCode));
+        return $this;
+    }
+
+
     public function documentId() : int {
         return $this->data['DOC_ID']??0;
     }
