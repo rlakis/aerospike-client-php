@@ -2,41 +2,41 @@
 namespace Core\Model;
 
 class Content {
-    const VERSION_NUMBER        = 3;
+    const VERSION_NUMBER            = 3;
     
-    const ID                    = 'id';
-    const STATE                 = 'state';
-    const ROOT_ID               = 'ro';
-    const SECTION_ID            = 'se';
-    const PURPOSE_ID            = 'pu';
-    const APP_NAME              = 'app';
-    const APP_VERSION           = 'app_v';
-    const USER_AGENT            = 'agent';
-    const NATIVE_RTL            = 'rtl';
-    const FOREIGN_RTL           = 'altRtl';
-    const ATTRIBUTES            = 'attrs';
-    const ATTR_NATIVE           = 'ar';
-    const ATTR_FOREIGN          = 'en';
-    const ATTR_GEO_KEYS         = 'geokeys';
-    const ATTR_LOCALES          = 'locales';
-    const ATTR_LOCALITY         = 'locality';
-    const ATTR_LOCALITY_CITIES  = 'cities';
-    const ATTR_LOCALITY_ID      = 'id';
-    const ATTR_PHONES           = 'phones';
-    const ATTR_PHONES_NUMBERS   = 'n';
-    const ATTR_PHONES_TYPES     = 't';
-    const ATTR_PRICE            = 'price';
-    const ATTR_SPACE            = 'space';
-    const ATTR_ROOMS            = 'rooms';
-    const BUDGET                = 'budget';
-    const AD_COUNTRY            = 'acn';
-    const IP_COUNTRY            = 'icn';
-    const MOBILE_COUNTRY        = 'mcn';
+    const ID                        = 'id';
+    const STATE                     = 'state';
+    const ROOT_ID                   = 'ro';
+    const SECTION_ID                = 'se';
+    const PURPOSE_ID                = 'pu';
+    const APP_NAME                  = 'app';
+    const APP_VERSION               = 'app_v';
+    const USER_AGENT                = 'agent';
+    const NATIVE_RTL                = 'rtl';
+    const FOREIGN_RTL               = 'altRtl';
+    const ATTRIBUTES                = 'attrs';
+    const ATTR_NATIVE               = 'ar';
+    const ATTR_FOREIGN              = 'en';
+    const ATTR_GEO_KEYS             = 'geokeys';
+    const ATTR_LOCALES              = 'locales';
+    const ATTR_LOCALITY             = 'locality';
+    const ATTR_LOCALITY_CITIES      = 'cities';
+    const ATTR_LOCALITY_ID          = 'id';
+    const ATTR_PHONES               = 'phones';
+    const ATTR_PHONES_NUMBERS       = 'n';
+    const ATTR_PHONES_TYPES         = 't';
+    const ATTR_PRICE                = 'price';
+    const ATTR_SPACE                = 'space';
+    const ATTR_ROOMS                = 'rooms';
+    const BUDGET                    = 'budget';
+    const AD_COUNTRY                = 'acn';
+    const IP_COUNTRY                = 'icn';
+    const MOBILE_COUNTRY            = 'mcn';
     
-    const CONTACT_INFO          = 'cui';
-    const CONTACT_INFO_BLACKBERRY = 'b'; // deprecated
-    const CONTACT_INFO_EMAIL    = 'e';
-    const CONTACT_INFO_PHONE    = 'p';
+    const CONTACT_INFO              = 'cui';
+    const CONTACT_INFO_BLACKBERRY   = 'b'; // deprecated
+    const CONTACT_INFO_EMAIL        = 'e';
+    const CONTACT_INFO_PHONE        = 'p';
     const CONTACT_INFO_PHONE_COUNTRY_CODE   = 'c';
     const CONTACT_INFO_PHONE_COUNTRY_ISO    = 'i';
     const CONTACT_INFO_PHONE_RAW_NUMBER     = 'r';
@@ -46,26 +46,22 @@ class Content {
     const CONTACT_INFO_SKIPE                = 's'; // deprecated
     const CONTACT_INFO_TWITTER              = 't'; // deprecated
     
-    //const CONTACT_TIME          = 'cut'; // deprecated
-    //const CONTACT_TIME_AFTER    = 'a'; // deprecated
-    //const CONTACT_TIME_BEFORE   = 'b'; // deprecated
-    //const CONTACT_TIME_HOUR     = 't'; // deprecated
     
-    const UI_CONTROL            = 'extra'; // deprecated
-    const UI_CONTROL_MAP        = 'm'; // deprecated
-    const UI_CONTROL_PICTURES   = 'p'; // deprecated
-    const UI_CONTROL_VIDEO      = 'v'; // deprecated
-    const UI_CONTROL_TRANSLATION= 't'; // deprecated
-    const UI_LANGUAGE           = 'hl';
-    const IP_ADDRESS            = 'ip';
-    const IP_SCORE              = 'ipfs';
-    const NATIVE_TEXT           = 'other';
-    const FOREIGN_TEXT          = 'altother';
-    const LATITUDE              = 'lat';    // deprecated
-    const LONGITUDE             = 'lon';    // deprecated
-    const LOCATION              = 'loc';
-    const LOCATION_ARABIC       = 'loc_ar';
-    const LOCATION_ENGLISH      = 'loc_en';
+    const UI_CONTROL                = 'extra'; // deprecated
+    const UI_CONTROL_MAP            = 'm'; // deprecated
+    const UI_CONTROL_PICTURES       = 'p'; // deprecated
+    const UI_CONTROL_VIDEO          = 'v'; // deprecated
+    const UI_CONTROL_TRANSLATION    = 't'; // deprecated
+    const UI_LANGUAGE               = 'hl';
+    const IP_ADDRESS                = 'ip';
+    const IP_SCORE                  = 'ipfs';
+    const NATIVE_TEXT               = 'other';
+    const FOREIGN_TEXT              = 'altother';
+    const LATITUDE                  = 'lat';    // deprecated
+    const LONGITUDE                 = 'lon';    // deprecated
+    const LOCATION                  = 'loc';
+    const LOCATION_ARABIC           = 'loc_ar';
+    const LOCATION_ENGLISH          = 'loc_en';
     const MEDIA                     = 'media'; // deprecated
     const PICTURE_INDEX             = 'pix_idx';   
     const DEFAULT_PICTURE           = 'pix_def';    // deprecated
@@ -149,6 +145,11 @@ class Content {
     }
     
     
+    public function getArray() : array {
+        return $this->content;
+    }
+    
+    
     public function setAd(Ad $ad) : Content {
         $this->ad=$ad;
         return $this;
@@ -227,7 +228,7 @@ class Content {
     
     
     public function setCityId(int $kCityId) : Content {
-        $this->cityId = $kCityId;
+        $this->cityId=$kCityId;
         return $this;
     }
     
@@ -388,6 +389,13 @@ class Content {
 
 
     public function addPhone(int $country_callkey, string $country_iso_code, string $raw_number, int $number_type, string $international_number) : Content {
+        if (isset($this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE])) {
+            foreach ($this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE] as $p) {
+                if ($p[self::CONTACT_INFO_PHONE_INTERNATIONAL]===$international_number && $p[self::CONTACT_INFO_PHONE_TYPE]===$number_type) {
+                    return $this;
+                }
+            }
+        }
         $this->content[self::CONTACT_INFO][self::CONTACT_INFO_PHONE][]=[
             self::CONTACT_INFO_PHONE_COUNTRY_CODE   => $country_callkey,
             self::CONTACT_INFO_PHONE_COUNTRY_ISO    => $country_iso_code,
@@ -874,16 +882,16 @@ class Content {
     
     
     
-    public function getAsVersion(int $version) : array {
+    public function getAsVersion(int $version, bool $excludeAttrs=true) : array {
         switch ($version) {
             case 2: return $this->getAsVersion2();
-            case 3: return $this->getAsVersion3();
+            case 3: return $this->getAsVersion3($excludeAttrs);
         }
         return [];
     }
     
     
-    private function getAsVersion3() : array {
+    private function getAsVersion3(bool $excludeAttrs=true) : array {
         $rs=[
             self::CONTACT_INFO  => $this->content[self::CONTACT_INFO],            
             self::USER_LEVEL    => $this->content[self::USER_LEVEL],
@@ -938,6 +946,9 @@ class Content {
         $rs[self::AD_COUNTRY]=$this->content[self::AD_COUNTRY]??'';
         $rs[self::IP_COUNTRY]=$this->content[self::IP_COUNTRY]??'';
         $rs[self::MOBILE_COUNTRY]=$this->content[self::MOBILE_COUNTRY]??'';
+        if ($excludeAttrs===false) {
+            $rs[self::ATTRIBUTES]=$this->content[self::ATTRIBUTES];
+        }
         return $rs;
     }
     

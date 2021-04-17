@@ -3,12 +3,12 @@
 use Core\Model\DB;
 use Core\Lib\SphinxQL;
 
-error_reporting(E_ALL);
-ini_set('display_errors', php_sapi_name()=='cli'?'1':'0');
+\error_reporting(E_ALL);
+\ini_set('display_errors', \php_sapi_name()=='cli'?'1':'0');
 
 /* Allow the script to hang around waiting for connections. */
-set_time_limit(0);
-ob_implicit_flush();
+\set_time_limit(0);
+\ob_implicit_flush();
 
 $address = 'h8.mourjan.com';
 $port = 1337;

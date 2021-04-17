@@ -14,10 +14,10 @@ class Ad {
     
     private ?AdList $list;
     
-    private array $data;              // raw classified array
-    private string $text;              // ad text without contacts
-    private string $translation;       // ad text alter language without contacts
-    private ?\Core\Lib\MCUser $profile;           // MCUser instance    
+    private array $data;                // raw classified array
+    private string $text;               // ad text without contacts
+    private string $translation;        // ad text alter language without contacts
+    private ?\Core\Lib\MCUser $profile; // MCUser instance    
     private \libphonenumber\PhoneNumberUtil $numberValidator;
     private ?\Core\Model\Content $dataset;    
     private int $dateModified;
@@ -309,6 +309,7 @@ class Ad {
         return $this;
     }
                 
+    
     public function cityId() : int {
         return ($this->dataset!==null) ? $this->dataset()->getCityId() : ($this->data[Classifieds::CITY_ID] ?? 0);
     }
@@ -584,6 +585,13 @@ class Ad {
         }
         return $this->profile;
     }
+    
+    
+    public function setProfile(\Core\Lib\MCUser $mcUser) : self {
+        $this->profile=$mcUser;
+        return $this;
+    }
+    
     
     
     public function reverseContent() : Ad {
