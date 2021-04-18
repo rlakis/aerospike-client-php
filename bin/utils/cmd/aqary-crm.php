@@ -140,7 +140,11 @@ class Aqary {
     private Core\Model\DB $db;
     private string $mcn;
     public array $ads=[];
-    
+    private string $userPath;
+    //private string $crmPath;
+    private string $repository='/tmp/mourjan-pix/repos/';
+    private string $crmPath='/tmp/mourjan-pix/aqarycrm/';
+
     public function __construct(int $uid, string $url) {
         $this->uid=$uid;
         $this->url=$url;
@@ -157,6 +161,14 @@ class Aqary {
         $json=\json_encode($xml);
         $feed=\json_decode($json, true);
         $i=0;
+        $groupId=floor($this->uid/10000);
+        $this->userPath='p'.$groupId.'/'.$this->uid.'/';
+        if (!file_exists($this->crmPath.$this->userPath)) { mkdir($this->crmPath.$this->userPath, 0777, true); }
+        if (!file_exists($this->repository.'l/'.$this->userPath)) { mkdir($this->repository.'l/'.$this->userPath, 0777, true); }
+        if (!file_exists($this->repository.'d/'.$this->userPath)) { mkdir($this->repository.'d/'.$this->userPath, 0777, true); }
+        if (!file_exists($this->repository.'m/'.$this->userPath)) { mkdir($this->repository.'m/'.$this->userPath, 0777, true); }
+        if (!file_exists($this->repository.'s/'.$this->userPath)) { mkdir($this->repository.'s/'.$this->userPath, 0777, true); }
+
         foreach ($feed['property'] as $k=>$item) {
             $ad=new \Core\Model\Ad([]);
             $ad->setUID($this->uid)
@@ -239,20 +251,8 @@ class Aqary {
             //var_dump($en);
             if ($this->isValid($ad, $item)) {
                 $succeededPhotos=[];
-                if (isset($item['photo']) && \is_array($item['photo']) && isset($item['photo']['url'])) {
-                    $groupId=floor($this->uid/10000);
-                    $dir='p'.$groupId.'/'.$this->uid.'/';
-                    $path='/tmp/mourjan-pix/repos/';
-                    $crmPath='/tmp/mourjan-pix/aqarycrm/';
-                    if (!file_exists($crmPath.$dir)) { mkdir($crmPath.$dir, 0777, true); }
-                    if (!file_exists($path.'l/'.$dir)) {
-                        mkdir($path.'l/'.$dir, 0777, true);
-                        mkdir($path.'d/'.$dir, 0777, true);
-                        mkdir($path.'m/'.$dir, 0777, true);
-                        mkdir($path.'s/'.$dir, 0777, true);
-                    }
-                    $imgIdx=0;
-                    
+                if (isset($item['photo']) && \is_array($item['photo']) && isset($item['photo']['url'])) {                    
+                    $imgIdx=0;                    
                     foreach ($item['photo']['url'] as $photoURL) {
                         $tmp=explode('/', $photoURL);
                         $crmPhotoId=$tmp[count($tmp)-2];                                               
@@ -268,7 +268,7 @@ class Aqary {
                             $crm_image_path=$crmPath.$dir.$crm_image_name;
                             
                             $image_size=file_exists($crm_image_path)?filesize($crm_image_path):0;
-                            $is_new_image=false;
+                            //$is_new_image=false;
                             $signature='';
                             $media_id=0;
                             if (!file_exists($crm_image_path) || $image_size===false || $image_size!==$contentLength) {
@@ -281,42 +281,44 @@ class Aqary {
                                 curl_exec($ch); 
                                 curl_close($ch);
                                 fclose($fp);
-                                $is_new_image=true;
+                                //$is_new_image=true;
                             }
-                            else {
-                                $is_new_image=!file_exists($path.'l/'.$dir.$image_name)||!file_exists($path.'d/'.$dir.$image_name)||!file_exists($path.'m/'.$dir.$image_name)||!file_exists($path.'s/'.$dir.$image_name);
-                            }
+                            //else {
+                            //    $is_new_image=!file_exists($path.'l/'.$dir.$image_name)||!file_exists($path.'d/'.$dir.$image_name)||!file_exists($path.'m/'.$dir.$image_name)||!file_exists($path.'s/'.$dir.$image_name);
+                            //}
                             
-                            if (file_exists($crm_image_path)) {
+                            if (file_exists($crm_image_path) ) {
+                                if ($duplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {                                    
+                                    $media_id=$duplicate['ID'];     
+                                    $info=pathinfo($duplicate['FILENAME']);
+                                    $image_name=$info['filename'].'.'.$info['extension'];
+                                    $crm_image_path=$this->crmPath.$duplicate['FILENAME'];
+                                }
                                 
-                            }
+                                $thumbnails_success=$this->generate_images_sizes($crm_image_path, $image_name);
                             
-                            if ($is_new_image) {                                
-                                $this->generate_image_size($crm_image_path, $path.'l/'.$dir.$image_name);
-                                $this->generate_image_size($crm_image_path, $path.'d/'.$dir.$image_name, 1024);
-                                $this->generate_image_size($crm_image_path, $path.'m/'.$dir.$image_name, 480);
-                                $this->generate_image_size($crm_image_path, $path.'s/'.$dir.$image_name, 200);
-                            }
                             
-                            if (file_exists($path.'l/'.$dir.$image_name) && file_exists($path.'d/'.$dir.$image_name) && file_exists($path.'m/'.$dir.$image_name) && file_exists($path.'s/'.$dir.$image_name)) {
-                                if ($dupplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {
-                                    list($image_width, $image_height)=@getimagesize($path.'d/'.$dir.$image_name);
-                                    if ($image_width>0 && $image_height>0) {
-                                        $succeededPhotos[$dupplicate['FILENAME']]=[$image_width, $image_height];
-                                        $media_id=$dupplicate['ID'];
-                                        //$succeededPhotos[$dir.$image_name]=[$image_width, $image_height];                                    
+                                if (file_exists($path.'l/'.$dir.$image_name) && file_exists($path.'d/'.$dir.$image_name) && file_exists($path.'m/'.$dir.$image_name) && file_exists($path.'s/'.$dir.$image_name)) {
+                                    if ($dupplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {
+                                        list($image_width, $image_height)=@getimagesize($path.'d/'.$dir.$image_name);
+                                        if ($image_width>0 && $image_height>0) {
+                                            $succeededPhotos[$dupplicate['FILENAME']]=[$image_width, $image_height];
+                                            $media_id=$dupplicate['ID'];
+                                            //$succeededPhotos[$dir.$image_name]=[$image_width, $image_height];                                    
+                                        }
+                                    }
+                                    else {
+                                    
                                     }
                                 }
-                                else {
-                                    
-                                }
-                            }
                             
+                            }
                             
                             
                         }
                     }
-                }                
+                }
+                
                 $ad->dataset()->setPictures($succeededPhotos);
                 
                 $normalizer=new MCSaveHandler();                
@@ -387,7 +389,24 @@ class Aqary {
     }
     
     
+    private function generate_images_sizes(string $orginal, string $image_name) : bool {
+        $this->generate_image_size($orginal, $this->repository.'l/'.$this->userPath.$image_name);
+        $this->generate_image_size($orginal, $this->repository.'d/'.$this->userPath.$image_name, 1024);
+        $this->generate_image_size($orginal, $this->repository.'m/'.$this->userPath.$image_name, 480);
+        $this->generate_image_size($orginal, $this->repository.'s/'.$this->userPath.$image_name, 200);
+        return (file_exists($this->repository.'l/'.$this->userPath.$image_name) && 
+                file_exists($this->repository.'d/'.$this->userPath.$image_name) && 
+                file_exists($this->repository.'m/'.$this->userPath.$image_name) && 
+                file_exists($this->repository.'s/'.$this->userPath.$image_name));
+                                
+    }
+    
+    
     private function generate_image_size(string $source_image_path, string $thumbnail_image_path, int $output_width=10000) : bool {
+        if (file_exists($thumbnail_image_path) && filesize($thumbnail_image_path)>2048) {
+            return true;
+        }
+        
         list($source_image_width, $source_image_height, $source_image_type)=getimagesize($source_image_path);
         if ($output_width>=$source_image_width) {
             $output_width=$source_image_width;
@@ -421,7 +440,7 @@ class Aqary {
                 imagegif($thumbnail_gd_image, $thumbnail_image_path);
                 break;
             case IMAGETYPE_JPEG:
-                imagejpeg($thumbnail_gd_image, $thumbnail_image_path, 60);
+                imagejpeg($thumbnail_gd_image, $thumbnail_image_path, 70);
                 break;
             case IMAGETYPE_PNG:
                 imagepng($thumbnail_gd_image, $thumbnail_image_path);
