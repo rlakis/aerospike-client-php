@@ -1369,4 +1369,3 @@ class FBQuery {
     
 }
 
-?>

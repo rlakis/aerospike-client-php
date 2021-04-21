@@ -68,6 +68,9 @@ class Ad {
     
     public function setId(int $value) : Ad {
         $this->data[Classifieds::ID] = ($value>0)?$value:0;
+        if ($this->dataset!==null) {
+            $this->dataset->setID($this->data[Classifieds::ID]);
+        }
         return $this;        
     }
     
@@ -189,13 +192,13 @@ class Ad {
     }
 
 
-    public function documentId() : int {
-        return $this->data['DOC_ID']??0;
+    public function documentId() : string {
+        return $this->data['DOC_ID']??'';
     }
     
     
-    public function setDocumentId(int $docId) : self {
-        $this->data['DOC_ID']=$docId;
+    public function setDocumentId(string $docId) : self {
+        $this->data['DOC_ID']=\trim($docId);
         return $this;
     }
     

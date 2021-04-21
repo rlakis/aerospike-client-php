@@ -2,6 +2,8 @@
 use Core\Model\Ad;
 use Core\Model\Classifieds;
 
+ini_set('memory_limit','1024M');
+
 const SECTION_MAP = [
         'Apartment'                 => 1,   /*OK*/
         'Penthouse'                 => 1,   /*OK*/
@@ -25,7 +27,7 @@ const SECTION_MAP = [
             
         'Commercial Land'           => 7,
         'Residential Land'          => 7,
-        'land mixed use'            => 7,
+        'Mixed used land'           => 7,
         'land'                      => 7,
         'plots'                     => 7,
         'plot'                      => 7,
@@ -43,6 +45,7 @@ const SECTION_MAP = [
             
         'Villa'                     => 131, /*OK*/
         'Commercial Villa'          => 131,
+        'Commercial Villas Compound'=> 131,
                     
         'Office'                    => 6, /*OK*/
                 
@@ -56,6 +59,7 @@ const SECTION_MAP = [
         'bungalow'                  => 4,
                 
         'studio'                    => 122,
+        'Studio'                    => 122,
             
         'factory'                   => 367
     ];  
@@ -88,7 +92,7 @@ const COUNTRY_MAP = [
     'fujairah'              => 812,
     'ras al khaimah'        => 815,
     'umm al quwain'         => 2609,
-    'al ain'                => 6
+    'Al Ain'                => 6
 ];
 
 const PURPOSE_MAP = [
@@ -123,23 +127,24 @@ Config::instance()->incModelFile('Router')->incModelFile('Db')->incModelFile('Cl
         ->incLibFile('MCUser')->incLibFile('IPQuality')->incLibFile('MCSaveHandler');
 
 
-//Config::instance()->incModelFile('NoSQL')->incLibFile('MCSessionHandler')->incLibFile('Logger');
-
 Core\Model\Router::instance()->cache();
 
 $uid=3307635;
 
 $parser=new Aqary($uid, $argv[1]);
 $parser->load();
+$parser->post();
 
 class Aqary {
     private int $uid;
     private string $url;
+    
     private Core\Lib\MCUser $profile;
     private libphonenumber\PhoneNumberUtil $phoneNumberUtil;
     private Core\Model\DB $db;
     private string $mcn;
     public array $ads=[];
+    private array $userAds=[];
     private string $userPath;
     //private string $crmPath;
     private string $repository='/tmp/mourjan-pix/repos/';
@@ -153,6 +158,13 @@ class Aqary {
         $num=$this->phoneNumberUtil->parse($this->profile->getMobileNumber(), 'AE');
         $this->mcn=$this->phoneNumberUtil->getRegionCodeForNumber($num);
         $this->db=new \Core\Model\DB();
+        $rs=$this->db->get("select doc_id, id, state, last_update from ad_user where web_user_id={$this->uid} and doc_id>''");
+        foreach ($rs as $record) {
+            $this->userAds[$record['DOC_ID']]=['ID'=>$record['ID'], 'STATE'=>$record['STATE'], 'LUT'=>$record['LAST_UPDATE']];
+        }
+        unset($rs);
+        //var_dump($this->userAds);
+        //if (1) die ('End');
     }
     
     
@@ -170,10 +182,17 @@ class Aqary {
         if (!file_exists($this->repository.'s/'.$this->userPath)) { mkdir($this->repository.'s/'.$this->userPath, 0777, true); }
 
         foreach ($feed['property'] as $k=>$item) {
+            $last_update=$item['@attributes']['last_update'];
             $ad=new \Core\Model\Ad([]);
+            $ad->setDocumentId($item['reference_number']??'');
+            echo $k,'/',$i, "\t", $last_update, "\t", $this->userAds[$ad->documentId()]['LUT']??'-', "\n";
+            
+            if ($last_update<($this->userAds[$ad->documentId()]['LUT']??'')) {
+                continue;
+            }
             $ad->setUID($this->uid)
                 ->setDataSet(new Core\Model\Content($ad))                
-                ->setSectionID(SECTION_MAP[$item['property_type']]??0)
+                ->setSectionID(SECTION_MAP[\trim($item['property_type'])]??0)
                 ->setPurposeId(PURPOSE_MAP[$item['purpose']]??0)
                 ->setCountryId(COUNTRY_MAP[$item['country']][0]??0)
                 ->setCountryCode(COUNTRY_MAP[$item['country']][1]??'')
@@ -194,7 +213,7 @@ class Aqary {
             $ad->dataset()->setRegions([$ad->cityId()]);
             
             $ad->propertyId=$item['property_id']??0;
-            $ad->propertyReference=$item['reference_number']??'';
+            
             
             if (isset($item['agent']['phone'])) {
                 $this->addPhoneNumber($ad, $item['agent']['phone']);
@@ -213,46 +232,12 @@ class Aqary {
                     $ad->dataset()->setCoordinate(floatval($geopoints[0]), floatval($geopoints[1]));
                 }
             }
-            $en=$item['description_en']??'';
-            preg_match_all('/(0\d{7,9}|0\d\s\d{3}\s\d{4}\b)/', $en, $matches);
+            $this->compose($ad, $item);
             
-            foreach ($matches as $match) {
-                $this->addPhoneNumber($ad, $match[1]+0);
-            }
-            $en=\preg_replace('/For more information.*/mis', '', $en);
-            $en=\preg_replace('/\bsq\.f\b/mis', 'sqft', $en);
-            
-            $size=$item['size']??0;
-            $community=$item['community']??'';
-            $sub_community=$item['sub_community']??'';
-            $community_name=$item['property_name']??'';
-            $ad->dataset()->setLocation($community);
-            if ($community && !\preg_match("/{$community}/mis", $en)) {
-                $en.=" in {$community}";
-            }
-            if ($sub_community && !\preg_match("/{$sub_community}/mis", $en)) {
-                $en.=", {$sub_community}";
-            }
-            if ($community_name && !\preg_match("/{$community_name}/mis", $en)) {
-                $en.=", {$community_name}";
-            }
-            if ($size>0 && isset($item['property_size_unit']) && !\preg_match('/area\s+\d+/mis', $en)) {
-                $en.=" - {$size} {$item['property_size_unit']}";
-            }
-            if ($ad->price()>0 && !preg_match('/price\s+\d+/mis', $en)) {
-                $en.=" - Price {$ad->price()}";
-            }
-            
-            if (mb_strlen($ad->propertyReference)>1) {
-                $en.="- Reference {$ad->propertyReference}";
-            }
-            $ad->dataset()->setNativeText($en);
-            
-            //var_dump($en);
             if ($this->isValid($ad, $item)) {
                 $succeededPhotos=[];
-                if (isset($item['photo']) && \is_array($item['photo']) && isset($item['photo']['url'])) {                    
-                    $imgIdx=0;                    
+                
+                if (isset($item['photo']) && \is_array($item['photo']) && isset($item['photo']['url']) && \is_array($item['photo']['url'])) {                    
                     foreach ($item['photo']['url'] as $photoURL) {
                         $tmp=explode('/', $photoURL);
                         $crmPhotoId=$tmp[count($tmp)-2];                                               
@@ -261,16 +246,13 @@ class Aqary {
                         $contentType=$headers['Content-Type']??'';
                         $contentLength=($headers['Content-Length']??0)+0;
                         if ($contentLength>0 && substr($contentType,0,6)==='image/') {
-                            echo $crmPhotoId, "\t", $contentType, "\t", $contentLength, "\n";
+                            echo $ad->documentId(),': ', $crmPhotoId, "\t", $contentType, "\t", $contentLength, "\n";
                             $image_name=$crmPhotoId.'.'. strtolower(explode("/", $contentType)[1]);
                             
-                            $crm_image_name=$this->uid.'-'.$image_name;
-                            $crm_image_path=$crmPath.$dir.$crm_image_name;
-                            
+                            $crm_image_name='aqary-'.$image_name;
+                            $crm_image_path=$this->crmPath.$this->userPath.$crm_image_name;                            
                             $image_size=file_exists($crm_image_path)?filesize($crm_image_path):0;
-                            //$is_new_image=false;
                             $signature='';
-                            $media_id=0;
                             if (!file_exists($crm_image_path) || $image_size===false || $image_size!==$contentLength) {
                                 set_time_limit(0);
                                 $fp=fopen($crm_image_path, 'w+');
@@ -281,41 +263,30 @@ class Aqary {
                                 curl_exec($ch); 
                                 curl_close($ch);
                                 fclose($fp);
-                                //$is_new_image=true;
                             }
-                            //else {
-                            //    $is_new_image=!file_exists($path.'l/'.$dir.$image_name)||!file_exists($path.'d/'.$dir.$image_name)||!file_exists($path.'m/'.$dir.$image_name)||!file_exists($path.'s/'.$dir.$image_name);
-                            //}
-                            
+                                                        
                             if (file_exists($crm_image_path) ) {
                                 if ($duplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {                                    
-                                    $media_id=$duplicate['ID'];     
                                     $info=pathinfo($duplicate['FILENAME']);
                                     $image_name=$info['filename'].'.'.$info['extension'];
                                     $crm_image_path=$this->crmPath.$duplicate['FILENAME'];
                                 }
                                 
-                                $thumbnails_success=$this->generate_images_sizes($crm_image_path, $image_name);
-                            
-                            
-                                if (file_exists($path.'l/'.$dir.$image_name) && file_exists($path.'d/'.$dir.$image_name) && file_exists($path.'m/'.$dir.$image_name) && file_exists($path.'s/'.$dir.$image_name)) {
-                                    if ($dupplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {
-                                        list($image_width, $image_height)=@getimagesize($path.'d/'.$dir.$image_name);
-                                        if ($image_width>0 && $image_height>0) {
-                                            $succeededPhotos[$dupplicate['FILENAME']]=[$image_width, $image_height];
-                                            $media_id=$dupplicate['ID'];
-                                            //$succeededPhotos[$dir.$image_name]=[$image_width, $image_height];                                    
-                                        }
-                                    }
-                                    else {
-                                    
+                                if ($this->generate_images_sizes($crm_image_path, $image_name)) {                                    
+                                    list($image_width, $image_height)=@getimagesize($this->repository.'d/'.$this->userPath.$image_name);
+                                    if ($image_width>0 && $image_height>0 && count($succeededPhotos)<5) {
+                                        $succeededPhotos[$this->userPath.$image_name]=[$image_width, $image_height];
+                                        $this->db->queryResultArray("update or insert into media (signature, filename, width, height) values (?, ?, ?, ?) matching (signature, filename)", 
+                                                [$signature, $this->userPath.$image_name, $image_width, $image_height], true);
                                     }
                                 }
-                            
-                            }
-                            
-                            
+                                else {
+                                    echo "Thumbnails failed\n";
+                                }
+                            }                                                        
                         }
+                        
+                        if (count($succeededPhotos)>=5) {  break;  }
                     }
                 }
                 
@@ -323,24 +294,144 @@ class Aqary {
                 
                 $normalizer=new MCSaveHandler();                
                 $normalized=$normalizer->getFromContentObject($ad->dataset()->getArray());
+                //print_r($normalized);
                 if ($normalized && \is_array($normalized)) {                    
                     $ad->dataset()->setNativeText($normalized['other']);
+                    $ad->dataset()->setForeignText($normalized['altother']??'');
                     $ad->dataset()->setAttributes($normalized['attrs']);
                     $ad->dataset()->setQualified($normalized['qualified']?1:0);
                     $this->ads[]=$ad;
                 }
+                
             }
-            else echo "Invalid ad!\n";
-            $this->print($ad); 
+            else {
+                echo "Invalid ad!\n";
+            }
             $i++;
-            if ($i>1) {  break;  }
+            $this->print($ad); 
+            if ($i>100) {  break;  }
         }
+        
+        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/aqarycrm/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
+        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/l/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/l/");
+        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/d/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/d/");
+        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/m/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/m/");
+        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/s/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/s/");
     }
     
     
-    public function test() {
-        foreach ($this->ads as $ad) {
+    private function compose(Ad $ad, array $property) : void {
+        \mb_regex_encoding('UTF-8');
+        $ar=$property['description_ar']??'';
+        $en=$property['description_en']??'';
+        if (!is_string($ar)) $ar='';
+        if (!is_string($en)) $en='';
+        $ar=trim(\str_replace("\n", " ", $ar));
+        $en=trim(\str_replace("\n", " ", $en));
+        $this->collectPhoneNumbers($ad, $ar);
+        $this->collectPhoneNumbers($ad, $en);  
+        
+        $size=$property['size']??0;
+        $unit=\strtoupper(\trim($property['property_size_unit']??''));
+        $community=\trim($property['community']??'');
+        $sub_community=\trim($property['sub_community']??'');
+        $community_name=\trim($property['property_name']??'');
+        
+        if (\mb_strlen($ar)>0) {
+            $ar=\preg_replace('/\s+/', ' ', $ar);
+            $ar=\preg_replace('/لمزيد من المعلومات.*/mis', '', $ar);
+            $ar=\preg_replace('/For more information.*/mis', '', $ar);
+            $ar=\trim($ar);
+            //echo $ar, "\n";
             
+        }
+        
+        if (\mb_strlen($en)>0) {
+            $en=\preg_replace('/For more information.*/mis', '', $en);
+            $en=\preg_replace('/\bsq\.f\b/mis', 'sqft', $en);
+            $en=\trim($en);
+        }        
+                        
+        $location=$community;
+        if ($sub_community) {
+            $location.=$community?' - ':'';
+            $location.$sub_community;
+        }
+        $ad->dataset()->setLocation($location);
+        
+        if ($en) {
+            if ($community && !\preg_match("/{$community}/mis", $en)) { $en.=" in {$community}"; }
+            if ($sub_community && !\preg_match("/{$sub_community}/mis", $en)) { $en.=", {$sub_community}"; }
+            if ($community_name && !\preg_match("/{$community_name}/mis", $en)) { $en.=", {$community_name}"; }
+            if ($size>0 && $unit && !\preg_match('/area\s*:?\s*([0123456789,]+)\s*sq/mis', $en)) {
+                $en.=" - {$size} {$unit}";
+            }
+            if ($ad->price()>0 && !\preg_match('/price\s+\d+/mis', $en)) {
+                $en.=" - Price {$ad->price()}";
+            }
+            
+            if (\mb_strlen($ad->documentId())>1) {
+                $en.="- Reference {$ad->documentId()}";
+            }
+        }
+        
+        if ($ar) {
+            if ($size>0 && $unit && \preg_match('/مساح[ةه]\s*\p{Arabic}*\s*[:]?\s*([0-9,]+)\s*(قدم)?/u', $ar)===0) {
+                if ($unit==='SQFT') {
+                    $unit='قدم';
+                }
+                $ar.=" - {$size} {$unit}";
+            }
+            
+            if ($ad->price()>0) {
+                $purpose=$ad->purposeId()===2?'الايجار':'السعر';
+                $ar.=" - {$purpose} {$ad->price()}";
+            }
+            
+             if (\mb_strlen($ad->documentId())>1) {
+                $ar.="- المرجع {$ad->documentId()}";
+            }
+        }
+            
+            
+        if (\mb_strlen($ar)>0 && \mb_strlen($en)) {
+            $ad->dataset()->setNativeText($ar);
+            $ad->dataset()->setForeignText($en);
+        }
+        else if (\mb_strlen($ar)>0 || \mb_strlen($en)) {
+            $ad->dataset()->setNativeText(\mb_strlen($ar)>0?$ar:$en);
+        }
+        
+        //echo $ad->dataset()->getNativeRTL(), "\n";
+        //echo $ad->dataset()->getNativeText(), "\n";
+        //echo $ad->dataset()->getForeignText(), "\n";
+                
+    }
+    
+    
+    private function collectPhoneNumbers(Ad $ad, string $text) : void {
+        if (\mb_strlen($text)>0 && \preg_match_all('/(0\d{7,9}|0\d\s\d{3}\s\d{4}\b)/', $text, $matches)) {
+            foreach ($matches as $match) {
+                try {
+                    $this->addPhoneNumber($ad, ($match[1]??\preg_replace('/\s+/', '', $match[0]))+0);
+                }
+                catch (Exception $e) {
+                    echo $e->getMessage(), "\n";
+                    var_dump($matches);
+                }
+            }
+        }        
+    }
+    
+    
+    public function post() {
+        echo $this->uid, "\n";
+        foreach ($this->ads as $ad) {
+            if ( !empty($ad->dataset()->getContactInfo()) ) {
+                $ad->setId($this->userAds[$ad->documentId()]['ID']??0);
+                $ad->dataset()->setState(2);
+                $ad->dataset()->save();
+            }
         }
     }
     
@@ -377,10 +468,9 @@ class Aqary {
             if ($file_handle_for_viewing_image_file!==false) {
                 $imagick_type->readImageFile($file_handle_for_viewing_image_file);
                 $signature=$imagick_type->getImageSignature();
-                $res=$this->db->queryResultArray('select * from media where signature=?', [$signature], true, PDO::FETCH_ASSOC);
-                var_dump($res);
-                if ($res && count($res)) { $image=$res[0]; }
-            }
+                $res=$this->db->queryResultArray('select * from media where signature=? and filename starting with ?', [$signature, $this->userPath], true, PDO::FETCH_ASSOC);
+                if ($res && count($res)>0) { $image=$res[0]; }
+            }            
         }
         catch(Exception $e) {
             $image=false;
@@ -457,7 +547,7 @@ class Aqary {
     private function cwebp(string $source, string $outfile, int $nw=0, int $nh=0) : void {
         $info = pathinfo($source);
 		
-    	$cmd = "/usr/local/bin/cwebp";
+    	$cmd = "/usr/local/bin/cwebp -quiet";
     	if ($info['extension']==='png') {
             $cmd.=" -near_lossless 50";
     	}
@@ -470,7 +560,7 @@ class Aqary {
             $cmd.=" -resize {$nw} {$nh}";
     	}
     	$cmd.=" {$source} -o {$outfile}";
-    	echo $cmd, "\n";
+    	//echo $cmd, "\n";
     
     	$retval=-1;
         $out=system($cmd, $retval);  
@@ -523,6 +613,9 @@ class Aqary {
             echo 'Invalid purpose: ', $item['purpose'], "\n";
             $result=false;
         }
+        if (empty($ad->documentId())) {
+            $result=false;
+        }
         return $result;
     }
     
@@ -534,7 +627,7 @@ class Aqary {
         echo 'geopoints: ', $ad->latitude(), ', ', $ad->longitude(), "\n";
         echo 'price: ', $ad->price(), "\n";
         echo 'document: ', $ad->propertyId, "\n";
-        echo 'reference: ', $ad->propertyReference, "\n";
+        echo 'reference: ', $ad->documentId(), "\n";
         print_r($ad->dataset()->getAsVersion(3, false));
         echo '----------------------------------------------------------------------------------------------------------',"\n";
     }

@@ -581,10 +581,9 @@ class Content {
     }
     
     
-    public function setNativeText(string $text) : Content {
-        $this->content[self::NATIVE_TEXT] = \trim($text);
-        $this->content[self::NATIVE_RTL] = $this->rtl($this->content[self::NATIVE_TEXT]);
-        
+    public function setNativeText(string $text) : self {
+        $this->content[self::NATIVE_TEXT]=\trim($text);
+        $this->content[self::NATIVE_RTL]=$this->rtl($this->content[self::NATIVE_TEXT]);
         return $this;
     }
     
@@ -776,12 +775,12 @@ class Content {
         $db = Router::instance()->db;
         if ($this->getID()>0) {
             $q = 'UPDATE ad_user set /* ' . __CLASS__ . '.' . __FUNCTION__ . ' */ ';
-            $q.= 'content=?, purpose_id=?, section_id=?, rtl=?, country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=? ';
+            $q.= 'content=?, purpose_id=?, section_id=?, rtl=?, country_id=?, city_id=?, latitude=?, longitude=?, state=?, media=?, doc_id=? ';
             $q.= 'where id=? returning state';
         }
         else {
-            $q = 'INSERT INTO ad_user (content, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, state, media, web_user_id) ';
-            $q.= 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning ID';
+            $q = 'INSERT INTO ad_user (content, purpose_id, section_id, rtl, country_id, city_id, latitude, longitude, state, media, doc_id, web_user_id) ';
+            $q.= 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) returning ID';
         }
         
         $st = $db->prepareQuery($q);
@@ -800,7 +799,7 @@ class Content {
             }            
         }
         
-        $st->bindValue(1, \json_encode($this->getAsVersion(3)), \PDO::PARAM_STR);
+        $st->bindValue(1, \json_encode($this->getAsVersion(3, false)), \PDO::PARAM_STR);
         $st->bindValue(2, $this->getPurposeID(), \PDO::PARAM_INT);
         $st->bindValue(3, $this->getSectionID(), \PDO::PARAM_INT);
         $st->bindValue(4, $this->getNativeRTL(), \PDO::PARAM_INT);
@@ -810,7 +809,9 @@ class Content {
         $st->bindValue(8, $this->content[self::LONGITUDE]);
         $st->bindValue(9, $this->content[self::STATE], \PDO::PARAM_INT);        
         $st->bindValue(10, (\count($this->content[self::PICTURES])>0?1:0), \PDO::PARAM_INT);
-        $st->bindValue(11, $this->getID()>0 ? $this->getID() : $this->getUID(), \PDO::PARAM_INT);
+        $st->bindValue(11, $this->ad?$this->ad->documentId():'', \PDO::PARAM_STR);
+        
+        $st->bindValue(12, $this->getID()>0 ? $this->getID() : $this->getUID(), \PDO::PARAM_INT);
         if ($st->execute()) {
             if (($result = $st->fetch(\PDO::FETCH_ASSOC))!==FALSE) {
                 if ($this->getID()>0) {
@@ -823,7 +824,7 @@ class Content {
             unset($st);
             
             //error_log(PHP_EOL . ' ad id '.$this->getID());
-            $images = $db->get('select AD_MEDIA.ID, AD_MEDIA.MEDIA_ID, MEDIA.FILENAME from ad_media left join media on media.ID=AD_MEDIA.MEDIA_ID where ad_id=?', [$this->getID()]);
+            $images=$db->get('select AD_MEDIA.ID, AD_MEDIA.MEDIA_ID, MEDIA.FILENAME from ad_media left join media on media.ID=AD_MEDIA.MEDIA_ID where ad_id=?', [$this->getID()]);
             
             $to_delete_images=[];
             $no_change_images=[];

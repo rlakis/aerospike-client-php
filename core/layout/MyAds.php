@@ -523,11 +523,9 @@ class MyAds extends UserPage {
     
     function pendingAds(int $state=0) : void {
         $isAdmin=$isAdminOwner=false;
-        $isSuperAdmin=$this->user()->isSuperUser();
-        
-        if ($this->user->level()===9) {
-            $isAdmin=true;
-        }
+        $isAdvancedAdmin=$this->user()->isAdvancedUser();
+        $isSuperAdmin=$this->user()->isSuperUser(); //||$isAdvancedAdmin;        
+        $isAdmin=($this->user->level()===9);
         
         $sub=$this->getGetString('sub');
         $uid=$isAdmin?$this->getGetInt('u'):0;
@@ -538,11 +536,9 @@ class MyAds extends UserPage {
 
        
         ?><div class="row viewable"><div class=col-12><?php
-        //if ($isAdmin===true && $uid>0 && $uid!==$this->user->id()) {
-        //    $this->renderUserTypeSelector($this->user->data);
-        //}
+
         $this->side->avatar()->menu();
-        //if ($isSuperAdmin) {
+
         if ($isAdmin) {
             $this->side->addBlock('editors', $this->renderEditorsBox($state));
         }
@@ -592,17 +588,22 @@ class MyAds extends UserPage {
                         $pk=$as->getConnection()->initKey('mccache', 'ipqs', $cad->dataset()->getIpAddress());
                         if ($as->getRecord($pk, $record, ['info'])===\Aerospike::OK) {
                             $ips[$cad->dataset()->getIpAddress()]=\json_decode($record['info'], true);
-                        }                        
+                        }
                     }
                 }
                 
                 $assignedAdmin='';
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
-                    if (!$isSuperAdmin && $assignedAdmin && $assignedAdmin!=$this->user()->id()) {
-                        $this->adList->next();
-                        continue;
+                    if (!$isSuperAdmin && $assignedAdmin>0 && $assignedAdmin!=$this->user->id()) {
+                        //if ($this->user->id()===897182)
+                        //\error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
+                        //if (!$isAdvancedAdmin) {
+                            $this->adList->next();
+                            continue;
+                        //}
                     }
+                    
                     if ($isSuperAdmin && $assignedAdmin) {
                         $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
                         $assignedAdmin='<span style="padding:0 5px;">'.$__e.'</span>';

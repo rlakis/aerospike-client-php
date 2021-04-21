@@ -54,7 +54,8 @@ class Page extends Site {
         }
         
         if (\filter_input(\INPUT_SERVER, 'REMOTE_ADDR')==='109.233.17.71' && $this->router->host==='dev.mourjan.com') {
-            $this->user()->sysAuthById(3009798);
+            //$this->user()->sysAuthById(3009798);    // AE with RERA 
+            $this->user()->sysAuthById(897182);     //pub 7
         }
                 
         $cdn = $this->router->config->assetsURL;        

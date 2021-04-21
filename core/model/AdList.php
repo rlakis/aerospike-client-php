@@ -101,7 +101,7 @@ class AdList extends \SplDoublyLinkedList {
             $o ='ORDER BY bo_date_ended desc, AD_USER.LAST_UPDATE desc';
         }
         elseif ($this->state>0 && $this->state!==3) {
-            $adLevel=$this->user->isSuperUser()?$adLevel=100000000:0;
+            $adLevel=$this->user->isSuperUser()||$this->user->isAdvancedUser()?$adLevel=100000000:0;
             
             $q.= ', ';
             $q.= 'AD_USER.ADMIN_ID, AD_USER.DOC_ID, AD_OBJECT.super_admin, ';
@@ -169,6 +169,7 @@ class AdList extends \SplDoublyLinkedList {
 
         $l=' rows '.(($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
         
+        //if ($this->user->isAdvancedUser()) 
         //Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
 
         
