@@ -1155,7 +1155,7 @@ class MyAds extends UserPage {
                             if (!$isSystemAd && $rank<3) {
                                 ?><button onclick="d.suspend(this,<?= $cad->uid() ?>)"><?= $this->lang['suspend'] ?></button><?php
                             }
-                            if ($isSuperAdmin && $this->adList->userId()===0) {
+                            if (($isSuperAdmin||$isAdvancedAdmin) && $this->adList->userId()===0) {
                                 ?><button onclick="d.userads(this,<?= $cad->uid() ?>)"><?= $this->lang['user_type_option_1'] ?></button><?php
                             }
                             
