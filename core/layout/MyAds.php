@@ -596,8 +596,8 @@ class MyAds extends UserPage {
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
                     if (!$isSuperAdmin && $assignedAdmin>0 && $assignedAdmin!=$this->user->id()) {
-                        //if ($this->user->id()===897182)
-                        //\error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
+                        if ($this->user->id()===897182)
+                        \error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
                         //if (!$isAdvancedAdmin) {
                             $this->adList->next();
                             continue;
@@ -1149,7 +1149,7 @@ class MyAds extends UserPage {
                                 ?><button onclick="d.help(this,<?= $cad->uid() ?>)"><?= $this->lang['ask_help'] ?></button><?php 
                                 /*?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php*/
                             }                            
-                            if ($isSuperAdmin && $rank<2) {
+                            if (($isSuperAdmin||$isAdvancedAdmin) && $rank<2) {
                                 ?><button onclick="d.ban(this,<?= $cad->uid() ?>)"><?= $this->lang['block'] ?></button><?php 
                             }
                             if (!$isSystemAd && $rank<3) {
@@ -1161,7 +1161,7 @@ class MyAds extends UserPage {
                             
                             
                             $contactInfo=$this->getContactInfo($cad->dataset()->getData());
-                            if ($isSuperAdmin) {
+                            if ($isSuperAdmin||$isAdvancedAdmin) {
                                 ?><button onclick=d.similar(this)><?= $this->lang['similar'] ?></button><?php
                             }
                             if ((!$isSystemAd || $isSuperAdmin) && $contactInfo) {
