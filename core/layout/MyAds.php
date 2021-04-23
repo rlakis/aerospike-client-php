@@ -521,11 +521,14 @@ class MyAds extends UserPage {
     }
     
     
-    function pendingAds(int $state=0) : void {
+    function pendingAds(int $state=0) : void {       
         $isAdmin=$isAdminOwner=false;
         $isAdvancedAdmin=$this->user()->isAdvancedUser();
         $isSuperAdmin=$this->user()->isSuperUser(); //||$isAdvancedAdmin;        
         $isAdmin=($this->user->level()===9);
+        if ($isAdmin && $state===1) {
+            $this->user->info['lft']=time();
+        }
         
         $sub=$this->getGetString('sub');
         $uid=$isAdmin?$this->getGetInt('u'):0;

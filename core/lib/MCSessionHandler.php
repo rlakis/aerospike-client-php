@@ -97,7 +97,8 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
         $key=$this->as_key($id);
         $max_retries=2;
         while ($max_retries>0) {
-            if ($this->storage->put($key, ["PHP_SESSION" => $data], self::TTL, self::SW_OPTIONS)===\Aerospike::OK) {
+            if ($this->storage->put($key, ["PHP_SESSION" => $data, "uid"=>$_SESSION['_u']['info']['id']??0], self::TTL, self::SW_OPTIONS)===\Aerospike::OK) {
+                //error_log(\gettype($data)."\t".$_SESSION['_u']['info']['id']??-1);
                 return TRUE;
             }
            
