@@ -599,12 +599,14 @@ class MyAds extends UserPage {
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
                     if (!$isSuperAdmin && $assignedAdmin>0 && $assignedAdmin!=$this->user->id()) {
+                        
                         if ($this->user->id()===897182)
                         \error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
-                        //if (!$isAdvancedAdmin) {
+                        
+                        if (!($isAdvancedAdmin && $cad->getSuperAdmin()>0)) {
                             $this->adList->next();
                             continue;
-                        //}
+                        }
                     }
                     
                     if ($isSuperAdmin && $assignedAdmin) {

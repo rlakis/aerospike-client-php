@@ -1330,9 +1330,10 @@ class Search extends Page {
             echo $ad->text();
             ?></p></div><?php
             
-            if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
+            if (($this->user->isSuperUser() || $this->user->isAdvancedUser()) && isset($this->searchResults['body']['scores'][$ad->id()])) {
                 ?><span style="direction:ltr;display:block;padding-left:20px"><?=$this->searchResults['body']['scores'][$ad->id()]?></span><?php
             }
+            
             
             ?></a><?php
             
