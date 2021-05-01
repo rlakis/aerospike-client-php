@@ -479,10 +479,7 @@ class Content {
     
     
     public function getORN() : int {
-        //if (!empty($this->content[self::RERA])) {
-        //    \error_log(var_export($this->content[self::RERA], true));
-        //}
-        return $this->content[self::RERA]['orn'] ?? 0;
+        return $this->content[self::RERA]['orn']??0;
     }
     
     
@@ -494,7 +491,7 @@ class Content {
 
 
     public function getBRN() : int {
-        return $this->content[self::RERA]['brn'] ?? 0;
+        return $this->content[self::RERA]['brn']??0;
     }
     
     
@@ -771,6 +768,10 @@ class Content {
     
     
     public function save(int $state=0, int $version=3) : bool {
+        if ($this->cityId===14 && $this->getRootId()===1) {
+            \error_log(__FUNCTION__.'.RERA: '.$this->getORN());
+        }
+        
         $this->prepare();
         $db = Router::instance()->db;
         if ($this->getID()>0) {
@@ -807,6 +808,7 @@ class Content {
                 return false;
             }
         }
+        
         $st->bindValue(1, \json_encode($this->getAsVersion(3, false)), \PDO::PARAM_STR);
         $st->bindValue(2, $this->getPurposeID(), \PDO::PARAM_INT);
         $st->bindValue(3, $this->getSectionID(), \PDO::PARAM_INT);

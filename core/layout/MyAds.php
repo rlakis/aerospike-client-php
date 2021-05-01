@@ -1031,7 +1031,7 @@ class MyAds extends UserPage {
                 ?>><?php
                 //, $this->getAdSection($cad, $cad->rootId(), $isMultiCountry);
                 
-                if ($cad->rootId()===1 && \in_array($cad->purposeId(), [1,2,8]) && $cad->countryId()===2) {
+                if ($cad->rootId()===1 && \in_array($cad->purposeId(), [1,2,8]) && $cad->countryId()===2 && $cad->cityId()===14) {
                     echo \preg_replace('/\{\}/', '<span>ORN: '.$cad->dataset()->getORN().', BRN: '.$cad->dataset()->getBRN().', Permit: '.$cad->dataset()->getPermit().'</span>', $this->getAdSection($cad, $cad->rootId(), $isMultiCountry));
                     //echo '<span>ORN: ', $cad->dataset()->getORN(), ', BRN: ', $cad->dataset()->getBRN(), ', Permit: ', $cad->dataset()->getPermit(), '</span>';
                 }

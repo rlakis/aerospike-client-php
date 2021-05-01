@@ -2463,16 +2463,12 @@ class Bin extends AjaxHandler {
                 $this->authorize(true);                
                 if (!isset($this->_JPOST['o'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                
                 
-                $_ad=\is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);
-                //if (!\is_array($_ad)) { $this->error(self::ERR_DATA_INVALID_PARAM); }                                                   
+                $_ad=\is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);                                              
                 
-                if ($this->user->level()!==9) {
-                    $_ad['ip']=IPQuality::getClientIP();
-                }
+                if ($this->user->level()!==9) {  $_ad['ip']=IPQuality::getClientIP();  }
               
-                
-                $ad = new Core\Model\Ad();
-                $content = new Core\Model\Content();
+                $ad=new Core\Model\Ad;
+                $content=new Core\Model\Content;
                 $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
                         ->setSectionID($_ad['se']??0)
                         ->setPurposeID($_ad['pu']??0)
@@ -2480,6 +2476,7 @@ class Bin extends AjaxHandler {
                         ->setVersion($_ad['version']??Core\Model\Content::VERSION_NUMBER)
                         ->setIpAddress($_ad['ip']??IPQuality::getClientIP())
                         ->setIpScore($_ad['ipfs']??0);
+                                
                 
                 if (isset($_ad['cui']) && \is_array($_ad['cui'])) {                 
                     if (isset($_ad['cui']['p']) && \is_array($_ad['cui']['p'])) {
@@ -2519,17 +2516,21 @@ class Bin extends AjaxHandler {
                         }
                     }
                 }
-                                
+                
                 if ($content->getUID()===0) { $content->setUID($this->user()->id()); }
                 
-                if ($this->user()->id()===$content->getUID()) {
-                    $content->setUserLevel($this->user()->level())->setIpAddress(IPQuality::getClientIP());  
+                if ($this->user->id()===$content->getUID()) {
+                    $content->setUserLevel($this->user->level())->setIpAddress(IPQuality::getClientIP());  
                     $_ad['ip']=IPQuality::getClientIP();
                 }
                 
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
                 $content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
                 
+                if ($content->getRootId()===1 && $content->getCityId()===14 /*isset($_ad['rera']) && isset($_ad['rera']['permit']) && \strlen($_ad['rera']['permit'])>3*/) {
+                    //$content->setRERA($_ad['rera']);
+                    \error_log('RERA '.var_export($_ad['rera']??['null'], true).PHP_EOL);
+                }
                                 
                 $this->router->logger()->info('_JPOST[o]', $_ad);
                 Config::instance()->incLibFile('MCSaveHandler');
@@ -2542,13 +2543,13 @@ class Bin extends AjaxHandler {
                     $content->setAdCountry($normalized[Core\Model\Content::AD_COUNTRY]??'');
                     $content->setIpCountry($normalized[Core\Model\Content::IP_COUNTRY]??'');
                     $content->setMobileCountry($normalized[Core\Model\Content::MOBILE_COUNTRY]??'');
-                    $this->router->logger()->info('attributes', $normalized['attrs']);
+                    //$this->router->logger()->info('attributes', $normalized['attrs']);
                 }
                 
                 $ad->setDataSet($content)->check();
                 
                 //$this->router->logger()->info('New', $content->getData());
-                $this->router->logger()->info('Version 3', $content->getAsVersion(3));
+                $this->router->logger()->info('Version 3', $content->getAsVersion(3, false));
                 
                 if ($content->save(0)) {
                     $ad->getAdFromAdUserTableForEditing($content->getID());
@@ -2560,6 +2561,9 @@ class Bin extends AjaxHandler {
                 }
                 
                 if (1) { return; }
+                
+                // ---------------------------------------------------------------- //
+                
                 
                 $this->error(self::ERR_SYS_MAINTENANCE);
                 

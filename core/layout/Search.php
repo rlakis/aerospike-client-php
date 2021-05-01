@@ -1270,8 +1270,9 @@ class Search extends Page {
             //if ($end_user)
             if ($ad->isFeatured()) {  $c[]='p';  }
             if (!$end_user) {  $c[]='full';  }
+            $itemProp=' itemprop="itemListElement'.$itemScope.'"';
             ?><div class="<?=\implode(' ', $c)?>" <?=$ad->htmlDataAttributes($this->formatNumbers)?>><?php
-            ?><div class=widget id=<?=$ad->id()?> itemprop="itemListElement<?=$itemScope?>"><?php
+            ?><div class=widget id=<?=$ad->id()?><?=$itemProp?>><?php
             ?><a class=link href="<?=$ad->url()?>"><?php
             if ($ad->isFeatured()) {
                 echo '<img class=mark src="', $this->router->config->imgURL, '/prtag-en.svg" />';

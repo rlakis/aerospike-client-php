@@ -253,7 +253,9 @@ class Aqary {
                             $crm_image_path=$this->crmPath.$this->userPath.$crm_image_name;                            
                             $image_size=file_exists($crm_image_path)?filesize($crm_image_path):0;
                             $signature='';
+                            
                             if (!file_exists($crm_image_path) || $image_size===false || $image_size!==$contentLength) {
+                                echo 'Downloading ', $photoURL, ' to ', $crm_image_path, "\n"; 
                                 set_time_limit(0);
                                 $fp=fopen($crm_image_path, 'w+');
                                 $ch=curl_init(str_replace(" ","%20",$photoURL));
@@ -269,7 +271,7 @@ class Aqary {
                                 if ($duplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {                                    
                                     $info=pathinfo($duplicate['FILENAME']);
                                     $image_name=$info['filename'].'.'.$info['extension'];
-                                    $crm_image_path=$this->crmPath.$duplicate['FILENAME'];
+                                    $crm_image_path=$this->crmPath.$info['dirname'].'/aqary-'.$info['basename'];
                                 }
                                 
                                 if ($this->generate_images_sizes($crm_image_path, $image_name)) {                                    
@@ -463,7 +465,7 @@ class Aqary {
     
     
     private function checkImageDuplicate(string $filename, string &$signature) {
-        $imagick_type=new Imagick();
+        $imagick_type=new Imagick;
         $file_handle_for_viewing_image_file=@fopen($filename, 'r');
         $image=null;
         try {
@@ -482,6 +484,7 @@ class Aqary {
     
     
     private function generate_images_sizes(string $orginal, string $image_name) : bool {
+        //echo __FUNCTION__, ': ', $orginal, "\n";
         $this->generate_image_size($orginal, $this->repository.'l/'.$this->userPath.$image_name);
         $this->generate_image_size($orginal, $this->repository.'d/'.$this->userPath.$image_name, 1024);
         $this->generate_image_size($orginal, $this->repository.'m/'.$this->userPath.$image_name, 480);
