@@ -89,15 +89,16 @@ class PostAd extends Page {
             
         if ($this->user->getProfile()->isMobileVerified()) {
             $activation_country_code='';
-            $number=$this->user()->getProfile()->getMobileNumber();
+            $number=$this->user->getProfile()->getMobileNumber();
             if ($number>0) {
                 $numberValidator=\libphonenumber\PhoneNumberUtil::getInstance();
-                $num=$numberValidator->parse($number, 'LB');
+                $num=$numberValidator->parse("+{$number}", 'LB');
                 $activation_country_code=$numberValidator->getRegionCodeForNumber($num);
             }
            
             
-            $current_country_code=isset($this->router->countries[$this->router->countryId]['uri']) ? \strtoupper($this->router->countries[$this->router->countryId]['uri']) : '';
+            //$current_country_code=isset($this->router->countries[$this->router->countryId]['uri']) ? \strtoupper($this->router->countries[$this->router->countryId]['uri']) : '';
+            $current_country_code=\strtoupper($this->router->countries[$this->router->countryId]['uri']??'');
             
             $ip=IPQuality::fetchJson(false)['ipquality'];
             $data_attrs ="data-id={$this->ad()->id()} data-ip-country={$ip['country_code']} data-cur-country={$current_country_code} ";

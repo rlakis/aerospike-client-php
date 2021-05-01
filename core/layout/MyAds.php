@@ -340,7 +340,7 @@ class MyAds extends UserPage {
         //}
         
         
-        if ($isSuperUser) {
+        if ($isSuperUser || $this->user->isAdvancedUser()) {
             //if ($standalone) { echo '<div class=fl>'; }
             $link='';
             switch ($state) {
@@ -371,7 +371,7 @@ class MyAds extends UserPage {
                 
                 
                 if ($filters['uid']) {
-                    echo '<input type=hidden name=fuid value="', $filters['uid'], ' />', $this->router->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
+                    echo '<input type=hidden name=fuid value="', $filters['uid'], '" />', $this->router->isArabic()?'مستخدم':'user', ': <b>', $filters['uid'], '</b>';                    
                 }
                 /*
                 if ($filters['active']) {
@@ -379,11 +379,11 @@ class MyAds extends UserPage {
                 }
                 */
                 
-                ?><select name=fhl onchange="this.form.submit()"><?php
+                echo '<select name=fhl onchange="this.form.submit()">';
                 echo '<option value=0', $filters['lang']==0?' selected':'', '>', $this->lang['lg_sorting_0'],'</option>';
                 echo '<option value=1', $filters['lang']==1?' selected':'', '>العربي فقط</option>';
                 echo '<option value=2', $filters['lang']==2?' selected':'', '>الانجليزي فقط</option>';
-                ?></select><?php
+                echo '</select>';
 
                 ?><select name=fro onchange="this.form.submit()"><?php
                 echo '<option value=0', $filters['root']==0 ? ' selected':'', '>', $this->lang['opt_all_sections'], '</option>';
@@ -599,11 +599,13 @@ class MyAds extends UserPage {
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
                     if (!$isSuperAdmin && $assignedAdmin>0 && $assignedAdmin!=$this->user->id()) {
-                        
-                        if ($this->user->id()===897182)
-                        \error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
-                        
-                        if (!($isAdvancedAdmin && $cad->getSuperAdmin()>0)) {
+                        /*
+                        if ($this->user->id()===897182) {
+                            \error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
+                            \error_log('adList UID: '.$this->adList->userId().PHP_EOL);
+                        }
+                        */
+                        if ( !($isAdvancedAdmin && $cad->getSuperAdmin()>0) ) {
                             $this->adList->next();
                             continue;
                         }

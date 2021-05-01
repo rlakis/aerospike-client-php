@@ -266,14 +266,14 @@ var UI={
             fetch('/ajax-menu/?sections='+(_.ar?'ar':'en')+(_.adForm.dataset.id?'&aid='+_.adForm.dataset.id:''), _options('GET'))
                 .then(res=>res.json())
                 .then(response => {
-                    console.log(response);
+                    //console.log('post.init', response);
                     if(response.success===1){
                         Ad.init();
                         let rs=response.result;
                         _.region=rs.regions;
                         _.dic=rs.roots;
                         _.ip=rs.ip;
-                        console.log('robert', _.ip.ipquality);
+                        //console.log('robert', _.ip.ipquality);
                         if(rs.ad && rs.ad.hasOwnProperty('umc')){_.adForm.dataset.actCountry=rs.ad.umc;};
                         console.log('Prefs', rs.prefs);
                         Prefs.init(rs.prefs);
@@ -321,7 +321,7 @@ var UI={
                         while(c.charAt(0)===' '){c=c.substring(1);}
                         if(c.indexOf('PHPSESSID=')===0){_.sessionID=c.substring(10,c.length);break;}
                     }
-                    console.log('key', $.body.dataset.key, 'sid', _.sessionID);
+                    //console.log('key', $.body.dataset.key, 'sid', _.sessionID);
                     $.body.queryAll('span.pix').forEach(function(pix){_.photos.push(new Photo(pix));});
                     $.body.queryAll('textarea').forEach(function(txt){
                         txt.oninput=function(e){
@@ -694,46 +694,34 @@ var UI={
     
     setRERA:function(broker){
         if (!(Ad.sectionId>0)||Ad.regions.length!==1||Ad.regions[0]!==14)return;
+        p=(Ad.rera&&Ad.rera.permit)?Ad.rera.permit:"";
+        
         if (broker) {
             Swal.fire({
                 title: 'Required by Dubai land department',
                 html:
-                    '<label for="_orn" class="swal2-input-label">Office</label><input disabled id="_orn" class="swal2-input" value='+Prefs.orn()+'>'+
-                    '<label for="_brn" class="swal2-input-label">Broker</label><input disabled id="_brn" class="swal2-input" value='+Prefs.brn()+'>'+
-                    '<label for="_prm" class="swal2-input-label">Permit number</label><input id="_prm" type=number class="swal2-input" autofocus>',
+                    '<label for=_orn class=swal2-input-label>Office</label><input disabled id=_orn class=swal2-input value="'+Prefs.orn(1)+'">'+
+                    '<label for=_brn class=swal2-input-label>Broker</label><input disabled id=_brn class=swal2-input value="'+Prefs.brn(1)+'">'+
+                    '<label for=_prm class=swal2-input-label>Permit number</label><input id=_prm type=number class=swal2-input value="'+p+'">',
                 footer:'<span>Please be advised that providing <b>wrongful information</b> might lead to account blocking as well as prosecution by concerned law agencies.</span>',
                 showCloseButton: true,
                 showCancelButton: true,
-                focusConfirm: true,
+                focusConfirm: false,                
                 didRender: () => {
-                    const content = Swal.getContent();
-                    if (content) {
-                        const b = content.querySelector('#prm');
+                    const content = Swal.getHtmlContainer();
+                    if (content) {                        
+                        const b = content.querySelector('#_prm');
                         if (b) {
-                            b.focus();
+                            setTimeout(function(){  b.focus(); }, 100);    
                         }
                     }
-                    //console.log($.body.query('input#_prm'));
-                    //$.body.query('input#_prm').focus();
+                }
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    Ad.setRERA(Swal.getHtmlContainer().querySelector('#_prm').value);
                 }
             });
             
-        }
-        else {
-            Swal.fire({
-                title: 'Dubai land department info?',
-                showDenyButton: true,
-                showCancelButton: true,
-                confirmButtonText: `I am a broker`,
-                denyButtonText: `I a am the landlord`,
-            }).then((result) => {
-                /* Read more about isConfirmed, isDenied below */
-                if (result.isConfirmed) {
-                    Swal.fire('Saved!', '', 'success')
-                } else if (result.isDenied) {
-                    Swal.fire('Changes are not saved', '', 'info')
-                }
-            });
         }
     },
     
@@ -1185,6 +1173,7 @@ var Ad={
         _.content.lon=ad.lon;
         _.content.loc=ad.loc;
         _.content.budget=ad.budget;
+        if (ad.rera) _.rera=ad.rera;
         
         UI.addressChanged();        
         UI.photos.forEach(function(p){ p.clear(); });
@@ -1348,6 +1337,7 @@ var Ad={
             pubTo:{}
         };
         
+        if (_.rera)ad.rera=_.rera;
         UI.photos.forEach(function(p){
             console.log(p);
             if(p.image !== null){
@@ -1424,6 +1414,17 @@ var Ad={
             .catch(error => {
                 console.log('Error:', error);
             });                                
+    },
+    
+    setRERA:function(p) {
+        let _=this;
+        if (parseInt(p)>999) {
+            _.rera={orn:Prefs.broker.brn, brn:Prefs.broker.brn, permit:p};
+        }
+        else {
+            delete _.rera;
+        }
+        //_.log();
     },
     
     log:function(){console.log(this);}
@@ -1603,7 +1604,6 @@ var Prefs={
             }
         }
         let rs=UI.adForm.dataset;
-        
         if(rs.actCountry.length===2){_.activationCountryCode=rs.actCountry;}        
         if(rs.ipCountry.length===2 && rs.ipCountry===rs.curCountry && rs.tor==='0' && rs.vpn==='0'){_.carrierCountryCode=rs.ipCountry;}
         if(_.activationCountryCode===null&&($.body.dataset.level==='90'||$.body.dataset.level==='9')){_.activationCountryCode=rs.ipCountry;}
@@ -1824,14 +1824,12 @@ var Prefs={
     },
     
     orn:function(wn){
-        return Prefs.broker.orn?Prefs.broker.orn:'';
+        return Prefs.broker.orn?Prefs.broker.orn+(wn?'/'+(UI.ar?Prefs.broker.orn_ar:Prefs.broker.orn_en):''):'';
     },
     
     brn:function(wn){
-        console.log(UI.ar);
-        return Prefs.broker.brn?Prefs.broker.brn:'';
-    }
-    
+        return Prefs.broker.brn?Prefs.broker.brn+(wn?'/'+(UI.ar?Prefs.broker.brn_ar:Prefs.broker.brn_en):''):'';
+    }    
 };
 
 var ContactNumberType={Mobile: 1, MobileWhatsapp: 3, Whatsapp: 5, Landline: 7};

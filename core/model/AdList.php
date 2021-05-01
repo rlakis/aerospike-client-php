@@ -142,7 +142,7 @@ class AdList extends \SplDoublyLinkedList {
                     //\error_log($w);
                 }
             }
-            $w.= ' and (AD_OBJECT.super_admin is null or AD_OBJECT.super_admin<='.$adLevel.') ';
+            $w.= ' and (AD_OBJECT.super_admin<='.$adLevel.') ';
             
             if ($this->purposeId>0) {
                 $w.= "and AD_USER.purpose_id={$this->purposeId} ";
@@ -169,8 +169,9 @@ class AdList extends \SplDoublyLinkedList {
 
         $l=' rows '.(($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
         
-        //if ($this->user->isAdvancedUser()) 
-        //Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
+        //if ($this->user->isSuperUser()) 
+        if ($this->user->isAdvancedUser()) 
+        Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
 
         
         $fixes=[];

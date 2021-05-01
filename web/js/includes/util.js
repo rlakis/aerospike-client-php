@@ -7,6 +7,9 @@ $.addEventListener("DOMContentLoaded",function(e){
     $$=$.body;
     ar=($$.dir==='rtl');
     $.documentElement.setAttribute('data-useragent', navigator.userAgent);
+    //console.log(navigator.mozMobileConnection);
+    //var connection = window.navigator.connection||window.navigator.mozConnection||null;
+    //console.log(connection);
 });
 
 var byId=function(id){return $.getElementById(id);};

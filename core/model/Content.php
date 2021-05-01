@@ -799,6 +799,14 @@ class Content {
             }            
         }
         
+        if (PHP_SAPI==='cli') {
+            $len=strlen(\json_encode($this->getAsVersion(3, false)));
+            echo $this->ad->documentId(), "\t", $len, "\n";
+            if ($len>8190) {
+                echo "content too long!\n";
+                return false;
+            }
+        }
         $st->bindValue(1, \json_encode($this->getAsVersion(3, false)), \PDO::PARAM_STR);
         $st->bindValue(2, $this->getPurposeID(), \PDO::PARAM_INT);
         $st->bindValue(3, $this->getSectionID(), \PDO::PARAM_INT);

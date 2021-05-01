@@ -184,7 +184,7 @@ class Aqary {
         foreach ($feed['property'] as $k=>$item) {
             $last_update=$item['@attributes']['last_update'];
             $ad=new \Core\Model\Ad([]);
-            $ad->setDocumentId($item['reference_number']??'');
+            $ad->setDocumentId(\strtoupper(\trim($item['reference_number']??'')));
             echo $k,'/',$i, "\t", $last_update, "\t", $this->userAds[$ad->documentId()]['LUT']??'-', "\n";
             
             if ($last_update<($this->userAds[$ad->documentId()]['LUT']??'')) {
@@ -355,7 +355,7 @@ class Aqary {
         $location=$community;
         if ($sub_community) {
             $location.=$community?' - ':'';
-            $location.$sub_community;
+            $location.=$sub_community;
         }
         $ad->dataset()->setLocation($location);
         
@@ -440,9 +440,11 @@ class Aqary {
         $headers=[];
         $ch=curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Connection: keep-alive", "Keep-Alive: timeout=5, max=100"]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 1);
         curl_setopt($ch, CURLOPT_NOBODY, 1);
+        
         $output=curl_exec($ch);
         curl_close($ch);
                         
