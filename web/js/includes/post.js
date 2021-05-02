@@ -1419,7 +1419,8 @@ var Ad={
     setRERA:function(p) {
         let _=this;
         if (parseInt(p)>999) {
-            _.rera={orn:Prefs.broker.brn, brn:Prefs.broker.brn, permit:p};
+            _.rera={eStatus:0, orn:Prefs.broker.brn, brn:Prefs.broker.brn, permit:p};
+            //_.rera={eStatus:"1: realEstateIsReady, 2: deedTitleOrPreregistration", reraName:"Landlord name", deed:"", preDeed:""};
         }
         else {
             delete _.rera;

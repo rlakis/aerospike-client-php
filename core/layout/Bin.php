@@ -2466,7 +2466,7 @@ class Bin extends AjaxHandler {
                 $_ad=\is_array($this->_JPOST['o']) ? $this->_JPOST['o'] : \json_decode($this->_JPOST['o'], true);                                              
                 
                 if ($this->user->level()!==9) {  $_ad['ip']=IPQuality::getClientIP();  }
-              
+                              
                 $ad=new Core\Model\Ad;
                 $content=new Core\Model\Content;
                 $content->setID($_ad['id']??0)->setUID($_ad['user']??0)->setState($_ad['state']??0)
@@ -2511,8 +2511,7 @@ class Bin extends AjaxHandler {
                                     ->setIpCountry($oad->dataset()->getIpCountry())
                                     ->setMobileCountry($oad->dataset()->getMobileCountry())
                                     ->setQualified($oad->dataset()->isQualified())
-                                    ;
-                            
+                                    ;                            
                         }
                     }
                 }
@@ -2525,18 +2524,38 @@ class Bin extends AjaxHandler {
                 }
                 
                 $content->setBudget($_ad['budget']??0)->setUserLocation();
-                $content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
+                //$content->setCountryId($this->router->countryId)->setCityId($this->router->cityId);
+                                
+                $countryId=$cityId=$currentCountryId=0;
+                $isMultiCountry=false;
                 
-                if ($content->getRootId()===1 && $content->getCityId()===14 /*isset($_ad['rera']) && isset($_ad['rera']['permit']) && \strlen($_ad['rera']['permit'])>3*/) {
-                    //$content->setRERA($_ad['rera']);
-                    \error_log('RERA '.var_export($_ad['rera']??['null'], true).PHP_EOL);
+                foreach ($content->getRegions() as $publishingTo) {
+                    if (!\is_numeric($publishingTo)) { continue; }
+                    if (isset($this->router->cities[$publishingTo])) {
+                        if ($cityId===0) {
+                            $cityId=$publishingTo;
+                            $countryId=$this->router->cities[$publishingTo]['country_id'];
+                        }
+                        if ($isMultiCountry===false && $currentCountryId>0 && $currentCountryId!==$this->router->cities[$publishingTo]['country_id']) {
+                            $isMultiCountry=true;
+                        }
+                        $currentCountryId=$this->router->cities[$publishingTo]['country_id'];
+                    }                    
+                }
+                $content->setCountryId($countryId)->setCityId($cityId);
+                
+                
+                if ($content->getRootId()===1 && $content->getCityId()===14 && isset($_ad['rera']) && isset($_ad['rera']['permit']) && \strlen($_ad['rera']['permit'])>3) {
+                    $content->setRERA($_ad['rera']);
                 }
                                 
                 $this->router->logger()->info('_JPOST[o]', $_ad);
+              
                 Config::instance()->incLibFile('MCSaveHandler');
                 $normalizer=new MCSaveHandler;    
                 $normalized=$normalizer->getFromContentObject($_ad, false);
                 $this->router->logger()->info('normalized', $normalized);        
+                
                 if ($normalized!==false) {
                     $content->setAttributes($normalized[Core\Model\Content::ATTRIBUTES]);
                     $content->setUserLocation($normalized[Core\Model\Content::USER_LOCATION]);
@@ -2551,7 +2570,7 @@ class Bin extends AjaxHandler {
                 //$this->router->logger()->info('New', $content->getData());
                 $this->router->logger()->info('Version 3', $content->getAsVersion(3, false));
                 
-                if ($content->save(0)) {
+                if ($content->save()) {
                     $ad->getAdFromAdUserTableForEditing($content->getID());
                     $this->resp['result']=$ad->dataset()->getForEditor();                    
                     $this->success();
