@@ -798,9 +798,8 @@ class Content {
         
         if (PHP_SAPI==='cli') {
             $len=strlen(\json_encode($this->getAsVersion(3, false)));
-            echo $this->ad->documentId(), "\t", $len, "\n";
             if ($len>8190) {
-                echo "content too long!\n";
+                echo $this->ad->documentId(), "\t", $len, "\tcontent too long!\n";
                 return false;
             }
         }
@@ -821,7 +820,7 @@ class Content {
         if ($st->execute()) {
             if (($result = $st->fetch(\PDO::FETCH_ASSOC))!==FALSE) {
                 if ($this->getID()>0) {
-                    $this->setState($result['STATE']);
+                    $this->setState($result['STATE']);                   
                 }
                 else {
                     $this->setID($result['ID']);
