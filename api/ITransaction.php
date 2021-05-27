@@ -1,15 +1,12 @@
 <?php
 
-class ITransaction 
-{
-    private $api;
+class ITransaction {
+    private MobileApi $api;
     
-    function __construct(MobileApi $_api) 
-    {
+    function __construct(MobileApi $_api) {
         $this->api = $_api;
 
-        switch ($this->api->command) 
-        {
+        switch ($this->api->command) {
             case API_IOS_PRODUCTS:
                 $this->getProducts();
                 break;
@@ -42,11 +39,9 @@ class ITransaction
     }
     
     
-    public function getProducts() 
-    {
-        $opts=$this->api->userStatus($status);       
-        if ($opts->disallow_purchase==0) 
-        {
+    public function getProducts() : void {
+        $opts=$this->api->userStatus($status);
+        if ($opts->disallow_purchase===0||$opts->disallow_purchase===false) {
             $rs = $this->api->db->queryResultArray("select id, product_id, name_ar, name_en, usd_price, mcu from product where iphone=1 and blocked=0 order by usd_price");
             $this->api->result['d']=$rs;
         }

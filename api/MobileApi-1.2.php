@@ -1395,11 +1395,11 @@ class MobileApi {
             $status = -9;
         }
         
+        
         if ($status===1 && $opts->suspend===0 && $this->user->getMobile()->isVerified()) {
             $this->mobileValidator=libphonenumber\PhoneNumberUtil::getInstance();
             $num=$this->mobileValidator->parse("+{$this->user->getMobile()->getNumber()}", 'LB');
             $opts->regionCodeForNumber=$this->mobileValidator->getRegionCodeForNumber($num);
-
             if ($this->user->device->getCarrierCountryCode()!=='' && $opts->regionCodeForNumber!==$this->user->device->getCarrierCountryCode()) {
                 $opts->disallow_purchase=1;
             }
