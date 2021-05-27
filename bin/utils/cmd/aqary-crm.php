@@ -268,10 +268,17 @@ class Aqary {
                             }
                                                         
                             if (file_exists($crm_image_path) ) {
-                                if ($duplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {                                    
+                                if ($duplicate=$this->checkImageDuplicate($crm_image_path, $signature)) {      
                                     $info=pathinfo($duplicate['FILENAME']);
-                                    $image_name=$info['filename'].'.'.$info['extension'];
-                                    $crm_image_path=$this->crmPath.$info['dirname'].'/aqary-'.$info['basename'];
+                                    if (file_exists($this->crmPath.$info['dirname'].'/aqary-'.$info['basename'])) {
+                                        echo "A: ", $crm_image_path, "\n";
+                                        echo "B: ", $this->crmPath.$info['dirname'].'/aqary-'.$info['basename'], "\n";
+                                        $image_name=$info['filename'].'.'.$info['extension'];
+                                        $crm_image_path=$this->crmPath.$info['dirname'].'/aqary-'.$info['basename'];
+                                    }
+                                    else {
+                                        $this->db->queryResultArray('update media set filename=? where signature=? and filename starting with ?', [$this->userPath.$image_name, $signature, $this->userPath], true);                                               
+                                    }
                                 }
                                 
                                 if ($this->generate_images_sizes($crm_image_path, $image_name)) {                                    
@@ -473,7 +480,9 @@ class Aqary {
                 $imagick_type->readImageFile($file_handle_for_viewing_image_file);
                 $signature=$imagick_type->getImageSignature();
                 $res=$this->db->queryResultArray('select * from media where signature=? and filename starting with ?', [$signature, $this->userPath], true, PDO::FETCH_ASSOC);
-                if ($res && count($res)>0) { $image=$res[0]; }
+                if ($res && count($res)>0) {                     
+                    $image=$res[0];                     
+                }
             }            
         }
         catch(Exception $e) {

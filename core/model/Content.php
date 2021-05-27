@@ -216,8 +216,8 @@ class Content {
     }
     
     
-    public function setCountryId(int $kCountryId) : Content {
-        $this->countryId = $kCountryId;
+    public function setCountryId(int $kCountryId) : self {
+        $this->countryId=$kCountryId;
         return $this;
     }
     
@@ -227,7 +227,7 @@ class Content {
     }
     
     
-    public function setCityId(int $kCityId) : Content {
+    public function setCityId(int $kCityId) : self {
         $this->cityId=$kCityId;
         return $this;
     }
@@ -768,10 +768,6 @@ class Content {
     
     
     public function save(int $state=0, int $version=3) : bool {
-        if ($this->cityId===14 && $this->getRootId()===1) {
-            \error_log(__FUNCTION__.'.RERA: '.$this->getORN());
-        }
-        
         $this->prepare();
         $db = Router::instance()->db;
         if ($this->getID()>0) {
@@ -802,9 +798,8 @@ class Content {
         
         if (PHP_SAPI==='cli') {
             $len=strlen(\json_encode($this->getAsVersion(3, false)));
-            echo $this->ad->documentId(), "\t", $len, "\n";
             if ($len>8190) {
-                echo "content too long!\n";
+                echo $this->ad->documentId(), "\t", $len, "\tcontent too long!\n";
                 return false;
             }
         }
@@ -825,7 +820,7 @@ class Content {
         if ($st->execute()) {
             if (($result = $st->fetch(\PDO::FETCH_ASSOC))!==FALSE) {
                 if ($this->getID()>0) {
-                    $this->setState($result['STATE']);
+                    $this->setState($result['STATE']);                   
                 }
                 else {
                     $this->setID($result['ID']);
@@ -951,12 +946,17 @@ class Content {
         }
 
         if ($this->content[self::STATE]>0) {
-            $rs[self::ATTRIBUTES] = $this->content[self::ATTRIBUTES]??[];
+            $rs[self::ATTRIBUTES]=$this->content[self::ATTRIBUTES]??[];
         }
         
         $rs[self::AD_COUNTRY]=$this->content[self::AD_COUNTRY]??'';
         $rs[self::IP_COUNTRY]=$this->content[self::IP_COUNTRY]??'';
         $rs[self::MOBILE_COUNTRY]=$this->content[self::MOBILE_COUNTRY]??'';
+        
+        if ($this->getPermit()!=='') {
+            $rs[self::RERA]=$this->content[self::RERA];
+        }
+        
         if ($excludeAttrs===false) {
             $rs[self::ATTRIBUTES]=$this->content[self::ATTRIBUTES];
         }

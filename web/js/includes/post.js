@@ -694,9 +694,9 @@ var UI={
     
     setRERA:function(broker){
         if (!(Ad.sectionId>0)||Ad.regions.length!==1||Ad.regions[0]!==14)return;
-        p=(Ad.rera&&Ad.rera.permit)?Ad.rera.permit:"";
         
         if (broker) {
+            p=Ad.rera.eStatus==0?Ad.rera.permit:"";
             Swal.fire({
                 title: 'Required by Dubai land department',
                 html:
@@ -718,7 +718,36 @@ var UI={
                 }
             }).then((r) => {
                 if (r.isConfirmed) {
-                    Ad.setRERA(Swal.getHtmlContainer().querySelector('#_prm').value);
+                    Ad.setReraPermit(Swal.getHtmlContainer().querySelector('#_prm').value);
+                }
+            });
+            
+        }
+        else {  // Landlord
+            Swal.fire({
+                title:null,
+                input: 'checkbox',
+                inputValue: Ad.rera.eStatus==1?1:0,
+                inputPlaceholder:'Real estate is ready',
+                html:
+                    '<label for=_lln class=swal2-input-label>Landlord name</label><input id=_lln class=swal2-input value="'+Ad.rera.reraName+'">'+
+                    '<label for=_dtr class=swal2-input-label>Deed title or preregistration</label><input id=_dtr type=number class=swal2-input value="'+(Ad.rera.eStatus==1?Ad.rera.deed:Ad.rera.preDeed)+'">',
+                footer:'<span>Please be advised that providing <b>wrongful information</b> might lead to account blocking as well as prosecution by concerned law agencies.</span>',
+                showCloseButton: true,
+                showCancelButton: true,
+                focusConfirm: false,                
+                didRender: () => {
+                    const content = Swal.getHtmlContainer();
+                    if (content) {                        
+                        const b = content.querySelector('#_lln');
+                        if (b) {
+                            setTimeout(function(){  b.focus(); }, 100);    
+                        }
+                    }
+                }
+            }).then((r) => {
+                if (r.isConfirmed) {
+                    Ad.setReraDeed(Swal.getHtmlContainer().querySelector('#_lln').value, Swal.getHtmlContainer().querySelector('#_dtr').value, r.value);
                 }
             });
             
@@ -1145,7 +1174,7 @@ var Ad={
     userLocation:null,
     location:null,   
     sloc:'',
-        
+    rera:{eStatus:-1, orn:0, brn:0, permit:0, reraName:"", deed:"", preDeed:""},
     
     init:function(){
         let _=this;
@@ -1174,6 +1203,26 @@ var Ad={
         _.content.loc=ad.loc;
         _.content.budget=ad.budget;
         if (ad.rera) _.rera=ad.rera;
+        if (ad.rera) {
+            if (ad.rera.eStatus && ad.rera.eStatus>0) {
+                _.rera.eStatus=ad.rera.eStatus;
+                _.rera.reraName=ad.rera.reraName;
+                if (_.rera.eStatus==1) {
+                    _.rera.deed=ad.rera.deed;
+                    _.rera.preDeed="";
+                }
+                else {
+                    _.rera.deed="";
+                    _.rera.preDeed=ad.rera.preDeed;                    
+                }
+            }
+            else {
+                _.rera.eStatus=0;
+                _.rera.orn=ad.rera.orn;
+                _.rera.brn=ad.rera.brn;
+                _.rera.permit=ad.rera.permit;
+            }
+        }
         
         UI.addressChanged();        
         UI.photos.forEach(function(p){ p.clear(); });
@@ -1337,7 +1386,7 @@ var Ad={
             pubTo:{}
         };
         
-        if (_.rera)ad.rera=_.rera;
+        if (_.rera.eStatus>=0)ad.rera=_.rera;
         UI.photos.forEach(function(p){
             console.log(p);
             if(p.image !== null){
@@ -1416,16 +1465,31 @@ var Ad={
             });                                
     },
     
-    setRERA:function(p) {
-        let _=this;
+    setReraPermit(p) {
+        let _=this.rera;
         if (parseInt(p)>999) {
-            _.rera={orn:Prefs.broker.brn, brn:Prefs.broker.brn, permit:p};
+            _.eStatus=0;
+            _.orn=Prefs.broker.brn;
+            _.brn=Prefs.broker.brn;
+            _.permit=p;
+        }
+    },
+    
+    setReraDeed(n, d, v) {
+        let _=this.rera;
+        _.reraName=n;
+        if (v==1) {
+            _.eStatus=1;
+            _.deed=d;
+            _.preDeed="";
         }
         else {
-            delete _.rera;
+            _.eStatus=2;
+            _.deed="";
+            _.preDeed=d;
         }
-        //_.log();
     },
+    
     
     log:function(){console.log(this);}
 };
