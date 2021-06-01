@@ -148,8 +148,8 @@ class Aqary {
     private array $userAds=[];
     private string $userPath;
     //private string $crmPath;
-    private string $repository='/tmp/mourjan-pix/repos/';
-    private string $crmPath='/tmp/mourjan-pix/aqarycrm/';
+    private string $repository='/var/db/mourjan-pix/repos/';
+    private string $crmPath='/var/db/mourjan-pix/aqarycrm/';
 
     public function __construct(int $uid, string $url) {
         if (\gethostname()==='h5.mourjan.com') {
@@ -332,11 +332,11 @@ class Aqary {
         }
         
         if (\gethostname()!=='h5.mourjan.com') {
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/aqarycrm/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/l/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/l/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/d/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/d/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/m/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/m/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/s/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/s/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/aqarycrm/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/l/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/l/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/d/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/d/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/m/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/m/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/s/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/s/");
         }
     }
     

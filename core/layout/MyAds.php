@@ -15,7 +15,6 @@ class MyAds extends UserPage {
     
     private AdList $adList;
     private array $admins_online=[];
-    //private $subSection='', $redis=null;
     private ?\Redis $redis=null;
     private int $showApproved=0;
         
@@ -81,9 +80,10 @@ class MyAds extends UserPage {
         if ($sub==='deleted' && $this->user->level()!==9) { $sub = ''; }
                                     
         $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId]]);
-                            
-        /*
-        if ($userLevel===9 && $sub==='pending') {
+          
+        if ($this->user->level()===9 && $sub==='pending') {
+        
+            //if ($userLevel===9 && $sub==='pending') {
             $this->redis=$redis=new Redis();
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
             $redis->select(5);
@@ -93,7 +93,8 @@ class MyAds extends UserPage {
             }
             $this->admins_online=$redis->keys('ADMIN-*');            
         }
-        */
+        
+        
         $this->render();
                 
         if (isset($this->user->params['hold'])) {
@@ -617,9 +618,6 @@ class MyAds extends UserPage {
                 $assignedAdmin='';
                 if ($isAdOwner===false && !$permission->isSuperAdmin()) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
-                    if ($this->user->id()===897182) {
-                        \error_log($permission->canSeeAdsSentToAdmin().': '.$cad->getSuperAdmin().'/'.$this->adList->userId().' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);                            
-                    }
                     
                     if ($cad->getSuperAdmin()>0 && !$permission->canSeeAdsSentToAdmin()) {
                         $this->adList->next();
@@ -639,6 +637,23 @@ class MyAds extends UserPage {
                         $assignedAdmin='';
                     }
                 }
+                
+                /*
+                if ($isAdOwner===false && $permission->isSuperAdmin()) {
+                    
+                    $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
+                    if ($permission->canSeeAdsSentToAdmin() && $assignedAdmin>0) {
+                        $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
+                        $assignedAdmin='<span style="padding:0 5px;">'.$__e.'</span>';
+                    }
+                    else {
+                        $assignedAdmin='';
+                    }
+                    
+                }
+                *
+                 * 
+                 */
                 
                 if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
                     /*
