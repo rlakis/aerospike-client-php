@@ -477,14 +477,19 @@ function sorting(o){
 }
 
 
-function optsValue(f,id){
+function optsValue(f,id,k){
+    if(typeof k==='undefined')k='value';
     e=f.querySelector('div.options#'+id);
     if(e){
         c=e.querySelector('div.option.selected');
-        if(c){return parseInt(c.dataset.value);}
+        if(c){
+            console.log(k, c.dataset[k]);
+            return k==='value'?parseInt(c.dataset[k]):c.dataset[k];
+        }
     }
     return 0;
 }
+
 
 function intValById(f,id){
     e=f.querySelector('#'+id);
@@ -492,11 +497,24 @@ function intValById(f,id){
     return 0;
 }
 
+
 function searching(as) {
-    let f=as.closest('div.asrch');
+    let f=as.closest('div.asrch'), p=window.location.pathname.split("/");
+    console.log(p);
+    p[2]=optsValue(f, '_se', 'url');
+    p[3]=optsValue(f, '_pu', 'url');
+    console.log(p);
+    
+    console.log('new', p.join('/'));
+    
     let se=optsValue(f,'_se'), pu=optsValue(f,'_pu'), xe=optsValue(f,'_xe'), br=optsValue(f,'_br');
-    console.log('se', se, 'pu', pu, 'bedrooms', br, 'advertiser', xe, 'mnp', intValById(f,'mnp'), 'mxp', intValById(f,'mxp'), location.href);
+    console.log('se', se, optsValue(f, '_se', 'url'), 'pu', pu, 'bedrooms', br, 'advertiser', xe, 'mnp', intValById(f,'mnp'), 'mxp', intValById(f,'mxp'), location.href);
+    
+    if (window.location.pathname!==p.join('/')) {
+        window.location.assign('https://'+window.location.hostname+p.join('/'));
+    }
 }
+
 
 window.onclick=function(e){if(adScreen&&e.target===byId('adScreen')){adScreen.close();}};
 

@@ -135,6 +135,7 @@ $parser=new Aqary($uid, $argv[1]);
 $parser->load();
 $parser->post();
 
+echo \gethostname(), "\n";
 class Aqary {
     private int $uid;
     private string $url;
@@ -151,6 +152,11 @@ class Aqary {
     private string $crmPath='/tmp/mourjan-pix/aqarycrm/';
 
     public function __construct(int $uid, string $url) {
+        if (\gethostname()==='h5.mourjan.com') {
+            $this->repository='/var/www/mourjan-pix/repos/';
+            $this->crmPath='/var/www/mourjan-pix/aqarycrm/';
+        }
+        
         $this->uid=$uid;
         $this->url=$url;
         $this->profile=new Core\Lib\MCUser($this->uid);
@@ -216,7 +222,11 @@ class Aqary {
             
             
             if (isset($item['agent']['phone'])) {
-                $this->addPhoneNumber($ad, $item['agent']['phone']);
+                if (is_integer($item['agent']['phone'])) {
+                    $this->addPhoneNumber($ad, $item['agent']['phone']);
+                } else {
+                    print_r($item['agent']['phone']);
+                }
             }
             
             if (isset($item['agent']['email']) && strlen($item['agent']['email'])>0) {
@@ -321,11 +331,13 @@ class Aqary {
             if ($i>100) {  break;  }
         }
         
-        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/aqarycrm/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
-        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/l/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/l/");
-        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/d/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/d/");
-        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/m/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/m/");
-        system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/s/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/s/");
+        if (\gethostname()!=='h5.mourjan.com') {
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/aqarycrm/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/l/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/l/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/d/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/d/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/m/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/m/");
+            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /tmp/mourjan-pix/repos/s/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/s/");
+        }
     }
     
     

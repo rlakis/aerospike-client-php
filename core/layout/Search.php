@@ -1403,9 +1403,10 @@ class Search extends Page {
                 ?><label><?=$this->lang['ad_purpose']?></label><div class=sbw><div class=sbe><div class=strg><?php
                 ?><span><?=$purpose_name?></span><div class="arrow"></div><?php
                 ?><div id=_pu class=options><div class="option<?=$this->advPurposeId===0?' selected':''?>" data-value=0><?=$this->lang['any1']?></div><?php
+                
                 foreach ($this->router->pageRoots[$this->router->rootId]['purposes'] as $k => $v) {
                     if ($v['counter']===0) { continue; }
-                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php
+                    ?><div class="option<?=$this->advPurposeId===$k?' selected':''?>" data-value=<?=$k?> data-url=<?=$this->router->purposes[$k]['uri']?>><?=$v['name']?></div><?php
                 }               
                 ?></div></div></div></div><?php
             }
@@ -2460,9 +2461,10 @@ class Search extends Page {
             return;
         }
         ?><div id=_se class=options><div class="option<?=$this->advSectionId===0?' selected':''?>" data-value=0><?=$this->lang['any1']?></div><?php
+        
         foreach ($this->router->pageSections as $k => $v) {
             if ($v['counter']===0) { continue; }
-            ?><div class="option<?=$this->advSectionId===$k?' selected':''?>" data-value=<?=$k?>><?=$v['name']?></div><?php            
+            ?><div class="option<?=$this->advSectionId===$k?' selected':''?>" data-value=<?=$k?> data-url=<?=($this->router->sections[$k]['uri']??'')?>><?=$v['name']?></div><?php            
         }
         ?></div><?php        
     }

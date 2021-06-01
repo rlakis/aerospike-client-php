@@ -342,7 +342,7 @@ class User {
     
     
     function isAdvancedUser() : bool {
-        return \in_array($this->info['id'], [44835, 897182]);
+        return \in_array($this->info['id'], [44835, 897182, 477618]);
     }
     
     

@@ -1,9 +1,10 @@
 <?php
-\Config::instance()->incLayoutFile('UserPage')->incModelFile('AdList');
+\Config::instance()->incLayoutFile('UserPage')->incModelFile('AdList')->incLibFile('MCPermission');
 
 use Core\Model\Ad;
 use Core\Model\AdList;
 use Core\Lib\MCUser;
+use Core\Lib\MCPermission;
 
 /* TODO *
  * 
@@ -46,7 +47,23 @@ class MyAds extends UserPage {
     
             
     function __construct() {
-        parent::__construct();    
+        parent::__construct();
+        $sub=$this->getGetString('sub');
+        
+        if ($this->user->isLoggedIn(9)) {
+            MCPermission::instance()->setUser($this->user->getProfile());
+            if ($sub==='pending') {
+                $this->redis=$redis=new Redis;
+                $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
+                $redis->select(5);
+            
+                if (!MCPermission::instance()->isSuperAdmin()) {
+                    $redis->setex('ADMIN-'.$this->user()->id(), 300, $this->user->id());
+                }
+                $this->admins_online=$redis->keys('ADMIN-*');                
+            }
+        }
+        
         $this->showApproved=\filter_input(\INPUT_GET, 'approved', \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]);
         
         $this->adList=new AdList();
@@ -61,13 +78,11 @@ class MyAds extends UserPage {
             $this->user->update();
         }
         
-        $sub=$this->getGetString('sub');
-        $userLevel=$this->user->level();  
-        if ($sub==='deleted' && $userLevel!==9) { $sub = ''; }
+        if ($sub==='deleted' && $this->user->level()!==9) { $sub = ''; }
                                     
         $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId]]);
                             
-        
+        /*
         if ($userLevel===9 && $sub==='pending') {
             $this->redis=$redis=new Redis();
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
@@ -78,7 +93,7 @@ class MyAds extends UserPage {
             }
             $this->admins_online=$redis->keys('ADMIN-*');            
         }
-        
+        */
         $this->render();
                 
         if (isset($this->user->params['hold'])) {
@@ -563,7 +578,7 @@ class MyAds extends UserPage {
             $hasPrevious=($this->adList->page()>0);
             $hasNext=((($this->adList->page()+1)*$this->adList->limit())<$this->adList->dbCount());
             //\error_log("{$this->adList->page()}*{$this->adList->limit()}<{$this->adList->dbCount()}");
-            $renderAssignedAdsOnly=($state>0 && $state<4);
+            $renderAssignedAdsOnly=($state>0 && $state<5);
                                
             $isAdminProfiling=(boolean)($this->get('a') && $this->user()->level()===9);
             if ($isAdminProfiling) { $renderAssignedAdsOnly=false; }           
@@ -578,15 +593,19 @@ class MyAds extends UserPage {
             ?><div class=row><div class=mls><?php
             $linkLang=$this->router->language==='ar'?'':$this->router->language.'/';
             
+            $permission=MCPermission::instance();
+            
             $this->adList->rewind();
             while ($this->adList->valid()) {
-                $cad=$this->adList->current();
                 $phoneValidErr=false;
                 $link=$altlink=$liClass='';
+                
+                $cad=$this->adList->current();
                 $textClass=$cad->rtl()?'ar':'en';
                     
                 if ($isAdmin) { 
                     $isAdminOwner=($cad->uid()===$this->user->id()?true:false);
+                    $isAdOwner=($cad->uid()===$this->user->id()?true:false);
                     if (!isset($ips[$cad->dataset()->getIpAddress()])) {
                         $pk=$as->getConnection()->initKey('mccache', 'ipqs', $cad->dataset()->getIpAddress());
                         if ($as->getRecord($pk, $record, ['info'])===\Aerospike::OK) {
@@ -596,18 +615,40 @@ class MyAds extends UserPage {
                 }
                 
                 $assignedAdmin='';
-                if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
+                if ($isAdOwner===false && !$permission->isSuperAdmin()) {
                     $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
-                    if (!$isSuperAdmin && $assignedAdmin>0 && $assignedAdmin!=$this->user->id()) {
-                        /*
-                        if ($this->user->id()===897182) {
-                            \error_log($isSuperAdmin .' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);
-                            \error_log('adList UID: '.$this->adList->userId().PHP_EOL);
-                        }
-                        */
-                        if ( !($isAdvancedAdmin && $cad->getSuperAdmin()>0) ) {
+                    if ($this->user->id()===897182) {
+                        \error_log($permission->canSeeAdsSentToAdmin().': '.$cad->getSuperAdmin().'/'.$this->adList->userId().' - '.$assignedAdmin.'!='.$this->user->id()."\t".$cad->id().PHP_EOL);                            
+                    }
+                    
+                    if ($cad->getSuperAdmin()>0 && !$permission->canSeeAdsSentToAdmin()) {
+                        $this->adList->next();
+                        continue;
+                    }
+                    
+                    if ($cad->getSuperAdmin()===0 && $assignedAdmin!==$this->user->id() && $this->adList->userId()===0) {
+                        $this->adList->next();
+                        continue;
+                    }
+                    
+                    if ($permission->canSeeAdsSentToAdmin() && $assignedAdmin>0) {
+                        $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
+                        $assignedAdmin='<span style="padding:0 5px;">'.$__e.'</span>';
+                    }
+                    else {
+                        $assignedAdmin='';
+                    }
+                }
+                
+                if ($isAdmin && $renderAssignedAdsOnly && !$isAdminOwner) {
+                    /*
+                    $assignedAdmin=$this->assignAdToAdmin($cad->id(), $this->user()->id());
+                    if (!$isSuperAdmin && $assignedAdmin>0 && $assignedAdmin!==$this->user->id()) {
+                        
+                        
+                        if ($cad->getSuperAdmin()==0 && !$permission->canSeeAdsSentToAdmin()) {
                             $this->adList->next();
-                            continue;
+                            continue;                            
                         }
                     }
                     
@@ -618,6 +659,7 @@ class MyAds extends UserPage {
                     else {
                         $assignedAdmin='';
                     }
+                    */
                 }
                 
                 $isFeatured=$cad->isFeatured(); 
@@ -645,8 +687,7 @@ class MyAds extends UserPage {
                     
                     if ($images) { $images.='||'; }
                     
-                    $images.='<img src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';
-                    //$pic='<img src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                    
+                    $images.='<img src="'.$this->router->config->imgURL.'/se/'.$cad->sectionId().'.svg" />';                  
                 }
                 else {                    
                     //if (!empty($cad->dataset()->getPictures()) /*isset($content['pics']) && is_array($content['pics']) && count($content['pics'])>0*/) {
@@ -902,14 +943,15 @@ class MyAds extends UserPage {
                 }
                 echo ' data-hl="', $cad->dataset()->getUserLanguage(), '"'; 
                 
-                if ($this->user->isLoggedIn(9)) {
-                    if ($this->user->isSuperUser()) {
-                        echo ' style="color:var(--mdc80)"';
-                    }
-                    else {
-                        echo ' style="color:var(--mdc90)"';
-                    }
+                
+                if ($permission->isSuperAdmin() /*$this->user->isLoggedIn(9*/ ) {
+                    //if ($this->user->isSuperUser()) {
+                    echo ' style="color:var(--mdc80)"';
                 }
+                else {
+                    echo ' style="color:var(--mdc90)"';
+                }
+                //}
                
                 ?>><header><?php
                 switch ($cad->state()) {
@@ -1144,7 +1186,8 @@ class MyAds extends UserPage {
                     }
                     else {
                         if ($state>0 && $state<7) {
-                            $rank = $cad->profile()->getRank();
+                            
+                            $rank=$cad->profile()->getRank();
                             if (!$isSystemAd || $isSuperAdmin) {         
                                 ?><button onclick="d.approve(this)"><?= $this->lang['approve'] ?></button><?php
                                 if ($isSuperAdmin) {
@@ -1152,25 +1195,31 @@ class MyAds extends UserPage {
                                 }
                                 ?><button onclick="d.reject(this,<?= $cad->uid() ?>)"><?= $this->lang['reject'] ?></button><?php 
                             }
+                            
                             if (!$isSuperAdmin && !$onlySuper && !$isSystemAd) {
                                 ?><button onclick="d.help(this,<?= $cad->uid() ?>)"><?= $this->lang['ask_help'] ?></button><?php 
-                                /*?><span class="lnk" onclick="help(this)"><?= $this->lang['ask_help'] ?></span><?php*/
-                            }                            
-                            if (($isSuperAdmin||$isAdvancedAdmin) && $rank<2) {
+                            }     
+                            
+                            if ($permission->canBlockUser() && $rank<3) {
+                                //if (($isSuperAdmin||$isAdvancedAdmin) && $rank<2) {
                                 ?><button onclick="d.ban(this,<?= $cad->uid() ?>)"><?= $this->lang['block'] ?></button><?php 
                             }
+                            
                             if (!$isSystemAd && $rank<3) {
                                 ?><button onclick="d.suspend(this,<?= $cad->uid() ?>)"><?= $this->lang['suspend'] ?></button><?php
                             }
-                            if (($isSuperAdmin||$isAdvancedAdmin) && $this->adList->userId()===0) {
+                            
+                            
+                            if ($permission->canFilterPendingUserAds()/* ($isSuperAdmin||$isAdvancedAdmin)*/ && $this->adList->userId()===0) {
                                 ?><button onclick="d.userads(this,<?= $cad->uid() ?>)"><?= $this->lang['user_type_option_1'] ?></button><?php
                             }
                             
                             
                             $contactInfo=$this->getContactInfo($cad->dataset()->getData());
-                            if ($isSuperAdmin||$isAdvancedAdmin) {
+                            if ($permission->canSeeSimilarAds()/* $isSuperAdmin||$isAdvancedAdmin*/) {
                                 ?><button onclick=d.similar(this)><?= $this->lang['similar'] ?></button><?php
                             }
+                            
                             if ((!$isSystemAd || $isSuperAdmin) && $contactInfo) {
                                 ?><button id=revise data-contact="<?= $contactInfo ?>" onclick=d.lookFor(this)><?= $this->lang['lookup'] ?></button><?php
                             }                            
