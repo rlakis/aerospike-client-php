@@ -88,7 +88,7 @@ class SphinxQL {
         \mysqli_report(\MYSQLI_REPORT_ERROR | \MYSQLI_REPORT_STRICT);
         $this->indexName=$index;
         //if (\is_array($host)) {
-            $this->server=$host;    
+        $this->server=$host;    
         //} 
         //else {
         //    $this->server = ($port==0) ? $host : "mysql:host={$host};port={$port};";
@@ -664,6 +664,7 @@ class SphinxQL {
         $result = ['error'=>'', 'warning'=>'', 'total'=>0, 'total_found'=>0, 'matches'=>[], 'sql'=>$q];
 
         try {
+            $this->connect();
             $resource = $this->_sphinx->query($q);
             
             if ($this->_sphinx->error) {
@@ -815,6 +816,7 @@ class SphinxQL {
 
     
     function updateHoldAd($id) {
+        $this->connect();
         if ($this->_sphinx->real_query("update {$this->indexName} set hold=1 where id={$id} and hold=0")) {
             //echo "ad: {$id} has been set on hold state in index" . PHP_EOL;
         } 
@@ -825,6 +827,7 @@ class SphinxQL {
     
     
     function directUpdateQuery($q) {
+        $this->connect();
         if ($this->_sphinx->real_query($q)) {
             return $this->_sphinx->affected_rows;
         } 

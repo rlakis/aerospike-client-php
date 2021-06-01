@@ -8,8 +8,6 @@ use Core\Lib\MCUser;
 use Core\Lib\SphinxQL;
 use \Core\Lib\Audit;
 use \Core\Model\MobileValidation;
-//use Kreait\Firebase\Factory;
-//use Kreait\Firebase\ServiceAccount;
 
 Config::instance()->incModelFile('Db')->incModelFile('Classifieds')->incLibFile('MCUser')->incLibFile('MCSessionHandler');
 
@@ -1450,13 +1448,13 @@ class MobileApi {
     }
     
 
-    function editFavorites() {      
+    function editFavorites() : void {      
         $this->userStatus($status);
         if ($status==1) {
-            $adid = filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT)+0;
-            $state = filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
-            $note = filter_input(INPUT_GET, 'note', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]);
-            $flag = filter_input(INPUT_GET, 'flag', FILTER_VALIDATE_INT)+0;
+            $adid=filter_input(INPUT_GET, 'adid', FILTER_VALIDATE_INT)+0;
+            $state=filter_input(INPUT_GET, 'del', FILTER_VALIDATE_INT)+0;
+            $note=filter_input(INPUT_GET, 'note', FILTER_SANITIZE_STRING, ['options'=>['default'=>""]]);
+            $flag=filter_input(INPUT_GET, 'flag', FILTER_VALIDATE_INT)+0;
                         
             if ($adid) {
                 $this->db->setWriteMode();
@@ -1466,21 +1464,21 @@ class MobileApi {
                     case 0:
                         // Favorite Only
                         $q="update or insert into web_users_favs (web_user_id, ad_id, deleted) values (?, ?, ?) matching (web_user_id, ad_id) returning id";
-                        $rs = $this->db->get($q, [$this->uid, $adid, $state], TRUE);
+                        $rs=$this->db->get($q, [$this->uid, $adid, $state], TRUE);
 
-                        if ($rs && is_array($rs) && count($rs)==1) {
+                        if ($rs && is_array($rs) && count($rs)===1) {
                             include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
-                            $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
+                            $sphinx=new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
 
-                            $users = $this->db->get("select list(web_user_id) ULIST from web_users_favs where deleted=0 and ad_id=?", [$adid], TRUE);
+                            $users=$this->db->get("select list(web_user_id) ULIST from web_users_favs where deleted=0 and ad_id=?", [$adid], TRUE);
                             if ($users && is_array($users)) {
                                 if (count($users)) {
-                                    $q = "update {$this->config['search_index']} set starred=({$users[0]['ULIST']}) where id={$adid}";
+                                    $q="update {$this->config['search_index']} set starred=({$users[0]['ULIST']}) where id={$adid}";
                                 } 
                                 else {
-                                    $q = "update {$this->config['search_index']} set starred=() where id={$adid}";   
+                                    $q="update {$this->config['search_index']} set starred=() where id={$adid}";   
                                 }
-                                $succeed= $sphinx->directUpdateQuery($q);
+                                $succeed=$sphinx->directUpdateQuery($q);
                             }
                     
                             if (!$succeed) {
