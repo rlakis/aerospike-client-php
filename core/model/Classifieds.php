@@ -251,6 +251,15 @@ class Classifieds {
            
             $ad[Classifieds::PRICE]=(isset($decoder['attrs']['price']) && $decoder['attrs']['price']>0)?$decoder['attrs']['price']:0;
         
+            if (isset($decoder['attrs']['ipfs']) && $decoder['attrs']['ipfs']>0) {
+                $ad[Classifieds::IP_FRAUD_SCORE]=$decoder['attrs']['ipfs'];
+            }
+            else {
+                $ad[Classifieds::IP_FRAUD_SCORE] = 0;
+            }
+            $ad[Classifieds::AM_COUNTRY_CODE]=$decoder['attrs']['mcn']??'';
+            $ad[Classifieds::IP_COUNTRY_CODE]=$decoder['attrs']['icn']??'';
+            
             if ($ad[Classifieds::ROOT_ID]==1) {
                 $this->stmt_get_loc->execute([$id]);
                 while (($locRow=$this->stmt_get_loc->fetch(\PDO::FETCH_ASSOC)) !== false) {

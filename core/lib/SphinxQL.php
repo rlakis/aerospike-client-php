@@ -344,8 +344,8 @@ class SphinxQL {
     
     
     
-    function setFilter(string $attribute, $values, bool $exclude=FALSE) : SphinxQL {
-        assert(is_string($attribute));
+    function setFilter(string $attribute, $values, bool $exclude=false) : SphinxQL {
+        \assert(\is_string($attribute));
         $condition="";
         
         if ($exclude) {
@@ -375,7 +375,7 @@ class SphinxQL {
             }
         }
 
-        $this->filters[$attribute] = $condition;
+        $this->filters[$attribute]=$condition;
         return $this;
     }
     

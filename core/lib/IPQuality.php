@@ -199,54 +199,28 @@ class IPQuality {
     
     
     public static function ipScore($mobile=null) : float {
-        $ip = static::getClientIP();
+        $ip=static::getClientIP();
         
         if ($ip!=='UNKNOWN') {
-            $redis=new Redis;
-            try {                              
-                if ($redis->connect('h5.mourjan.com', 6379, 1, NULL, 50)) {
-                    $redis->select(3);
-                    $redis->setOption(Redis::OPT_PREFIX, 'IP:');  
-                    $redis->setOption(Redis::OPT_READ_TIMEOUT, 3);
-                    $raw = $redis->get($ip);                    
-                    
-                    if (!empty($raw)) {
-                        $result = json_decode($raw, true);
-                        if ($result!==null) {
-                            if (isset($result['fraud_score'])) {
-                                $redis->close(); 
-                                return $result['fraud_score']+0.0;
-                            } 
-                        }
-                        else {
-                            error_log(__FUNCTION__ . ' error json decode!!!');
-                        }
-                    }
-                }
-            } 
-            catch (RedisException $re) {}
-        
-            $ipq = new IPQuality;
+            $ipq=new IPQuality;
+      
+            if ($ipq->get_from_cache($ip, $result)===\Aerospike::OK) {
+                return $result['fraud_score']??0;
+            }
+            
             if ($mobile===TRUE) {
-                $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true')); 
+                $ok=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?strictness=%s&allow_public_access_points=%s&mobile=%s', $ipq->key, $ip, 3, 'false', 'true'), $ip, $result); 
             }
             else {
-                $user_agent = urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
-                $language = urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
-                $raw = $ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 3, 'false'));                
+                $user_agent=urlencode($_SERVER['HTTP_USER_AGENT']??''); // User Browser (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                $language=urlencode($_SERVER['HTTP_ACCEPT_LANGUAGE']??''); // User System Language (optional) - provides better forensics for our algorithm to enhance fraud scores.
+                $ok=$ipq->get_IPQ_URL(sprintf('https://www.ipqualityscore.com/api/json/ip/%s/%s?user_agent=%s&user_language=%s&strictness=%s&allow_public_access_points=%s', $ipq->key, $ip, $user_agent, $language, 3, 'false'), $ip, $result); 
             }
-            $result = json_decode($raw, true);
-            if ($result!==null) {
-                try {
-                    $redis->setex($ip, 604800, json_encode($result));
-                } 
-                catch (RedisException $re) {}
-                if (isset($result['fraud_score'])) {
-                    $redis->close();
-                    return $result['fraud_score']+0.0;
-                } 
-            } 
-            $redis->close();
+            
+            if ($ok && isset($result['fraud_score'])) {
+                return $result['fraud_score'];
+            }
+            
         }
         return -1;
     }

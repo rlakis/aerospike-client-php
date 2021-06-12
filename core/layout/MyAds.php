@@ -142,12 +142,12 @@ class MyAds extends UserPage {
     
     
     function getAssignedAdmin(int $ad_id) : int {
-        $admin = 0;
+        $admin=0;
         if ($this->redis) {
-            $redis = $this->redis;
-            $ad = $redis->mGet(array('AD-'.$ad_id));
-            if ($ad[0] !== false) {                
-                $admin = \intval(\substr($ad[0],6));
+            $redis=$this->redis;
+            $ad=$redis->mGet(array('AD-'.$ad_id));
+            if ($ad[0]!==false) {                
+                $admin=\intval(\substr($ad[0],6));
             }
         }
         return $admin;
@@ -630,6 +630,17 @@ class MyAds extends UserPage {
                     }
                     
                     if ($permission->canSeeAdsSentToAdmin() && $assignedAdmin>0) {
+                        $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
+                        $assignedAdmin='<span style="padding:0 5px;">'.$__e.'</span>';
+                    }
+                    else {
+                        $assignedAdmin='';
+                    }
+                }
+                
+                if ($permission->isSuperAdmin()) {
+                    $assignedAdmin=$this->getAssignedAdmin($cad->id());
+                    if ($assignedAdmin>0) {
                         $__e=$this->editors[$assignedAdmin]??$assignedAdmin;
                         $assignedAdmin='<span style="padding:0 5px;">'.$__e.'</span>';
                     }

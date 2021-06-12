@@ -419,7 +419,7 @@ class MobileApi {
 
     
     function getClassified($id) {
-        $ad = $this->db->getCache()->get($id);
+        $ad=$this->db->getCache()->get($id);
         if ($ad) { return $ad; }
         
         if (!self::$stmt_get_ad || !$this->db->inTransaction()) {
@@ -566,24 +566,22 @@ class MobileApi {
         }
         
         if ($sectionId) {
-            $sphinxQL->setFilter('section_id', $sectionId, TRUE);
+            $sphinxQL->setFilter('section_id', $sectionId, true);
         }
         elseif ($rootId) {
-            $sphinxQL->setFilter('root_id', $rootId, TRUE);
+            $sphinxQL->setFilter('root_id', $rootId, true);
         }
         
-        $sphinxQL->setFilterCondition('featured_date_ended', '>=', time());
-        $sphinxQL->setSelect("id" );
-        $sphinxQL->setSortBy("RAND()");
-        $sphinxQL->setLimits(0, 3, 20);
+        $sphinxQL->setFilterCondition('featured_date_ended', '>=', time())
+                ->setSelect("id" )->setSortBy("RAND()")->setLimits(0, 3, 20);
         
-        if (!$sectionId && !$rootId && $keywords!='') {
-            $words = preg_split('/ /', $keywords);
+        if (!$sectionId && !$rootId && $keywords!=='') {
+            $words=\preg_split('/ /', $keywords);
             $keywords='';
             foreach ($words as $word) {
-                $keywords .= ' -'.$word;
+                $keywords.=' -'.$word;
             }
-            $keywords = trim($keywords);
+            $keywords=\trim($keywords);
         }
         
         return $sphinxQL->Query($keywords, MYSQLI_NUM);
@@ -591,12 +589,12 @@ class MobileApi {
 
     
     function isIOS() {
-        return $this->systemName=='ios';
+        return $this->systemName==='ios';
     }
     
     
     function isAndroid() {
-        return $this->systemName=='Android';
+        return $this->systemName==='Android';
     }
     
     
@@ -622,8 +620,8 @@ class MobileApi {
         $publisherId=\filter_input(\INPUT_GET, 'pid', \FILTER_VALIDATE_INT, ['options'=>['default'=>0]]);
         
         //added for android 2+
-        $device_appversion = filter_input(INPUT_GET, 'bv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        $adMobAdsCount = filter_input(INPUT_GET, 'admob', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
+        $device_appversion=\filter_input(INPUT_GET, 'bv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $adMobAdsCount=\filter_input(INPUT_GET, 'admob', FILTER_VALIDATE_INT, ['options'=>['default'=>0]])+0;
         
         
         if (!in_array($publisherType, [0,1,2])) {
@@ -730,197 +728,183 @@ class MobileApi {
             $this->result['total']=$query['total_found'];
             if (isset($query['matches'])) {
                 $this->result['d'][]=[
-                Classifieds::ID,
-                Classifieds::COUNTRY_ID,
-                Classifieds::CITY_ID,
-                Classifieds::PURPOSE_ID,
-                Classifieds::ROOT_ID,
-                Classifieds::CONTENT,
-                Classifieds::RTL,
-                Classifieds::DATE_ADDED,
-                Classifieds::SECTION_ID,
-                Classifieds::COUNTRY_CODE,
-                Classifieds::UNIXTIME,
-                //Classifieds::EXPIRY_DATE,
-                Classifieds::URI_FORMAT,
-                Classifieds::LAST_UPDATE,
-                Classifieds::LATITUDE,
-                Classifieds::LONGITUDE,
-                Classifieds::ALT_CONTENT,
-                Classifieds::USER_ID,
-                Classifieds::PICTURES,
-                Classifieds::EXTENTED_AR,
-                Classifieds::EXTENTED_EN,
-                Classifieds::LOCALITY_ID,
-                Classifieds::LOCALITIES_AR,
-                Classifieds::LOCALITIES_EN,
-                Classifieds::USER_LEVEL,
-                Classifieds::LOCATION,
-                Classifieds::PICTURES_DIM,
-                //Classifieds::TELEPHONES,
-                Classifieds::EMAILS,
-                Classifieds::IS_FEATURED,
-                Classifieds::CONTACT_INFO,
-                Classifieds::PUBLISHER_TYPE,
-                Classifieds::IS_PREMIUM,
-                Classifieds::PRICE,
-                Classifieds::RERA,
-                Classifieds::IP_COUNTRY_CODE,
-                Classifieds::AM_COUNTRY_CODE,
-                
-            ];
+                    Classifieds::ID,
+                    Classifieds::COUNTRY_ID,
+                    Classifieds::CITY_ID,
+                    Classifieds::PURPOSE_ID,
+                    Classifieds::ROOT_ID,
+                    Classifieds::CONTENT,
+                    Classifieds::RTL,
+                    Classifieds::DATE_ADDED,
+                    Classifieds::SECTION_ID,
+                    Classifieds::COUNTRY_CODE,
+                    Classifieds::UNIXTIME,
+                    Classifieds::URI_FORMAT,
+                    Classifieds::LAST_UPDATE,
+                    Classifieds::LATITUDE,
+                    Classifieds::LONGITUDE,
+                    Classifieds::ALT_CONTENT,
+                    Classifieds::USER_ID,
+                    Classifieds::PICTURES,
+                    Classifieds::EXTENTED_AR,
+                    Classifieds::EXTENTED_EN,
+                    Classifieds::LOCALITY_ID,
+                    Classifieds::LOCALITIES_AR,
+                    Classifieds::LOCALITIES_EN,
+                    Classifieds::USER_LEVEL,
+                    Classifieds::LOCATION,
+                    Classifieds::PICTURES_DIM,
+                    Classifieds::EMAILS,
+                    Classifieds::IS_FEATURED,
+                    Classifieds::CONTACT_INFO,
+                    Classifieds::USER_RANK,
+                    Classifieds::PUBLISHER_TYPE,
+                    Classifieds::IS_PREMIUM,
+                    Classifieds::PRICE,
+                    Classifieds::RERA,
+                    Classifieds::IP_COUNTRY_CODE,
+                    Classifieds::AM_COUNTRY_CODE,                
+                ];
                 $model=new Classifieds($this->db);  
                 
-                /**
-                 * apply shuffling to premium ads
-                 */
-                $newMatches = [];
-                $premiumMatches = [];
-                $current_time=time();
-                foreach ($query['matches'] as $matches) {
-                    $ad = $model->getById($matches[0]+0);
-                    if ($ad) {  
-                        $isFeatured = $current_time < $ad[Classifieds::FEATURE_ENDING_DATE];
-                        if($isFeatured){
-                            $premiumMatches[] = $matches;
-                        }
-                        else{
-                            $newMatches[] = $matches;
-                        }
+            /**
+             * apply shuffling to premium ads
+             */
+            $newMatches=$premiumMatches=[];
+            $current_time=time();
+            foreach ($query['matches'] as $matches) {
+                $ad=$model->getById($matches[0]+0);
+                if ($ad) {  
+                    $isFeatured=$current_time<$ad[Classifieds::FEATURE_ENDING_DATE];
+                    if ($isFeatured) {
+                        $premiumMatches[]=$matches;
                     }
-                }
-                shuffle($premiumMatches);
-                $query['matches'] = array_merge($premiumMatches, $newMatches);
-                unset ($premiumMatches);                
-                unset ($newMatches);                
-                /**
-                 * end of apply shuffling to premium ads
-                 */
-                
-                //fetch premium ads
-                $premiumAds=[];
-                //$hasPremium = false;
-                if (($this->isAndroid() || $this->isIOS()) && $this->result['total'] > 0 && !($favorite || $forceFavorite)) {
-                    $premiumQuery=$this->fetchPremiumAds($ql, $keywords, $rootId, $sectionId);
-                    if (!$ql->getLastError() && $premiumQuery['total_found']>0 && isset($premiumQuery['matches'])) {
-                        $premiumAds=$premiumQuery['matches'];
-                        /*
-                        foreach ($premiumQuery['matches'] as $matches) {                            
-                            $premiumAds[] = $matches[0];
-                            $hasPremium = true;
-                        }
-                         * 
-                         */
+                    else {
+                        $newMatches[]=$matches;
                     }
-                }
-                $hasPremium=!empty($premiumAds);
-                
-                $i=$j=0;
-                $premiumGap=14;
-                $pOff=\floor($offset/$premiumGap);
-                $j=$pOff*$premiumGap+$premiumGap;
-                $numberOfAds=\floor(($j-1)/$premiumGap);                
-                $j+=$numberOfAds;
-                $numberofPremium=0;
-                
-                $adMobFirst=2;
-                $adMobGap=9;
-                if ($offset>0) {
-                    $tmp=$offset-$adMobFirst;
-                    $tmp=\floor($tmp/$adMobGap);
-                    $adMob_j=$tmp*$adMobGap+$adMobGap+$adMobFirst;
-                }
-                else {
-                    $adMob_j=$adMobFirst;
-                }
-                
-                for ($index=0, $length=\count($query['matches']); $index<$length; $index++) {
-                    $ad=$model->getById($query['matches'][$index][0]);
-                    if ($ad) { 
-                        $this->addAdToResultArray($ad, $query['matches'][$index][$featureIndex]);
-                        $i++;
-                        
-                        $isNextFeatured = false;
-                        if(!$isSorted){                        
-                            if(isset($query['matches'][$index+1]) && $query['matches'][$index+1][0]){
-                                $nextAd = $model->getById($query['matches'][$index+1][0]+0);
-
-                                $isNextFeatured = $current_time < $nextAd[Classifieds::FEATURE_ENDING_DATE];
-                            }
-                        }
-                        
-                        if(!$isNextFeatured){
-                            
-                            
-                            if ($canDisplayAdmobAds && $this->isIOS() && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite)) {                           
-                                $adUnitID = version_compare($this->appVersion, '1.0.9')>0 ? "ca-app-pub-2427907534283641/8260964224" : "ca-app-pub-2427907534283641/4099192620";                         
-                                $this->result['d'][] = [-1*($i+$offset), $adUnitID];
-                                $adMobAlreadySent++;
-                            }
-
-                            if($canDisplayAdmobAds && $this->isAndroid() && $device_appversion && $device_appversion > '1.9.9'){
-                                $translated_i = $i + $offset;// + $numberOfAdmobAds;   
-                                if($adMob_j == $translated_i) {
-                                    $adMob_j += $adMobGap;
-                                    //$numberOfAdmobAds++;
-                                    
-                                    //$this->result['d'][] = [0];
-                                    if($translated_i % 2 != 0 && $device_appversion > '2.1.8'){
-                                        $this->result['d'][] = [-1];
-                                    }else{
-                                        $this->result['d'][] = [0];
-                                    }
-                                }
-                            }
-                            
-                            if($hasPremium && count($premiumAds)) {
-                                $translated_i = $i + $offset + $numberOfAds;                        
-                                if($j==$translated_i) {
-                                    $j += $premiumGap+1;
-                                    $numberOfAds++;
-                                    $adId = array_pop($premiumAds);
-                                    $ad = $model->getById($adId);
-                                    if ($ad) {
-                                        $this->addAdToResultArray($ad,$query['matches'][$index][$featureIndex],true);
-                                        $numberofPremium++;
-                                    }
-                                }
-                            }                            
-                        
-                        }else{
-                            $translated_i = $i + $offset + $numberOfAds;                        
-                            if($j==$translated_i) {
-                                $j += $premiumGap;
-                            }
-                            
-                            $translated_i = $i + $offset;// + $numberOfAdmobAds;
-                            if($adMob_j == $translated_i) {
-                                //error_log($translated_i);
-                                $adMob_j += $adMobGap;
-                            }
-                        }
-                    }
-                }
-                
-                if ($numberofPremium>0) {
-                    $this->result['p']=[$numberofPremium,$premiumGap];
                 }
             }
+            \shuffle($premiumMatches);
+            $query['matches']=\array_merge($premiumMatches, $newMatches);
+            unset ($premiumMatches);
+            unset ($newMatches);            
+            
+            /**
+             * end of apply shuffling to premium ads
+             */
+                
+            //fetch premium ads
+            $premiumAds=[];
+            if (($this->isAndroid()||$this->isIOS()) && $this->result['total']>0 && !($favorite||$forceFavorite)) {
+                $premiumQuery=$this->fetchPremiumAds($ql, $keywords, $rootId, $sectionId);
+                if (!$ql->getLastError() && $premiumQuery['total_found']>0 && isset($premiumQuery['matches'])) {
+                    $premiumAds=$premiumQuery['matches'];
+                    /*
+                    foreach ($premiumQuery['matches'] as $matches) {                            
+                        $premiumAds[] = $matches[0];
+                        $hasPremium = true;
+                    }
+                     * 
+                     */
+                }
+            }
+            $hasPremium=!empty($premiumAds);
+                
+            $i=$j=0;
+            $premiumGap=14;
+            $pOff=\floor($offset/$premiumGap);
+            $j=$pOff*$premiumGap+$premiumGap;
+            $numberOfAds=\floor(($j-1)/$premiumGap);
+            $j+=$numberOfAds;
+            $numberofPremium=0;
+        
+            $adMobFirst=2;
+            $adMobGap=9;
+            if ($offset>0) {
+                $tmp=$offset-$adMobFirst;
+                $tmp=\floor($tmp/$adMobGap);
+                $adMob_j=$tmp*$adMobGap+$adMobGap+$adMobFirst;
+            }
+            else {
+                $adMob_j=$adMobFirst;
+            }
+                
+            for ($index=0, $length=\count($query['matches']); $index<$length; $index++) {
+                $ad=$model->getById($query['matches'][$index][0]);
+                if ($ad) { 
+                    $this->addAdToResultArray($ad, $query['matches'][$index][$featureIndex]);
+                    $i++;
+                        
+                    $isNextFeatured=false;
+                    if (!$isSorted) {                        
+                        if (isset($query['matches'][$index+1]) && $query['matches'][$index+1][0]) {
+                            $nextAd=$model->getById($query['matches'][$index+1][0]+0);
+                            $isNextFeatured=$current_time<$nextAd[Classifieds::FEATURE_ENDING_DATE];
+                        }
+                    }
+
+                    if (!$isNextFeatured) {           
+                        if ($canDisplayAdmobAds && $this->isIOS() && $adMobAlreadySent<5 && ($i+$offset)%7==0 && ($i+$offset)%2==1 && !($favorite || $forceFavorite)) {                           
+                            $adUnitID=\version_compare($this->appVersion, '1.0.9')>0 ? "ca-app-pub-2427907534283641/8260964224" : "ca-app-pub-2427907534283641/4099192620";                         
+                            $this->result['d'][]=[-1*($i+$offset), $adUnitID];
+                            $adMobAlreadySent++;
+                        }
+
+                        if ($canDisplayAdmobAds && $this->isAndroid() && $device_appversion && $device_appversion > '1.9.9'){
+                            $translated_i=$i+$offset;// + $numberOfAdmobAds;   
+                            if($adMob_j == $translated_i) {
+                                $adMob_j += $adMobGap;
+                                //$numberOfAdmobAds++;
+                    
+                                //$this->result['d'][] = [0];
+                                if($translated_i % 2 != 0 && $device_appversion > '2.1.8'){
+                                    $this->result['d'][] = [-1];
+                                }else{
+                                    $this->result['d'][] = [0];
+                                }
+                            }
+                        }
+                            
+                        if ($hasPremium && count($premiumAds)) {
+                            $translated_i=$i+$offset+$numberOfAds;                        
+                            if($j==$translated_i) {
+                                $j+=$premiumGap+1;
+                                $numberOfAds++;
+                                $adId=array_pop($premiumAds);
+                                $ad=$model->getById($adId);
+                                if ($ad) {
+                                    $this->addAdToResultArray($ad,$query['matches'][$index][$featureIndex],true);
+                                    $numberofPremium++;
+                                }
+                            }
+                        }                  
+                        
+                    }else{
+                        $translated_i = $i + $offset + $numberOfAds;                        
+                        if($j==$translated_i) {
+                            $j += $premiumGap;
+                        }
+                            
+                        $translated_i = $i + $offset;// + $numberOfAdmobAds;
+                        if($adMob_j == $translated_i) {
+                            //error_log($translated_i);
+                            $adMob_j += $adMobGap;
+                        }
+                    }
+                }
+            }
+                
+            if ($numberofPremium>0) {
+                $this->result['p']=[$numberofPremium,$premiumGap];
+            }
         }
+    }
     }
     
     
     function addAdToResultArray(array $ad, int $isFeatured=0, bool $isPremium=false) : void {
-        //unset($ad[Classifieds::CANONICAL_ID]);
-        //unset($ad[Classifieds::CATEGORY_ID]);
-        //unset($ad[Classifieds::SECTION_NAME_AR]);
-        //unset($ad[Classifieds::SECTION_NAME_EN]);
-        //unset($ad[Classifieds::HELD]);
-
         $emails=$ad[Classifieds::EMAILS];          
-       
         $this->cutOfContacts($ad[Classifieds::CONTENT]);   
-
         $ad[Classifieds::CONTENT]=\strip_tags($ad[Classifieds::CONTENT]);
 
         if ($ad[Classifieds::ALT_CONTENT]!="") {
@@ -977,7 +961,6 @@ class MobileApi {
             $ad[Classifieds::SECTION_ID],//8
             $ad[Classifieds::COUNTRY_CODE],//9
             $ad[Classifieds::UNIXTIME],//10
-            //$ad[Classifieds::EXPIRY_DATE],//11
             $ad[Classifieds::URI_FORMAT],//12
             $ad[Classifieds::LAST_UPDATE],//13
             $ad[Classifieds::LATITUDE],//14
@@ -993,21 +976,17 @@ class MobileApi {
             $ad[Classifieds::USER_LEVEL] ?? 0,//26
             $ad[Classifieds::LOCATION] ?? "",//27
             isset($ad[Classifieds::PICTURES_DIM]) && count($ad[Classifieds::PICTURES_DIM]) ? $ad[Classifieds::PICTURES_DIM] : "",//28
-            //$ad[Classifieds::TELEPHONES], //29
             $ad[Classifieds::EMAILS],//30
-            //featured flag
             $isFeatured+0,//31
             $ad[Classifieds::CONTACT_INFO] ?? "",//32 (revise for production)
+            $ad[Classifieds::USER_RANK] ?? 0,
             $ad[Classifieds::PUBLISHER_TYPE] ?? 0,//34
-            $isPremium ? 1:0,//35
+            $isPremium?1:0,//35
             $ad[Classifieds::PRICE] ?? 0,//36
             isset($ad[Core\Model\Classifieds::RERA]) && !empty($ad[Core\Model\Classifieds::RERA]) ? $ad[Core\Model\Classifieds::RERA] : new stdClass(), //37
             $ad[Classifieds::IP_COUNTRY_CODE]??"",
             $ad[Classifieds::AM_COUNTRY_CODE]??""
         ];
-        
-        
-        
     }
 
 
@@ -3787,9 +3766,9 @@ class MobileApi {
                 
                 include_once $this->config['dir'] . '/core/lib/MCSaveHandler.php';
                 include_once $this->config['dir'] . '/core/lib/IPQuality.php';
-                $ad['ip'] = IPQuality::getClientIP();
-                $ad['ipfs'] = IPQuality::ipScore(TRUE);
-                $normalizer = new MCSaveHandler($this->config);
+                $ad['ip']=IPQuality::getClientIP();
+                $ad['ipfs']=IPQuality::ipScore(TRUE);
+                $normalizer=new MCSaveHandler($this->config);
                 //error_log($ad['other']);
                 $normalized = $normalizer->getFromContentObject($ad);
                 $attrs = [];
