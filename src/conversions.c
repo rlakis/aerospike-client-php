@@ -222,11 +222,15 @@ as_status as_bins_to_zval(const as_record* aerospike_record, zval* z_bins, as_er
 			/* In case of error this will have set the err code, so don't reset it here */
 			goto CLEANUP;
 		}
+#if PHP_VERSION_ID < 80000
 		if (add_assoc_zval(z_bins, bin->name, &z_bin_value) != SUCCESS) {
 			zval_dtor(&z_bin_value);
 			as_error_update(err, AEROSPIKE_ERR_CLIENT, "Failed to add zval to hashtable");
 			goto CLEANUP;
 		}
+#else
+                add_assoc_zval(z_bins, bin->name, &z_bin_value);
+#endif
 	}
 
 CLEANUP:
@@ -361,7 +365,12 @@ as_status zval_to_as_val(zval* zval_to_convert, as_val** val, as_error* err, int
 				if (strncmp(class_name, BYTES_CLASS_NAME, class_name_len) == 0) {
 					zval* bytes_str = NULL;
 					zval* return_val = NULL;
-					bytes_str = zend_read_property(ce, zval_to_convert, BYTES_STR_PROPERTY, BYTES_STR_PROPERTY_LEN, 1, return_val);
+#if PHP_VERSION_ID < 80000
+                                        bytes_str = zend_read_property(ce, zval_to_convert, BYTES_STR_PROPERTY, BYTES_STR_PROPERTY_LEN, 1, return_val);
+#else
+                                        bytes_str = zend_read_property(ce, store_obj, BYTES_STR_PROPERTY, BYTES_STR_PROPERTY_LEN, 1, return_val);
+#endif
+					
 
 					if (!bytes_str) {
 						as_error_update(err, AEROSPIKE_ERR_PARAM, "Unable to convert value to as type");
@@ -1077,10 +1086,14 @@ as_status as_roles_to_zval(as_role** roles, int roles_size, zval* z_roles, as_er
 		if (as_role_to_zval(roles[i], &current_role, err) != AEROSPIKE_OK) {
 			goto CLEANUP;
 		}
+#if PHP_VERSION_ID < 80000
 		if (add_assoc_zval(z_roles, roles[i]->name, &current_role) == FAILURE) {
 			zval_dtor(&current_role);
 			as_error_update(err, AEROSPIKE_ERR_CLIENT, "Unable to add role to roles list");
 		}
+#else
+                add_assoc_zval(z_roles, roles[i]->name, &current_role);
+#endif
 	}
 
 CLEANUP:
@@ -1138,6 +1151,7 @@ as_status as_privilege_to_zval(as_privilege* privilege, zval* z_privilege, as_er
 	}
 
 	array_init(z_privilege);
+#if PHP_VERSION_ID < 80000
 	if (add_assoc_string(z_privilege, "ns", privilege->ns) == FAILURE) {
 		as_error_update(err, AEROSPIKE_ERR_CLIENT, "Failed to construct privilege");
 		goto CLEANUP;
@@ -1150,6 +1164,11 @@ as_status as_privilege_to_zval(as_privilege* privilege, zval* z_privilege, as_er
 		as_error_update(err, AEROSPIKE_ERR_CLIENT, "Failed to construct privilege");
 		goto CLEANUP;
 	}
+#else
+        add_assoc_string(z_privilege, "ns", privilege->ns);
+        add_assoc_string(z_privilege, "set", privilege->set);
+        add_assoc_long(z_privilege, "code", privilege->code);
+#endif
 
 CLEANUP:
 	if (err->code != AEROSPIKE_OK) {

@@ -113,7 +113,7 @@ PHP_METHOD(Aerospike, query) {
 
 	if (z_policy && Z_TYPE_P(z_policy) != IS_NULL) {
 		if (set_query_options_from_policy_hash(&query, z_policy) != AEROSPIKE_OK) {
-			RETURN_LONG(AEROSPIKE_ERR_PARAM)
+			RETURN_LONG(AEROSPIKE_ERR_PARAM);
 		}
 	}
 

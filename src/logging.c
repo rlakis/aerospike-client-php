@@ -45,6 +45,7 @@ bool register_logger_constants(zend_class_entry* aerospike_ce) {
 	int32_t i;
 	int status = 1;
 	for (i = 0; i < AEROSPIKE_LOGGER_CONSTANTS_ARR_SIZE; i++) {
+#if PHP_VERSION_ID < 80000
 		status = zend_declare_class_constant_long(
 					aerospike_ce, aerospike_logger_constants[i].constant_str,
 					strlen(aerospike_logger_constants[i].constant_str),
@@ -53,6 +54,12 @@ bool register_logger_constants(zend_class_entry* aerospike_ce) {
 		if (status != SUCCESS) {
 			return false;
 		}
+#else
+                zend_declare_class_constant_long(
+					aerospike_ce, aerospike_logger_constants[i].constant_str,
+					strlen(aerospike_logger_constants[i].constant_str),
+					aerospike_logger_constants[i].constantno);
+#endif
 	}
 	return true;
 }

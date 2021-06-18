@@ -52,13 +52,21 @@ PHP_METHOD(Aerospike, put)
 		update_client_error(getThis(), err.code, err.message, false);
 		RETURN_LONG(err.code);
 	}
-
+#if PHP_VERSION_ID < 80000
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "hz|z!z",
 			&z_key_hash, &zval_to_store, &z_ttl, &z_write_policy) != SUCCESS) {
 
 		update_client_error(getThis(), AEROSPIKE_ERR_PARAM, "Invalid parameters to put", false);
 	  	RETURN_LONG(AEROSPIKE_ERR_PARAM);
 	}
+#else
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "hz|z!z",
+			&z_key_hash, &zval_to_store, &z_ttl, &z_write_policy) != SUCCESS) {
+
+		update_client_error(getThis(), AEROSPIKE_ERR_PARAM, "Invalid parameters to put", false);
+	  	RETURN_LONG(AEROSPIKE_ERR_PARAM);
+	}
+#endif
 
 	if (z_ttl && !(Z_TYPE_P(z_ttl) == IS_NULL || Z_TYPE_P(z_ttl) == IS_LONG)) {
 		update_client_error(getThis(), AEROSPIKE_ERR_PARAM, "ttl must be null or long", false);

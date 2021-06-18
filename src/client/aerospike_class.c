@@ -115,7 +115,9 @@ static zend_function_entry Aerospike_class_functions[] =
 	PHP_ME(Aerospike, setLogHandler, set_log_handler_arg_info, ZEND_ACC_PUBLIC)
 	PHP_ME(Aerospike, scan, scan_arg_info, ZEND_ACC_PUBLIC)
 	PHP_ME(Aerospike, scanApply, scan_apply_arg_info, ZEND_ACC_PUBLIC)
+#if PHP_VERSION_ID < 80000
 	PHP_ME(Aerospike, scanInfo, scan_info_arg_info, ZEND_ACC_PUBLIC)
+#endif
 	PHP_ME(Aerospike, query, query_arg_info, ZEND_ACC_PUBLIC)
 	PHP_ME(Aerospike, queryApply, query_apply_arg_info, ZEND_ACC_PUBLIC)
 	PHP_ME(Aerospike, aggregate, aggregate_arg_info, ZEND_ACC_PUBLIC)
@@ -173,8 +175,11 @@ bool register_aerospike_class(void)
 	return true;
 
 }
-
+#if PHP_VERSION_ID < 80000
 static void aerospike_object_free_storage(zend_object *object TSRMLS_DC) {
+#else
+static void aerospike_object_free_storage(zend_object *object) {
+#endif
 	AerospikeClient* client = get_aerospike_from_zobj(object);
 	as_error err;
 	/* It is only safe to destroy the client if it has been fully constructed
@@ -190,7 +195,11 @@ static void aerospike_object_free_storage(zend_object *object TSRMLS_DC) {
  	return;
 }
 
+#if PHP_VERSION_ID < 80000
 static void aerospike_object_destructor(zend_object *object TSRMLS_DC) {
+#else
+static void aerospike_object_destructor(zend_object *object) {
+#endif
 	as_error err;
 	as_error_init(&err);
 	AerospikeClient* client = get_aerospike_from_zobj(object);
@@ -243,15 +252,27 @@ PHP_METHOD(Aerospike, __construct)
 	as_error_init(&client->client_error);
 	zend_error_handling error_handling; // store the old error handling here
 
+#if PHP_VERSION_ID < 80000
 	zend_update_property_long(aerospike_ce, getThis(), "errorno", sizeof("errorno") - 1, AEROSPIKE_OK);
 	zend_update_property_string(aerospike_ce, getThis(), "error", sizeof("error") - 1, "");
-
 	zend_replace_error_handling(EH_THROW, NULL, &error_handling TSRMLS_CC); // fail to construct here must raise error
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "h|bh",
+        if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "h|bh",
 		&z_config, &persistent, &z_options) != SUCCESS) {
 		zend_restore_error_handling(&error_handling);
 		RETURN_LONG(AEROSPIKE_ERR_PARAM);
 	}
+#else
+	zend_update_property_long(aerospike_ce, Z_OBJ_P(getThis()), "errorno", sizeof("errorno") - 1, AEROSPIKE_OK);
+	zend_update_property_string(aerospike_ce, Z_OBJ_P(getThis()), "error", sizeof("error") - 1, "");
+	zend_replace_error_handling(EH_THROW, NULL, &error_handling); // fail to construct here must raise error
+
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "h|bh",
+		&z_config, &persistent, &z_options) != SUCCESS) {
+		zend_restore_error_handling(&error_handling);
+		RETURN_LONG(AEROSPIKE_ERR_PARAM);
+	}
+#endif
 	zend_restore_error_handling(&error_handling);
 
 	if (!client) {
@@ -519,7 +540,7 @@ PHP_METHOD(Aerospike, close) {
 	}
 	client->is_connected = false;
 
-	RETURN_LONG(err.code)
+	RETURN_LONG(err.code);
 }
 /* }}} */
 

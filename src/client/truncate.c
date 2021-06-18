@@ -88,6 +88,6 @@ PHP_METHOD(Aerospike, truncate)
 	if (err.code != AEROSPIKE_OK) {
 		update_client_error(getThis(), err.code, err.message, err.in_doubt);
 	}
-	RETURN_LONG(err.code)
+	RETURN_LONG(err.code);
 }
 /* }}} */
