@@ -3453,15 +3453,15 @@ class Page extends Site {
     
     
     function includeMetaKeywords(){
-        $keywords='';
-        $keywords.=  $this->lang['mourjan'].',';
-        $keywords.=  $this->lang['pclassifieds'].',';
-        if ($this->router->language=='ar') {
+        $keywords =$this->lang['mourjan'].',';
+        $keywords.=$this->lang['pclassifieds'].',';
+        if ($this->router->isArabic()) {
             $keywords.='نشر إعلان,إعلان,';
         }
         else {
             $keywords.='ad,post ad,';
         }
+        
         if ($this->router->cityId) {
             $keywords.= $this->router->countries[$this->router->countryId]['cities'][$this->router->cityId]['name'];// $this->router->cities[$this->router->cityId][$this->fieldNameIndex].',';
             $keywords.= $this->router->countries[$this->router->countryId]['name'].',';
@@ -3469,23 +3469,28 @@ class Page extends Site {
         elseif($this->router->countryId) {
             $keywords.= $this->router->countries[$this->router->countryId]['name'].',';
         }
-        if ($this->router->module=='index') {
+        
+        if ($this->router->module==='index') {
             foreach ($this->router->pageRoots as $rid=>$root) {
-                $keywords.= $root['name'].',';
+                $keywords.=$root['name'].',';
             }
-            foreach ($this->router->purposes as $ro) {
-                if($ro[0]!=999 && $ro[0]!=5)
-                $keywords.= $ro[$this->fieldNameIndex].',';
+            
+            foreach ($this->router->purposes as $pu) {
+                if($pu['id']!==999 && $pu['id']!==5) {
+                    $keywords.=$pu[$this->name].',';
+                }
             }
-            $keywords=substr($keywords,0,-1);
+            $keywords=\substr($keywords,0,-1);
             ?><meta name="keywords" content="<?= $keywords ?>"><?php
         }
-        elseif($this->router->module=='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
-            if($this->router->rootId){
-                $keywords.= $this->router->roots[$this->router->rootId][$this->name].',';
-            }else{
-                foreach($this->router->pageRoots as $ro){
-                    $keywords.= $this->router->roots[$ro[0]][$this->name].',';
+        elseif($this->router->module==='search' && !$this->userFavorites && !$this->router->watchId && !$this->router->userId) {
+            if ($this->router->rootId) {
+                $keywords.=$this->router->roots[$this->router->rootId][$this->name].',';
+            }
+            else {
+                
+                foreach($this->router->pageRoots as $rid=>$ro) {
+                    $keywords.=$this->router->roots[$ro[$rid]]['name'].',';
                 }
             }
             if($this->router->sectionId){
@@ -3586,6 +3591,7 @@ class Page extends Site {
         //\header("Link: </css/2020/1.0/fonts/almarai-v4-arabic-regular.woff2>; rel=preload; as=font; crossorigin", false);
         //\header("Link: </css/2020/1.0/fonts/almarai-v4-arabic-300.woff2>; rel=preload; as=font; crossorigin", false);
         //\header("Link: </css/2020/1.0/fonts/almarai-v4-arabic-700.woff2>; rel=preload; as=font; crossorigin", false);
+        
         if ($this instanceof UserPage) {
             \header("Link: <".$this->router->config->cssURL."/1.0/user.css>; rel=preload; as=style;", false);
         }
@@ -3756,7 +3762,7 @@ class Page extends Site {
         
         $this->header();
         echo '<title>', $this->title, '</title>';
-        $imgURL = $this->router->config->imgURL;
+        $imgURL=$this->router->config->imgURL;
         ?><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, maximum-scale=5.0, user-scalable=1" name="viewport"><?php
         ?><meta name="format-detection" content="telephone=no"><?php
         //<!--<link rel="manifest" href="/manifest.json">--><?php
@@ -3813,7 +3819,7 @@ class Page extends Site {
                                     $startLink=$this->router->params['start'].'/';
                                 }
                             
-                                $link = 'https://www.mourjan.com'.$currentUrl.$startLink;
+                                $link='https://www.mourjan.com'.$currentUrl.$startLink;
                                 $canonical_link=$link;
                             
                                 // page is not qualified to be multi language indexable
@@ -3845,7 +3851,7 @@ class Page extends Site {
                                     else {
                                         $canonicalCurrentUrl=$this->router->getUrl($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, FALSE);
                                     }
-                                    $canonical_link = 'https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
+                                    $canonical_link='https://www.mourjan.com'.$canonicalCurrentUrl.$startLink;                                
                                 }
                                 // end of page is not qualified to be multi language indexable
                             

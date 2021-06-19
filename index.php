@@ -1,5 +1,5 @@
 <?php
-if (!isset($argc)) {tideways_xhprof_enable();}
+//if (!isset($argc) && \extension_loaded("tideways_xhprof")) {tideways_xhprof_enable();}
 
 include_once __DIR__ . '/config/cfg.php';
 include_once __DIR__ . '/deps/autoload.php';
@@ -48,8 +48,8 @@ if ($isWeb===true) {
     }
     
     $router->close();
-    
-    if ($router->user->id()===69905 || PHP_VERSION_ID>80000) {    
+    /*
+    if (($router->user->id()===69905 || PHP_VERSION_ID>80000) && \extension_loaded("tideways_xhprof")) {    
         $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
         $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);    
 
@@ -64,5 +64,5 @@ if ($isWeb===true) {
             $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
             echo '<p style="background-color:var(--mlc);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a rel=noopener style="color:white;" target=_blank href="', "https://dv.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
         }        
-    }
+    }*/
 }
