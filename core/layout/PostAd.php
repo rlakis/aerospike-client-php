@@ -48,12 +48,14 @@ class PostAd extends Page {
                     $this->ad->setDataSet(new Core\Model\Content($this->ad));
                 }
 
-                if (isset($_REQUEST['adr']) && is_numeric($_REQUEST['adr'])) {                    
+                if (isset($_REQUEST['adr']) && \is_numeric($_REQUEST['adr'])) {                    
                     //$res = $this->user->renewAd($_POST['adr'],0);
-                    $id = $_REQUEST['adr'];
+                    $id=$_REQUEST['adr'];
                     if ($id) {
                         $this->user->holdAd($id);
+                        
                         $this->ad=$this->user->loadAdToSession($id);
+                        
                         $this->id=$this->user->pending['post']['id']; 
                         $this->user->pending['post']['state']=0;
                         $this->countryId=$this->user->pending['post']['cn'];

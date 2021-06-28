@@ -169,14 +169,15 @@ var d = {
     },
 
     openWindow:function(url, name){
-        let win;
-        if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){            
-            win = window.open(url, name, 'width=1024, height='+(window.innerHeight));
-        }
-        else {
-            win = window.open(url, name);
-        }
-        win.focus();
+        //let win;
+        //if(navigator.userAgent.toLowerCase().indexOf('firefox') > -1){            
+        //    win = window.open(url, name, 'width=1024, height='+(window.innerHeight));
+        //}
+        //else {
+        //    win = 
+        window.open(url, name).focus();
+        //}
+        //win.focus();
     },
     
     // ad actions

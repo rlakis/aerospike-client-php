@@ -1520,8 +1520,8 @@ class Search extends Page {
                         $k=0;
                         $arabic=$this->router->isArabic();
                         foreach($followUp as $section) {
-                            if (!isset($procSec[$section[0]])) {
-                                $uri=$this->router->getURL($this->router->countryId,$this->router->cityId,0,$section[0],$section[1]);
+                            if (!isset($procSec[$section[0]]) && isset($this->router->sections[$section[0]])) {
+                                $uri=$this->router->getURL($this->router->countryId, $this->router->cityId, 0, $section[0], $section[1]);
                                 $sName=$this->router->sections[$section[0]][$this->name];
                                 if ($section[1]) {
                                     $pName=$this->router->purposes[$section[1]][$this->name];
@@ -3432,13 +3432,13 @@ class Search extends Page {
             if ($this->router->countryId) { $this->title.=' '.$this->lang['in'].' '; }
 
             if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
-                $extended_uri.=$this->router->cities[$this->router->cityId][3] . '/';
-                $this->title.=$this->router->cities[$this->router->cityId][$this->fieldNameIndex] . ' ';
+                $extended_uri.=$this->router->cities[$this->router->cityId]['uri'] . '/';
+                $this->title.=$this->router->cities[$this->router->cityId][$this->name] . ' ';
             }
 
-            $extended_uri.=$this->router->sections[$this->router->sectionId][3] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
+            $extended_uri.=$this->router->sections[$this->router->sectionId]['uri'] . '-' . $this->extended[$this->extendedId]['uri'] . '/';
             if ($this->router->purposeId) {
-                $extended_uri.=$this->router->purposes[$this->router->purposeId][3].'/';                
+                $extended_uri.=$this->router->purposes[$this->router->purposeId]['uri'].'/';                
             }
             $extended_uri.=$append_uri . '/';
             $this->extended_uri = $extended_uri;
@@ -3503,13 +3503,14 @@ class Search extends Page {
             $this->extendedId=0;
             $this->localityId=0;
             if ($forceSetting) {
-                $uri = rtrim($this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, false), '/');
+                $uri=rtrim($this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->rootId, $this->router->sectionId, $this->router->purposeId, false), '/');
 
-                $url_codes = $this->router->FetchUrl($uri);
+                $url_codes=$this->router->FetchUrl($uri);
                 if ($url_codes) {
-                    $this->router->pageTitle['en'] = $url_codes[6];
-                    $this->router->pageTitle['ar'] = $url_codes[7];
-                    $this->title = $this->router->pageTitle[$this->router->language];
+                    //\error_log(var_export($url_codes, true));
+                    $this->router->pageTitle['en'] = $url_codes['name_en'];
+                    $this->router->pageTitle['ar'] = $url_codes['name_ar'];
+                    $this->title=$this->router->pageTitle[$this->router->language];
                 }
             }
             $tempTitle = '';
@@ -3740,7 +3741,8 @@ class Search extends Page {
         else {
             $this->crumbString='<div class=row><div class="col-12 breadcrumb">'.\implode('', $bc).'</ul><span>';
             if ($this->user->isLoggedIn(9)) {
-                $this->crumbString.='<a class="btn" href="/myads/?u='.$this->detailAd->uid().'">User '.$this->detailAd->uid().' ads</a>';
+               
+                $this->crumbString.='<a class="btn" href="'. $this->router->getLanguagePath('/myads/').'?u='.$this->detailAd->uid().'">User '.$this->detailAd->uid().' ads</a>';
             }
              $this->crumbString.='</span></div></div>';            
         }

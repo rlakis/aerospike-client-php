@@ -1,4 +1,4 @@
-.dtad{display:flex;flex-flow:column}
+.dtad{display:flex;flex-flow:column;flex-basis: 100%}
 .dtad [class*="col-"]{padding:0}
 .dtad .cntnt{background-color:white;padding:8px;line-height:1.25em;border-radius:6px}
 .dtad .pics{display:inline-flex;flex-flow:column}
@@ -120,7 +120,7 @@ dtad .attrs .widget:last-child {
 }
 /*.dtad .contacts a+a{margin-inline-start:12px}*/
 .dtad .contacts a:before{content:"\00a0"}
-.dtad .phone, .whats, .mobile{background-color:#2acf8e}
+.dtad .phone, .whats, .mobile{background-color:#2acf8e; max-width: 240px}
 .dtad .phone:before,.whats:before,.mobile:before,.mail:before{margin-inline-end:16px;border-inline-end:1px solid black;filter:invert(1);width:40px}
 .dtad .phone:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/regular/phone.svg) no-repeat center}
 .dtad .whats:before{background:url(https://dev.mourjan.com/css/2020/1.0/fa/brands/whatsapp.svg) no-repeat center}

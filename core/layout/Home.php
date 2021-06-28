@@ -239,6 +239,7 @@ class Home extends Page {
                 $filter='';
                 $labels=[];
                 foreach ($record as $f) {
+                    if (!isset($this->router->sections[$f['se']])) { continue; }
                     if (!empty($filter)) { $filter.=' or '; }
                     $filter.='(section_id='.$f['se'].' and purpose_id='.$f['pu'].')';
                     $this->cacheAddKey("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$f['se']]['root_id']}-{$this->router->language}", $labels);

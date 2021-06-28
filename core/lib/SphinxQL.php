@@ -181,8 +181,14 @@ class SphinxQL {
         if ($this->_sphinx !== null) {
             return $this->_sphinx;
         }
+        else {
+            $this->connect();
+            if ($this->_sphinx !== null) {
+                return $this->_sphinx;
+            }
+        }
 
-        throw new Exception('The connection to the server has not been established yet.');
+        throw new \Exception('The connection to the server has not been established yet.');
     }
 
     

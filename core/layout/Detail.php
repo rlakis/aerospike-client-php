@@ -9,7 +9,7 @@ class Detail extends Search {
     private int $attrWidgetCount=0;
     private String $adCountry;
     private String $ipCountry;
-    //.private String $mobileCountry;
+
     
     function __construct() {
         parent::__construct();
@@ -64,19 +64,7 @@ class Detail extends Search {
         ?><meta property="fb:admins" content="682495312" /><?php 
     }
 
-
-/*
-    function mainMobile() {
-        $this->displayDetailMobile();
-        $iDir=  $this->urlRouter->siteLanguage=='ar' ? 'ad_r' :'ad_l';
-        if (!$this->detailAdExpired) {
-            echo '<br />'.$this->fill_ad('Square','ad_dt '.$iDir).'<br />';
-        }
-        parent::resultsMobile();
-        if($this->detailAdExpired && $this->searchResults['body']['total_found'])
-            echo '<br />'.$this->fill_ad('Square', $iDir).'<br />';
-    }
-  */  
+    
     
     function displayDetail() : void {
         if ($this->detailAdExpired) {  return;  }
@@ -143,7 +131,7 @@ class Detail extends Search {
         ?><div class=dtad><div class="row wrap"><?php
             
         if ($this->detailAd->isFeatured()) {
-            ?><div class="col-8 ff-cols cntnt premium"><?php 
+            ?><div class="col-12 ff-cols cntnt premium"><?php 
             /*?><div class="dtf"><span class="vpdi ar"></span> <?= $this->lang['premium_ad_dt'] ?></div><?php*/
         }
         else {
@@ -161,10 +149,7 @@ class Detail extends Search {
             $date=new DateTime;
             $date->setTimestamp($this->detailAd->epoch());
         }
-        /*
-        $adIPStatus=IPQuality::getIPStatus($this->detailAd->dataset()->getIpAddress());
-        \error_log(var_export($adIPStatus, true));
-        */
+       
         $this->ipCountry=$ipqs['ipquality']['country_code']??'XX';
         $this->adCountry=$this->detailAd->countryCode();
         ?><div class="top ff-cols"><div class="col-12 sp-between" style="flex-wrap:nowrap"><?php
@@ -425,26 +410,32 @@ class Detail extends Search {
         
         ?></div><?php
         
-        ?><div class="col-4 banners ff-cols cntnt"><?php
-         if ($this->router->config->enabledAds()) {
-            ?><ins class="adsbygoogle" style="margin-top: 0" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="vertical" data-full-width-responsive="true"></ins><?php
-            ?><script><?php
-            ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
-            ?></script><?php
-            if ($this->detailAd->picturesCount()>1) {
-                ?><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="vertical" data-full-width-responsive="true"></ins><?php
+        if (!$this->detailAd->isFeatured()) {
+        
+            ?><div class="col-4 banners ff-cols cntnt"><?php
+            if ($this->router->config->enabledAds()) {
+                ?><ins class="adsbygoogle" style="margin-top: 0" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="vertical" data-full-width-responsive="true"></ins><?php
                 ?><script><?php
                 ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
                 ?></script><?php
+                if ($this->detailAd->picturesCount()>1) {
+                    ?><ins class="adsbygoogle" data-ad-client="ca-pub-2427907534283641" data-ad-slot="7030570808" data-ad-format="vertical" data-full-width-responsive="true"></ins><?php
+                    ?><script><?php
+                    ?>(adsbygoogle = window.adsbygoogle || []).push({});<?php
+                    ?></script><?php
+                }
             }
+            ?></div><?php
         }
-        ?></div><?php
-        
         
        
         ?></div><?php
         
-        ?><div class=row><div class=tail><div class="col-8 ff-cols report" onclick="reportAd(this)"><p>Any issue? <b>Report this ad</b></p></div><div class=col-4></div></div></div><?php
+        ?><div class=row><div class=tail><div class="<?=$this->detailAd->isFeatured()?"col-12":"col-8"?> ff-cols report" onclick="reportAd(this)"><p>Any issue? <b>Report this ad</b></p></div><?php
+        if (!$this->detailAd->isFeatured()) {
+            ?><div class=col-4></div><?php
+        }
+        ?></div></div><?php
         /*
         ?><div class=row><div class=col-12><?php
         print_r($this->detailAd->attrs());

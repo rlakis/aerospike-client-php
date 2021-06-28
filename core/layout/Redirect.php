@@ -29,17 +29,19 @@ class Redirect extends Site {
                         //if ($resp->isSuccess()) {
                     $pass=$this->user()->authenticateByEmail($userLogin, $userPass);
                     if ($pass) {
-                        $this->user->params['keepme_in']=$keepme_in ? 1 : 0;
+                        $this->user->params['keepme_in']=$keepme_in?1:0;
                         if ($keepme_in) {
                             $sKey=$this->user->encodeRequest('keepme_in', array($this->user->info['id']));
                             \setcookie('__uvme', $sKey, \time() + 1814400, '/', $this->router->config->get('site_domain'));
                         }
-                    } else {
+                    } 
+                    else {
                         $this->user->pending['login_attempt']=true;
                     }
-                        //} else {
-                        //    $this->user->pending['login_attempt_captcha'] = true;
-                        //}
+                    
+                    //} else {
+                    //    $this->user->pending['login_attempt_captcha'] = true;
+                    //}
                     //} else {
                     //    $this->user->pending['login_attempt_captcha'] = true;
                     //}
@@ -50,14 +52,15 @@ class Redirect extends Site {
 
                     if ($pass && isset($this->user->pending['redirect_login'])) {
 
-                        $ref = $this->user->pending['redirect_login'];
+                        $ref=$this->user->pending['redirect_login'];
                         unset($this->user->pending['redirect_login']);
-                        if (strpos($ref, '/install/')) {
+                        if (\strpos($ref, '/install/')) {
                             if (isset($this->user->info['options']['HS']['lang'])) {
                                 if ($this->user->info['options']['HS']['lang'] != 'ar') {
                                     $ref.=$this->user->info['options']['HS']['lang'] . '/';
                                 }
-                            } else {
+                            } 
+                            else {
                                 if (!$this->router->isArabic() && !preg_match('/\/' . $this->router->language . '\//', $ref)) {
                                     $ref.=$this->router->language . '/';
                                 }
@@ -80,6 +83,7 @@ class Redirect extends Site {
             $userId=0;
             if ($cmd && \count($cmd)) {
                 switch ($cmd['request']) {
+                    
                     case 'ad_renew':
                         $userId = $cmd['params'][0];
                         $adId = $cmd['params'][1];
@@ -136,6 +140,7 @@ class Redirect extends Site {
                             $this->user->update();
                         }
                         break;
+                        
                     case 'my_account':
                         $userId = $cmd['params'][0];
                         $uri = '/account/' . $addLang . '?action=notifications';
@@ -143,6 +148,7 @@ class Redirect extends Site {
                             $this->user->sysAuthById($userId);
                         }
                         break;
+                        
                     case 'ad_page':
                         $userId = $cmd['params'][0];
                         $adId = $cmd['params'][1];
@@ -151,6 +157,7 @@ class Redirect extends Site {
                             $this->user->sysAuthById($userId);
                         }
                         break;
+                        
                     case 'my_ads':
                         $userId = $cmd['params'][0];
                         $uri = '/myads/' . $addLang;
@@ -158,6 +165,7 @@ class Redirect extends Site {
                             $this->user->sysAuthById($userId);
                         }
                         break;
+                        
                     case 'home':
                         $userId = $cmd['params'][0];
                         $uri = '/' . $addLang;
@@ -165,6 +173,7 @@ class Redirect extends Site {
                             $this->user->sysAuthById($userId);
                         }
                         break;
+                        
                     case 'contact':
                         $userId = $cmd['params'][0];
                         $uri = '/contact/' . $addLang;

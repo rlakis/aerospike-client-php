@@ -1,7 +1,7 @@
 <?php
 
 $hybridConfig = [
-    'callback' => "https://".($_SERVER['HTTP_HOST'] ?? 'h1.mourjan.com')."/web/lib/hybridauth/",    
+    'callback' => "https://".($_SERVER['HTTP_HOST'] ?? 'www.mourjan.com')."/web/lib/hybridauth/",    
     "providers" => [
         
         /*"Yahoo" => [
@@ -40,11 +40,11 @@ $hybridConfig = [
             // The display context to show the authentication page. Options are: page, popup, iframe, touch and wap. Read the Facebook docs for more details: http://developers.facebook.com/docs/reference/dialogs#display. Default: page
             "display" => "popup"
         ],*/
-        "Facebook" => [//dev
+        "Facebook" => [
             "enabled" => true,
             "keys" => [
-                "id" => "225134451713462",
-                "secret" => "503bd119d9d8f0a80d3a736db8002683"
+                'id' => "184370954908428",
+                'secret' => "e52e8d321c6b9dd828c8e0504b1ec5bd",
             ],
             // A comma-separated list of permissions you want to request from the user. See the Facebook docs for a full list of available permissions: http://developers.facebook.com/docs/reference/api/permissions.
             "scope" => "public_profile,email",

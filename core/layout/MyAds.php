@@ -595,6 +595,9 @@ class MyAds extends UserPage {
             $linkLang=$this->router->language==='ar'?'':$this->router->language.'/';
             
             $permission=MCPermission::instance();
+            if (!$isAdmin) {
+                $permission->setUser($this->user->getProfile());
+            }
             
             $this->adList->rewind();
             while ($this->adList->valid()) {
@@ -613,6 +616,9 @@ class MyAds extends UserPage {
                             $ips[$cad->dataset()->getIpAddress()]=\json_decode($record['info'], true);
                         }
                     }
+                }
+                else {
+                    $isAdOwner=true;
                 }
                 
                 $assignedAdmin='';

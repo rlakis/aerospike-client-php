@@ -27,6 +27,7 @@ function redirectTo(User $user) : void {
             }
         }
     }
+    
     if (isset($lg) && ($lg==='en'||$lg==='ar')) {
         $router->language=$lg;
     }
@@ -66,68 +67,65 @@ $storage=new Session();
 $isAndroid=$storage->get('android');
 
 try {
-    if (isset($_GET['provider'])) {
-        $pro = trim($_GET['provider']);
-        
-        if ($pro=='live') {
-            $pro = 'WindowsLive';
+    
+    $_provider=\strtolower(\trim(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']])));
+    if ($_provider) {        
+        if ($_provider==='live') {
+            $pro='WindowsLive';
         }
-        elseif(strtolower($pro)=='linkedin') {
-            $pro = 'LinkedIn';
+        elseif($_provider==='linkedin') {
+            $pro='LinkedIn';
         }
-        elseif(strtolower($pro)=='yahoo') {
-            $pro = 'YahooOpenID';
+        elseif($_provider==='yahoo') {
+            $pro='YahooOpenID';
         }
         else {
-            $pro = ucfirst($pro);
+            $pro=\ucfirst($_provider);
         }
         
         $storage->set('provider', $pro);
         
-        if ($_GET['provider']=='Twitter') {
+        if ($_provider==='twitter') {
             $hybridConfig['callback'].='?hauth.done=Twitter';
         }
     }
     
     if (isset($_GET['connect'])) {
         $storage->set('android', true);  
-        $isAndroid = true;
+        $isAndroid=true;
     
-        $uid = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
-        $uuid = urldecode(filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+        $uid=\filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
+        $uuid=\urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
         
-        $storage->set('uid',$uid);  
-        $storage->set('uuid',$uuid);   
+        $storage->set('uid', $uid);  
+        $storage->set('uuid', $uuid);   
     }
     
     
-    $hybridauth = new Hybridauth($hybridConfig);   
+    $hybridauth=new Hybridauth($hybridConfig);   
     
     if ($provider=$storage->get('provider')) {
         
-        $uid = 0;
-        $uuid = 0;
+        $uid=$uuid=$failed=0;
         if ($isAndroid) {
-            $uid = $storage->get('uid');
-            $uuid = $storage->get('uuid');
+            $uid=$storage->get('uid');
+            $uuid=$storage->get('uuid');
         }       
         
         $hybridauth->authenticate($provider);
-        
-        $failed=0;
-     
+             
         $storage->set('provider', null);
         
-        $adapter = $hybridauth->getAdapter($provider);                
+        $adapter=$hybridauth->getAdapter($provider);                
                 
         if ($adapter->isConnected()) {
             
-            $provider=strtolower(trim($provider));
+            $provider=\strtolower(trim($provider));
             if ($provider==='windowslive') $provider = 'live'; 
             if ($provider==='yahooopenid') $provider = 'yahoo';
             
             $info=$auth_info=$adapter->getUserProfile();  
-            \error_log(var_export($info, true));
+            //\error_log(var_export($info, true));
             //FIX FOR CHANGING API KEY OF FACEBOOK
             if ($provider==='facebook' && $info->email) {
                 $usr=$user->getUserByEmailAndProvider($info->email, $provider);
@@ -148,7 +146,7 @@ try {
                     if ($newId==0) { $failed = 1; }
                 }
                 else {
-                    $failed = 1;
+                    $failed=1;
                 }                
             }
             else {                      
@@ -157,17 +155,19 @@ try {
          
         }
         else {
-            $failed = 1;
+            $failed=1;
         }
         
         if ($isAndroid) {            
             $storage->set('android', null); 
             $storage->set('uid', null); 
-            $storage->set('uuid', null);             
-            header('Location: connect://' . ($failed==1 ? '0' : $newId));
+            $storage->set('uuid', null);
+            header('Location: connect://' . ($failed==1?'0':$newId));
             exit(0);            
         }
         else {
+            \error_log('here'. var_export($user->pending, true));
+            
             if (isset($user->pending['redirect_login'])) {
                 $uri=$user->pending['redirect_login'];
                 unset($user->pending['redirect_login']);
@@ -178,7 +178,7 @@ try {
                         }
                     }
                     else {
-                        if ($user->params['lang']!='ar') {
+                        if ($user->params['lang']!=='ar') {
                             $uri.=$user->params['lang'].'/';
                         }
                     }
@@ -193,8 +193,11 @@ try {
                     $uri=$user->params['uri'];
                 }
 
+                //\error_log(__FILE__.PHP_EOL.var_export(Router::instance()->cookie, true).PHP_EOL. 'User: ' .var_export($user->params, true));
+                $user->params['lang']=Router::instance()->cookie->lg??'ar';
+                
                 $hasParam=0;
-                if ($user->params['lang']!='ar') {
+                if ($user->params['lang']!=='ar') {
                     $uri.=$user->params['lang'].'/';
                 }            
 

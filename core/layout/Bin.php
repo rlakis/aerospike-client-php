@@ -121,7 +121,16 @@ class Bin extends AjaxHandler {
 
     
     private function output() : void {
-        \header("Content-Type: application/json");        
+        \header("X-MC-Server: {$this->router->config->serverId}");
+        \header("X-MC-Version: 2");
+        \header("Alt-Svc: h3-29=\":443\"; ma=86400");
+        \header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
+        \header("X-Content-Type-Options: nosniff");
+        \header("X-Xss-Protection: 1; mode=block");
+        \header("Cache-Control: no-transform");
+        \header("Strict-Transport-Security: max-age=31536000");
+        \header("Content-Type: application/json");
+        
         echo \json_encode($this->resp);
         exit(0);
     }
@@ -5014,8 +5023,7 @@ class Bin extends AjaxHandler {
                         
                         //if(isset($thumbnails->modelData) && count($thumbnails->modelData)){
                             
-                            //error_log(var_export($thumbnails['modelData'],true));
-                                                       
+                                                                               
                             $videoUrl = 'https://www.youtube.com/watch?v='.$videoId;
                             $firstThumbnail = htmlspecialchars($thumbnails->medium->url);
                             if(isset($thumbnails->standard)){
@@ -5267,7 +5275,7 @@ class Bin extends AjaxHandler {
                         if(!preg_match('/facebook|google|sharethis/i',$url) && !preg_match('/__show__deepen|Blocked a frame with origin/',$error)){
                             $line=$this->post('ln');
                             $msg='JAVASCRIPT'.(isset($this->user->params['mobile']) && $this->user->params['mobile'] ? ' MOBILE':'').' ERROR: '.$error.' >> LINE: '.$line.' >> URL: '.$url. ' >> USER AGENT: '.$_SERVER['HTTP_USER_AGENT'].' >> USER_ID: '.$this->user->info['id'];
-                            error_log($msg);
+                            error_log(__CLASS__.'.'.__FUNCTION__.'('.__LINE__.'): '. $msg);
                         }
                     }else{
                         $line=$this->post('ln');

@@ -54,13 +54,16 @@ class MCPermission extends \Core\Model\Singleton {
     
     public function setUser(MCUser $user) : self {
         $this->user=$user;
-        $this->privileges=$this->admins['names'][$this->admins['index'][$this->user->id]];
+        if (isset($this->admins['index'][$this->user->id])) {
+            $this->privileges=$this->admins['names'][$this->admins['index'][$this->user->id]];
+        } 
+        else {
+            $this->privileges=[MCPermission::SUPER_USER=>0, MCPermission::CAN_BLOCK=>0, MCPermission::FILTER_USER=>0, MCPermission::SIMILAR_ADS=>0, MCPermission::SEE_FOR_HELP=>0];
+        } 
         $this->authorized=!($this->user->isBlocked() || $this->user->isSuspended());
         return $this;
     }
     
-    
- 
     
     public function isSuperAdmin() : bool {
         if ($this->authorized===false) return false;

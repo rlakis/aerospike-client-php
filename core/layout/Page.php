@@ -49,8 +49,8 @@ class Page extends Site {
             }
             else {
                 $this->isUserMobileVerified=(isset($this->user->info['verified']) && $this->user->info['verified']);
-                //var_dump(var_export($this->user->info, true));
             }
+            //\error_log(var_export($this->user->info, true));
         }
         
         if (\filter_input(\INPUT_SERVER, 'REMOTE_ADDR')==='109.233.17.71' && $this->router->host==='dev.mourjan.com') {
@@ -64,11 +64,11 @@ class Page extends Site {
         }
         
         if (strpos($this->router->config->imgURL, 'http')===false) {            
-            $this->router->config->imgURL = $cdn.$this->router->config->imgURL;
+            $this->router->config->imgURL=$cdn.$this->router->config->imgURL;
         }
         
         if (strpos($this->router->config->jsURL, 'http')===false) {
-            $this->router->config->jsURL = $cdn.$this->router->config->jsURL;
+            $this->router->config->jsURL=$cdn.$this->router->config->jsURL;
         }
         
         if (strpos($this->router->config->get('url_js_mobile'), 'http')===false) {
@@ -76,7 +76,7 @@ class Page extends Site {
         }
         
         if (strpos($this->router->config->cssURL, 'http')===false) {
-            $this->router->config->cssURL = $cdn.$this->router->config->cssURL;
+            $this->router->config->cssURL=$cdn.$this->router->config->cssURL;
         }
         
         if (strpos($this->router->config->get('url_css_mobile'), 'http')===false) {
@@ -84,7 +84,7 @@ class Page extends Site {
         }
         
         if (strpos($this->router->config->imgLibURL, 'http')===false) {
-            $this->router->config->imgLibURL = $cdn.$this->router->config->imgLibURL;
+            $this->router->config->imgLibURL=$cdn.$this->router->config->imgLibURL;
         }
         
         if (strpos($this->router->config->get('url_highcharts'), 'http')===false) {
@@ -100,7 +100,7 @@ class Page extends Site {
             }
         }
         
-        if(isset($this->user->params['hasCanvas']) && $this->user->params['hasCanvas']==0){
+        if (isset($this->user->params['hasCanvas']) && $this->user->params['hasCanvas']==0){
             $this->router->cfg['enabled_charts']=0;
         }
         
@@ -915,7 +915,10 @@ class Page extends Site {
             }
             else {
                 if ($this->router->module!=='detail' && $purposeId>0 && $purposeId===$this->router->purposeId) {
-                    $v['counter']=$v['purposes'][$purposeId]['counter'];
+                    //if (!isset($v['purposes'][$purposeId]['counter']))
+                    //    \error_log(__CLASS__.'.'.__FUNCTION__.'('.__LINE__.'): '. $purposeId. ' '. var_export($v, true));
+                    //else
+                        $v['counter']=$v['purposes'][$purposeId]['counter']??0;
                 }
                 $isNew=(!$selected && $this->checkNewUserContent($v['unixtime']));
                 $name=$v['name'].'&nbsp<span'.($isNew?' class=hot>':'>').\number_format($v['counter']).'</span>';
@@ -1142,7 +1145,7 @@ class Page extends Site {
             }
             $uri.=$this->localities[$this->localityId]['uri'].'/';
             $uri.=$this->router->sections[$this->router->sectionId]['uri'].'/';
-            if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId][3].'/';
+            if ($this->router->purposeId)$uri.=$this->router->purposes[$this->router->purposeId]['uri'].'/';
             $uri.=($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId ? 3:2).'/';
         }
         else {
@@ -1342,13 +1345,14 @@ class Page extends Site {
                         else {
                             $extended_uri .= '/';
                         }
-                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                        //\error_log(var_export($this->router->sections[$this->router->sectionId], true));
+                        $extended_uri.=$this->router->sections[$this->router->sectionId]['uri'].'-'.$this->extended[$this->extendedId]['uri'].'/';
                     }
                     elseif ($this->localityId) {
                         $append_uri='/'.($this->router->language!='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
                         $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                         $extended_uri.=$this->localities[$this->localityId]['uri'].'/';
-                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'/';
+                        $extended_uri.=$this->router->sections[$this->router->sectionId]['uri'].'/';
                     }
 
                     $base_name = ($this->extendedId && isset($this->extended[$this->extendedId]))?$this->extended[$this->extendedId]['name']:
@@ -1501,13 +1505,13 @@ class Page extends Site {
                         if ($this->router->countryId) {
                             $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                             if ($this->hasCities && $this->router->cityId) {
-                                $extended_uri.=$this->router->cities[$this->router->cityId][3].'/';
+                                $extended_uri.=$this->router->cities[$this->router->cityId]['uri'].'/';
                             }
                         }
                         else {
                             $extended_uri.='/';
                         }
-                        $extended_uri.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+                        $extended_uri.=$this->router->sections[$this->router->sectionId]['uri'].'-'.$this->extended[$this->extendedId]['uri'].'/';
                     }
                     elseif ($this->localityId>0) {
                         $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'c-'.$this->localityId.'-'.($this->hasCities && $this->router->cityId?3:2);
@@ -2448,11 +2452,11 @@ class Page extends Site {
                 $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
                 $link.=$this->localities[$this->localityId]['uri'].'/';
                 if ($this->router->sectionId) 
-                    $link.=$this->router->sections[$this->router->sectionId][3].'/';
+                    $link.=$this->router->sections[$this->router->sectionId]['uri'].'/';
                 else 
                     $link.=$this->router->pageRoots[$this->router->rootId]['uri'].'/';
                 if ($this->router->purposeId)
-                    $link.=$this->router->purposes[$this->router->purposeId][3].'/';
+                    $link.=$this->router->purposes[$this->router->purposeId]['uri'].'/';
                 if ($this->router->language!='ar')$link.=$this->router->language.'/';
                 $link.='c-'.$this->localityId.'-'.$idx.'/%s';
             }
@@ -2566,10 +2570,10 @@ class Page extends Site {
                 $link='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
             }
             if (isset($this->router->countries[$this->router->countryId]['cities'][$this->router->cityId])) {
-                $link.=$this->router->cities[$this->router->cityId][3].'/';
+                $link.=$this->router->cities[$this->router->cityId]['uri'].'/';
                 $idx=3;
             }
-            $link.=$this->router->sections[$this->router->sectionId][3].'-'.$this->extended[$this->extendedId]['uri'].'/';
+            $link.=$this->router->sections[$this->router->sectionId]['uri'].'-'.$this->extended[$this->extendedId]['uri'].'/';
             if ($this->router->purposeId) { $link.=$this->router->purposes[$this->router->purposeId]['uri'].'/'; }
             if ($this->router->language!=='ar')$link.=$this->router->language.'/';
                 $link.='q-'.$this->extendedId.'-'.$idx.'/%s';
@@ -3178,7 +3182,7 @@ class Page extends Site {
             //$str.='<div style="line-height:'.$ad[2].'px">'.$name.' '.$ad[1].'x'.$ad[2].'</div>';
             $str.='</div>';
         }
-        \error_log($str);
+        //\error_log(__CLASS__.'.'.__FUNCTION__.'('.__LINE__.'): '.$str);
         return $str;
     }
 
@@ -3538,6 +3542,7 @@ class Page extends Site {
     public function css(string $filename) : Page {
         if (!isset($this->included[$filename])) {
             $cssfile=$this->router->config->cssDir.'/includes/'.$filename.'.css';
+            //\error_log($cssfile);
             if (\file_exists($cssfile)) {
                
                 /*
@@ -3583,7 +3588,15 @@ class Page extends Site {
     
     
     protected function _header() : void {
-        //\header("Access-Control-Allow-Origin: *");
+        \header("X-MC-Server: {$this->router->config->serverId}");
+        \header("X-MC-Version: 2");
+        \header("Alt-Svc: h3-29=\":443\"; ma=86400");
+        \header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
+        \header("X-Content-Type-Options: nosniff");
+        \header("X-Xss-Protection: 1; mode=block");
+        \header("Cache-Control: no-transform");
+        \header("Strict-Transport-Security: max-age=31536000");
+        
         //\header("Link: <{$this->router->config->cssURL}/1.0/mc.css>; rel=preload; as=style;", false);
         //\header("Link: <{$this->router->config->cssURL}/1.0/fonts/roboto-v20-latin-regular.woff2>; rel=preload; as=font; crossorigin", false);
         //\header("Link: <{$this->router->config->cssURL}/1.0/fonts/almarai-v4-arabic-300.woff2>; rel=preload; as=font; crossorigin", false);

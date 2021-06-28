@@ -2259,7 +2259,8 @@ class User {
                     
                     if ($mcUser->getProvider()=='mourjan-android' || $forceDataMerge) {
                         include_once $this->cfg['dir'] . '/core/lib/SphinxQL.php';
-                        $sphinx = new SphinxQL($this->cfg['sphinxql'], $this->cfg['search_index']);
+                        
+                        $sphinx = new SphinxQL($this->config->get('sphinxql'), $this->config->get('search_index'));
 
                         //Clean up previous favorites
                         $selectAllUserFavorite = $this->db->prepareQuery('select ad_id from web_users_favs where web_user_id=?');

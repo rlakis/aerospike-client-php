@@ -1,34 +1,27 @@
 <?php
 require_once 'Page.php';
 
-class Blocked extends Page
-{    
+class Blocked extends Page {    
 
-    function __construct($router)
-    {
-        parent::__construct($router);
+    function __construct($router) {
+        parent::__construct();
         $this->forceNoIndex=true;
         $this->title=$this->lang['title_blocked'];
         $this->urlRouter->cfg['enabled_ads']=0;
         
-        if($this->isMobile)
-        {
+        if($this->isMobile) {
             $this->inlineCss.='.nost{list-style:none!important;margin:0!important}.nost .ctr{padding-top:20px}';
         }
-        else
-        {
+        else {
             $this->inlineCss.='.hbn{padding-top:30px;}.hbn p{width:630px;float:right;margin:0 10px 20px;}.hbn ul{float:right;width:580px;list-style:disc inside;padding:10px 30px;margin:0 10px;line-height:30px;background-color:#ececec;}.hbn a{color:#00e}.hbn a:hover{text-decoration:underline}.hbn .om{width:250px;height:330px;margin:0 30px;display:inline-block;}.nost{list-style:none!important}.nost .ctr{padding-top:20px;}.nost a{color:#fff;text-decoration:none!important}';
         }
         
-        if($this->urlRouter->module=='held')
-        {
+        if($this->urlRouter->module=='held') {
             $this->title=$this->lang['title_held'];
             $hours = '24';
-            if ($this->user->getProfile()->isSuspended()) 
-            {
+            if ($this->user->getProfile()->isSuspended()) {
                 $time = $this->user->getProfile()->getOptions()->getSuspensionTime()-time(); 
-                if($time>0)
-                {
+                if($time>0) {
                     $hours = $time / 3600;
                     if(ceil($hours)>1)
                     {
@@ -117,7 +110,8 @@ class Blocked extends Page
         ?></div><?php
     }
 
-    function pageHeader(){
+    
+    function pageHeader() : void {
         $countryId=0;
         $cityId=0;
         $countryName=$this->countryName;
