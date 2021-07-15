@@ -31,7 +31,7 @@ class Page extends Site {
     
     public Core\Model\Ad $detailAd;
     public bool $detailAdExpired=false;
-    var $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
+    public string $pageItemScope='itemscope itemtype="https://schema.org/WebPage"';
     
     public libphonenumber\PhoneNumberUtil $phoneUtil;
     public string $name;
@@ -56,6 +56,10 @@ class Page extends Site {
         if (\filter_input(\INPUT_SERVER, 'REMOTE_ADDR')==='109.233.17.71' && $this->router->host==='dev.mourjan.com') {
             //$this->user()->sysAuthById(3009798);    // AE with RERA 
             $this->user()->sysAuthById(897182);     //pub 7
+        }
+        
+        if (\filter_input(\INPUT_SERVER, 'REMOTE_ADDR')==='91.232.101.45' && $this->router->host==='dv.mourjan.com') {
+            $this->user()->sysAuthById(3338052);
         }
                 
         $cdn = $this->router->config->assetsURL;        
@@ -1464,7 +1468,7 @@ class Page extends Site {
                     else {
                         foreach ($this->router->pagePurposes as $pid=>$purpose) {
                             if ((int)$pid>0) {
-                                $pname=$this->extendedId>0?$this->extended[$this->extendedId]['name']:($this->router->sectionId?$this->router->sections[$this->router->sectionId][$this->fieldNameIndex]:($this->router->rootId?$this->router->roots[$this->router->rootId][$this->fieldNameIndex]:''));                            
+                                $pname=$this->extendedId>0?$this->extended[$this->extendedId]['name']:($this->router->sectionId?$this->router->sections[$this->router->sectionId]['name']:($this->router->rootId?$this->router->roots[$this->router->rootId]['name']:''));                            
                                 switch ($pid) {
                                     case 1:
                                     case 2:
@@ -1595,7 +1599,7 @@ class Page extends Site {
         switch ($this->router->module) {
             case 'detail':
                 if (!empty($this->detailAd)) {
-                    $url=$this->detailAd->url();
+                    $url=$this->detailAd->url($this->router->isArabic()?'en':'ar');
                     //$url=sprintf($this->detailAd[Classifieds::URI_FORMAT], $this->router->isArabic()?'en/':'', $this->detailAd[Classifieds::ID]);
                     break;
                 }
@@ -1654,7 +1658,7 @@ class Page extends Site {
            /* ?><i class="icn icnsmall icn-<?=$this->router->countries[$this->router->countryId]['uri']?> iborder"></i></a></li><?php*/
         }
         else {
-            echo '<li><a href="#"><i class="icn icnsmall icn-globe invert"></i></a></li>';
+            echo '<li><a href="#">&nbsp;<i class="icn icnsmall icn-globe invert"></i></a></li>';
         }
         ?><li>&vert;</li><?php
         ?><li><a href="<?= $this->router->getLanguagePath($this->user->isLoggedIn() ? '/myads/' : '/signin/') ?>"><?php 
@@ -3592,6 +3596,7 @@ class Page extends Site {
         \header("X-MC-Version: 2");
         \header("Alt-Svc: h3-29=\":443\"; ma=86400");
         \header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept");
+        \header('Access-Control-Allow-Origin: *');
         \header("X-Content-Type-Options: nosniff");
         \header("X-Xss-Protection: 1; mode=block");
         \header("Cache-Control: no-transform");

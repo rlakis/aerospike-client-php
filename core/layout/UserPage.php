@@ -99,7 +99,7 @@ class PageSide {
         $b.="<img class=ifilter style='width:105px;' src={$this->page->router->config->cssURL}/1.0/assets/avatar.svg />";
         $b.="<div style='font-size:24px;font-weight:700;margin:20px 0 8px'>{$name}</div>";
         if ($num && $this->page->phoneUtil->isValidNumber($num)) {
-            $b.="<div class=fw-300 style='color:#fd636a;font-size:18px'>{$this->page->phoneUtil->format($num, \libphonenumber\PhoneNumberFormat::INTERNATIONAL)}</div>";
+            $b.="<div class=\"fw-300 en\" style='color:#fd636a;font-size:18px'>{$this->page->phoneUtil->format($num, \libphonenumber\PhoneNumberFormat::INTERNATIONAL)}</div>";
         }
         
         $type=$profile->getPublisherStatus(); 

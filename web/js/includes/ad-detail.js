@@ -1,4 +1,17 @@
 let wrapperTop=0,CTRL=false,seen=[];
+const wording={
+    cancel:{e:'Cancel', a:'تراجع'},
+    hold_text:{e:'Are you sure that you want to stop this ad?', a:'هل انت متأكد من قرار إيقاف الاعلان؟'},
+    hold_it:{e:'Yes, stop it!', a: 'نعم، إلغاء النشر!'},
+    make_it:{e:'Yes, make it!', a: 'نعم، متأكد!'},
+    del_it:{e:'Yes, delete it!', a: 'نعم، متأكد!'},
+    stop_premium:{e:'Are you sure that you want to stop premium listing for this ad?', a:'هل أنت متأكد(ة) من إيقاف العرض المميز لهذا الإعلان؟'},
+    premium_rs1:{e:'Premium listing of this ad has been cancelled successfully', a:'تم الغاء تمييز الاعلان بنجاح'},
+    premium_rs2:{e:'but the ad will remain premium for the earned period of', a:'ولكن الاعلان سيبقى مميز للفترة المكتسبة وهي'},
+    premium_ok:{e:'This ad will be premium in few moments', a:'سيتم تمييز هذا الإعلان خلال لحظات'},
+    no_revert:{e:'You won\'t be able to revert this!', a:'لن تتمكن من التراجع عن هذا الامر!'}
+}
+
 
 const preventEventProp = (e) => {
     e.preventDefault(); 
@@ -448,7 +461,7 @@ function reportAd(e, t){
     }
     
     let level=$.body.dataset.level?parseInt($.body.dataset.level):0;
-    console.log(level, e);
+    console.log(level, e, level);
     if(level===0){
         Swal.fire({
             title: 'Report This Ad',
@@ -456,6 +469,22 @@ function reportAd(e, t){
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Yes, report it!',
+            cancelButtonText: 'No, dismiss'
+        }).then((result) => {
+            //if (result.value) {
+                //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
+            //} else if (result.dismiss === Swal.DismissReason.cancel) {
+                //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
+            //}
+        });
+    }
+    else if ((level===9)||(level===90)) {
+        Swal.fire({
+            title: 'Stop This Ad',
+            text: 'You will send an SMS to advertiser mobile number for verification!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, stop it!',
             cancelButtonText: 'No, dismiss'
         }).then((result) => {
             //if (result.value) {

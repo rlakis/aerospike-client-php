@@ -400,6 +400,7 @@ $lang=array(
     'suggestion'    =>  'هل تبحث عن موديل محدد؟',
     'suggestionLocation'    =>  'هل تبحث ضمن منطقة محددة في ',
     '?'    => '؟',
+    'report_ad'     => 'أي مشكلة؟ <b>الإبلاغ عن هذا الاعلان</b>',
     'reportAbuse'   =>  'إبلاغ عن إساءة',
     'abuseReported' =>  'تم تبليغ شكواك وسيتم مراجعتها قريباً',
     'abuseTitle'    =>  'يرجى تحديد سبب الإساءة',
@@ -749,6 +750,7 @@ $lang=array(
     'paypal_suspended'      =>  'عذراً ولكن دفعات Paypal لم تعد مقبولة',
     
     'last_update'      =>  'آخر تحديث:',
+    'posted_on'         => 'نشر في',
     'prop_title'      =>  'PropSpace',
     'prop_delete'      =>  'هل تريد ازالة رابط PropSpace هذا؟',
     'link_ok'      =>  'الرابط فعّال',

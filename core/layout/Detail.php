@@ -67,6 +67,7 @@ class Detail extends Search {
     
     
     function displayDetail() : void {
+        //error_log(__FUNCTION__);
         if ($this->detailAdExpired) {  return;  }
         
         if (!isset($this->stat['ad-imp'])) { $this->stat['ad-imp']=[]; }
@@ -83,11 +84,11 @@ class Detail extends Search {
             $this->stat['ad-imp'][]=$this->detailAd->id();
         }
             
-        $picsCount=0;
+        $picsCount=$isFavorite=0;
         $vWidth=250;
             
         if ($this->detailAd->hasPictures()) {
-            $picsCount= $this->detailAd->picturesCount();
+            $picsCount=$this->detailAd->picturesCount();
         }
         else {
             $vWidth+=40;
@@ -98,8 +99,7 @@ class Detail extends Search {
             
         $adSection=$this->getAdSection($this->detailAd, false, true);
             
-        $favLink='';
-        $isFavorite=0;
+        $favLink=$abuseLink='';
         
         if ($loggedId && $this->user->favorites) {
             if (\in_array($this->detailAd->id(), $this->user->favorites)) {
@@ -108,14 +108,12 @@ class Detail extends Search {
             }                
         }
         
-        
         if (empty($favLink)) {
             $favLink="<i class='icn star i16 mlc-filter'></i><span>{$this->lang['save']}</span>";
         }
         $favLink='<a onclick="fv(this,1)">'.$favLink.'</a>';
         
         
-        $abuseLink='';
         if ($this->user->isLoggedIn(9)) {
             if (!$this->detailAd->isFeatured() && !$this->detailAd->isBookedFeature()) {
                 $abuseLink="<div class='d2' onclick='rpa(this,0,1)'><span class='i ab'></span><span>{$this->lang['reportAbuse']}</span></div>";
@@ -154,7 +152,7 @@ class Detail extends Search {
         $this->adCountry=$this->detailAd->countryCode();
         ?><div class="top ff-cols"><div class="col-12 sp-between" style="flex-wrap:nowrap"><?php
         if (!$this->detailAd->isJob()) {
-            ?><div class=fw-300>Posted on <?=$date->format('d.m.y H:i e')?></div><?php
+            ?><div class=fw-300><?=$this->lang['posted_on']?> <?=$date->format('d.m.y H:i e')?></div><?php
         }
         ?><div style="font-weight:700;font-size:2em"><?=$this->detailAd->formattedPrice()?></div></div><?php
         /*?><div class="row fw-700"><?=$adSection?></div><?php*/
@@ -211,16 +209,16 @@ class Detail extends Search {
         
         
 
-        ?><div class="social<?=$this->detailAd->isJob()?' sp-between':' ha-end'?>"><?php
+        ?><div class="social <?=$this->detailAd->isJob()?'sp-between':'ha-end'?>"><?php
          if ($this->detailAd->isJob()) {
             ?><div class="fw-300" style="height: 24px"><?php
-            echo "Posted on ", $date->format('d.m.Y H:i:s');
+            echo $this->lang['posted_on'], ' ', $date->format('d.m.Y H:i:s');
             ?></div><?php
         }
         //if ($this->router->cfg['enabled_sharing']){
         echo '<!--googleoff: all-->';
         ?><div><?php
-        ?><a href="#"><i class="icn share i16 mlc-filter"></i><span>Share</span></a><?php
+        ?><a href="#"><i class="icn share i16 mlc-filter"></i><span><?=$this->lang['share']?></span></a><?php
         /*?><div class='sha shas shab'><label><?= $this->lang['shareFriends'] ?></label><span  class='st_email_large' ></span><span  class='st_facebook_large' ></span><span  class='st_twitter_large' ></span><span class='st_googleplus_large'></span><span  class='st_linkedin_large' ></span><span  class='st_sharethis_large' ></span></div><?php*/
         //}
         echo $favLink;
@@ -348,6 +346,7 @@ class Detail extends Search {
             
             foreach ($this->detailAd->emails() as $email) {
                 ?><a class="btn mail"><?= \strtolower($email)?></a><?php
+                break;
             }
             ?></div><?php
         }
@@ -431,7 +430,7 @@ class Detail extends Search {
        
         ?></div><?php
         
-        ?><div class=row><div class=tail><div class="<?=$this->detailAd->isFeatured()?"col-12":"col-8"?> ff-cols report" onclick="reportAd(this)"><p>Any issue? <b>Report this ad</b></p></div><?php
+        ?><div class=row><div class=tail><div class="<?=$this->detailAd->isFeatured()?"col-12":"col-8"?> ff-cols report" onclick="reportAd(this)"><p><?=$this->lang['report_ad']?></p></div><?php
         if (!$this->detailAd->isFeatured()) {
             ?><div class=col-4></div><?php
         }

@@ -3298,18 +3298,11 @@ class Search extends Page {
 
     
     function renderSideSections($noAds=false) {
-        $noAds = $this->router->config->enabledAds() ? $noAds : 0;
+        $noAds=$this->router->config->enabledAds()?$noAds:0;
         $countAds=0;
         if (isset($this->searchResults['body']['matches'])) { $countAds=count($this->searchResults['body']['matches']); }
-        if ($this->router->module=='detail') {
-            if (!$this->detailAdExpired){
-                if ($this->detailAd[Classifieds::PUBLICATION_ID]==1) {
-                    $countAds+=4;
-                }
-                else {
-                    $countAds+=2;
-                }
-            }            
+        if ($this->router->module==='detail' && !$this->detailAdExpired){
+            $countAds+=4;
         }
         
         echo '<ul id="siAd" class="list">', "\n";            

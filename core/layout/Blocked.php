@@ -3,53 +3,46 @@ require_once 'Page.php';
 
 class Blocked extends Page {    
 
-    function __construct($router) {
+    function __construct() {
         parent::__construct();
         $this->forceNoIndex=true;
         $this->title=$this->lang['title_blocked'];
-        $this->urlRouter->cfg['enabled_ads']=0;
+        $this->router->config->disableAds();
         
-        if($this->isMobile) {
-            $this->inlineCss.='.nost{list-style:none!important;margin:0!important}.nost .ctr{padding-top:20px}';
-        }
-        else {
-            $this->inlineCss.='.hbn{padding-top:30px;}.hbn p{width:630px;float:right;margin:0 10px 20px;}.hbn ul{float:right;width:580px;list-style:disc inside;padding:10px 30px;margin:0 10px;line-height:30px;background-color:#ececec;}.hbn a{color:#00e}.hbn a:hover{text-decoration:underline}.hbn .om{width:250px;height:330px;margin:0 30px;display:inline-block;}.nost{list-style:none!important}.nost .ctr{padding-top:20px;}.nost a{color:#fff;text-decoration:none!important}';
-        }
+        //if($this->isMobile) {
+        //    $this->inlineCss.='.nost{list-style:none!important;margin:0!important}.nost .ctr{padding-top:20px}';
+        //}
+        //else {
+        //    $this->inlineCss.='.hbn{padding-top:30px;}.hbn p{width:630px;float:right;margin:0 10px 20px;}.hbn ul{float:right;width:580px;list-style:disc inside;padding:10px 30px;margin:0 10px;line-height:30px;background-color:#ececec;}.hbn a{color:#00e}.hbn a:hover{text-decoration:underline}.hbn .om{width:250px;height:330px;margin:0 30px;display:inline-block;}.nost{list-style:none!important}.nost .ctr{padding-top:20px;}.nost a{color:#fff;text-decoration:none!important}';
+        //}
         
-        if($this->urlRouter->module=='held') {
+        if($this->router->module==='held') {
             $this->title=$this->lang['title_held'];
-            $hours = '24';
+            $hours='24';
             if ($this->user->getProfile()->isSuspended()) {
-                $time = $this->user->getProfile()->getOptions()->getSuspensionTime()-time(); 
+                $time=$this->user->getProfile()->getOptions()->getSuspensionTime()-time(); 
                 if($time>0) {
-                    $hours = $time / 3600;
-                    if(ceil($hours)>1)
-                    {
-                        $hours = ceil($hours);
-                        if($this->urlRouter->siteLanguage=='ar')
-                        {
-                            if($hours==2)
-                            {
+                    $hours=$time/3600;
+                    if (\ceil($hours)>1) {
+                        $hours=\ceil($hours);
+                        if ($this->router->isArabic()) {
+                            if($hours==2) {
                                 $hours='ساعتين';
                             }
-                            elseif($hours>2 && $hours<11)
-                            {
+                            elseif($hours>2 && $hours<11) {
                                 $hours=$hours.' ساعات';
                             }
-                            else
-                            {
+                            else {
                                 $hours = $hours.' ساعة';
                             }
                         }
-                        else
-                        {
+                        else {
                             $hours = $hours.' hours';
                         }
                     }
-                    else
-                    {
+                    else {
                         $hours = ceil($time / 60);
-                        if($this->urlRouter->siteLanguage=='ar'){
+                        if($this->router=->isArabic()) {
                             if($hours==1){
                                 $hours='دقيقة';
                             }elseif($hours==2){
@@ -68,17 +61,20 @@ class Blocked extends Page {
                         }
                     }
                     
-                    $this->lang['desc_held_reasons']=  preg_replace('/{hours}/', $hours, $this->lang['desc_held_reasons']);
-                    $this->lang['desc_held']=  preg_replace('/{hours}/', $hours, $this->lang['desc_held']);
-                }else{
-                    $this->user->redirectTo('/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
+                    $this->lang['desc_held_reasons']=\preg_replace('/{hours}/', $hours, $this->lang['desc_held_reasons']);
+                    $this->lang['desc_held']=\preg_replace('/{hours}/', $hours, $this->lang['desc_held']);
                 }
-            }else{
-                $this->user->redirectTo('/'.($this->urlRouter->siteLanguage=='ar'?'':$this->urlRouter->siteLanguage.'/'));
+                else {
+                    $this->user->redirectTo('/'.($this->router->language==='ar'?'':$this->router->language.'/'));
+                }
+            }
+            else {
+                $this->user->redirectTo('/'.($this->router->language==='ar'?'':$this->router->language.'/'));
             }
         }
         $this->render();
     }
+    
 
     function mainMobile(){
         echo '<div class="str"><img class="ina" height="168px" width="100px" src="'.$this->urlRouter->cfg['url_css_mobile'].'/i/na.jpg" />'.($this->urlRouter->module=='held'? $this->lang['desc_held'].preg_replace('/rc sh/','',$this->lang['desc_held_reasons']) : ($this->urlRouter->module=='suspended' ? $this->lang['desc_suspended'].preg_replace('/rc sh/','',$this->lang['desc_suspended_reasons']) : $this->lang['desc_blocked'].preg_replace('/rc sh/','',$this->lang['desc_blocked_reasons']))).'</div>';

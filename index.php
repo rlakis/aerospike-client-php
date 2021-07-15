@@ -37,9 +37,9 @@ if ($isWeb===true) {
     $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
    
     if (!$stop && \array_key_exists($router->module, $config['modules'])) {
-        $mod_class = $config['modules'][$router->module][0];
+        $mod_class=$config['modules'][$router->module][0];
         include_once Config::instance()->baseDir.($router->module==='cache'?'/core/gen/':'/core/layout/').$mod_class.'.php';        
-        $object = new $mod_class();            
+        $object=new $mod_class();            
     }
     else {
         include_once Config::instance()->baseDir.'/core/layout/NotFound.php';

@@ -421,8 +421,11 @@ class Ad {
     }
     
     
-    public function url() : string {
-        return sprintf($this->data[Classifieds::URI_FORMAT], (Router::instance()->language=='ar' ? '' : Router::instance()->language.'/'), $this->id());    
+    public function url(string $uiLanguage='') : string {
+        if ($uiLanguage==='') {
+            $uiLanguage=Router::instance()->language;
+        }
+        return sprintf($this->data[Classifieds::URI_FORMAT], ($uiLanguage==='ar' ? '' : $uiLanguage.'/'), $this->id());    
     }
     
     

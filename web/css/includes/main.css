@@ -200,11 +200,7 @@ li > i {
 }
 .icn-map-marker {
   background-color: #3cb371;
-  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/map-marker-alt.svg) no-repeat 50% 50%
-}
-.icn-rss {
-  background-color: orange!important;
-  -webkit-mask: url(https://c6.mourjan.com/css/2020/1.0/fa/regular/rss.svg) no-repeat 50% 50%
+  -webkit-mask: url(/css/2020/1.0/fa/regular/map-marker-alt.svg) no-repeat 50% 50%
 }
 .icn-camera {
   background: url(https://c6.mourjan.com/css/2020/1.0/assets/cam.svg) no-repeat 50% 50%

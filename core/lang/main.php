@@ -397,6 +397,7 @@ $lang=array(
     'suggestion'    =>  'Are you looking for a specific model?',
     'suggestionLocation'    =>  'Are you looking in a specific area in ',
     '?' =>  '?',
+    'report_ad'     => 'Any issue? <b>Report this ad</b>',
     'reportAbuse'   =>  'report abuse',
     'abuseReported' =>  'Your complaint has been reported and will be reviewed soon',
     'abuseTitle'    =>  'Please specify the reason why this ad is abusive',
@@ -743,6 +744,7 @@ $lang=array(
     'paypal_suspended'      =>  'Sorry! Paypal payments are no longer accepted',
     
     'last_update'      =>  'last update:',
+    'posted_on'         => 'Posted on',
     'prop_title'      =>  'PropSpace',
     'prop_delete'      =>  'Remove this PropSpace link?',
     'link_ok'      =>  'link is active',

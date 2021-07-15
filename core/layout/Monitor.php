@@ -63,13 +63,18 @@ class Monitor extends Page {
         $this->render();
     }    
     
+    
     public function getData() {
         $tasks=[];
-        NoSQL::instance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
+        $options = [Aerospike::OPT_SCAN_PRIORITY => Aerospike::SCAN_PRIORITY_MEDIUM];
+        $status=NoSQL::instance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
+            \error_log(var_export($record));
             $tasks[$record['bins']['task'].$record['bins']['server_id']]=$record['bins'];
-        });
-        $keys = array_keys($tasks);
-        asort($keys);
+        }, [], $options);
+        $keys=\array_keys($tasks);
+        \asort($keys);
+        
+        \error_log("as scan status {$status}\n");
         ?><style>table{direction:ltr;width:100%;margin-top:40px;margin-bottom:60px} tr{height:42px;} th,td{padding: 15px} td,th{border-bottom: 1px solid var(--mdc30)}</style><?php
         ?><div class="row viewable"><?php
         ?><table><?php

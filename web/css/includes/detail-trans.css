@@ -109,6 +109,7 @@ dtad .attrs .widget:last-child {
 }
 .dtad .contacts a{
     display:inherit;
+    direction: ltr;
     flex-basis: 45%;
     align-items:center;
     color:white;

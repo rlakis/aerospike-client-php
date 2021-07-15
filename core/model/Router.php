@@ -180,7 +180,10 @@ class Router extends \Core\Model\Singleton {
         }
                 
         $session_language=$_session_params['lang']??'';
-        $this->explodedRequestURI=\explode('/', \ltrim(\rtrim(\parse_url(\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL), \PHP_URL_PATH), '/'), '/'));        
+        $request_uri=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL);
+ 
+        //\error_log(PHP_EOL.$request_uri.PHP_EOL);
+        $this->explodedRequestURI=\explode('/', \ltrim(\rtrim(\parse_url($request_uri, \PHP_URL_PATH), '/'), '/'));        
         $len=\count($this->explodedRequestURI);
         
         if ($len>0) {
@@ -258,7 +261,12 @@ class Router extends \Core\Model\Singleton {
             }
         }
         else if ($this->language==='') {
-            $this->language='ar';
+            if (preg_match('/^\/\d{4,}\/?$/', $request_uri, $output_array)) {
+                if (isset($this->cookie->lg) && \in_array($this->cookie->lg, ['en', 'ar'])) {
+                    $this->language=$this->cookie->lg;
+                }               
+            }
+            if ($this->language==='') $this->language='ar';
         }
         
         if ($this->language==='') {
@@ -278,14 +286,7 @@ class Router extends \Core\Model\Singleton {
             }                       
         }
              
-        /*
-        \error_log(
-            $this->language.
-            ' - http: '.$this->httpAcceptLanguage.
-            ' - cookie: '.($this->cookie->lg??'xx').
-            ' - session: '.$session_language.
-            PHP_EOL);
-            */
+    
         $_session_params['lang']=$this->language;
                 
         if (\preg_match('/translate\.google\.com/', $this->referer)) {
@@ -354,7 +355,7 @@ class Router extends \Core\Model\Singleton {
                         break;
                     
                     case 'rss':
-                        $this->params['rss']=true;
+                        $this->params['rss']=false;
                         $this->force_search=true;
                         break;
 
@@ -385,12 +386,13 @@ class Router extends \Core\Model\Singleton {
                 if ($this->id<1000000000) {
                     if ($this->id>1000) {
                         $this->module='detail';
-                        $ad_url=$this->getAdURI($this->id);                       
-                        if ($ad_url!==$this->getLanguagePath($this->config->host.$this->uri).$this->id.'/') {
+                        $ad_url=$this->getAdURI($this->id);
+                        $actual_link="https://{$_SERVER['HTTP_HOST']}{$request_uri}";
+                        if ($ad_url!==$actual_link) {
                             if ($ad_url!==$this->config->baseURL) {
                                 $this->language=$this->cookie->lg??$this->language;
                                 $_SESSION['_u']['params']=$_session_params;
-                                $this->redirect($this->getLanguagePath($ad_url), 301, __LINE__);
+                                $this->redirect($ad_url, 301, __LINE__);
                             } 
                             else {
                                 $this->id=0;
