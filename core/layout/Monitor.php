@@ -8,8 +8,6 @@ class Monitor extends Page {
     
     var $action='',$liOpen='';
     private $uid = 0;
-    private $aid = 0;
-    private $userdata = 0;
     
     function __construct() {
         parent::__construct();
@@ -66,15 +64,18 @@ class Monitor extends Page {
     
     public function getData() {
         $tasks=[];
-        $options = [Aerospike::OPT_SCAN_PRIORITY => Aerospike::SCAN_PRIORITY_MEDIUM];
+        //$options=[\Aerospike::OPT_SCAN_PRIORITY=>\Aerospike::SCAN_PRIORITY_MEDIUM, \Aerospike::OPT_SCAN_NOBINS=>false, \Aerospike::OPT_READ_TIMEOUT=>0, \Aerospike::OPT_SCAN_RPS_LIMIT=>20];
         $status=NoSQL::instance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
-            \error_log(var_export($record));
+            //\error_log('calledback');
+            //\error_log(var_export($record, true));
             $tasks[$record['bins']['task'].$record['bins']['server_id']]=$record['bins'];
-        }, [], $options);
+        });
         $keys=\array_keys($tasks);
         \asort($keys);
         
-        \error_log("as scan status {$status}\n");
+        \error_log("as scan status {$status}\tError: ".NoSQL::instance()->getConnection()->errorno()."\t".NoSQL::instance()->getConnection()->error()."\n");
+        //NoSQL::instance()->close();
+        
         ?><style>table{direction:ltr;width:100%;margin-top:40px;margin-bottom:60px} tr{height:42px;} th,td{padding: 15px} td,th{border-bottom: 1px solid var(--mdc30)}</style><?php
         ?><div class="row viewable"><?php
         ?><table><?php

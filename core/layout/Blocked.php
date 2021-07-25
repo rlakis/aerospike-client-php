@@ -9,13 +9,6 @@ class Blocked extends Page {
         $this->title=$this->lang['title_blocked'];
         $this->router->config->disableAds();
         
-        //if($this->isMobile) {
-        //    $this->inlineCss.='.nost{list-style:none!important;margin:0!important}.nost .ctr{padding-top:20px}';
-        //}
-        //else {
-        //    $this->inlineCss.='.hbn{padding-top:30px;}.hbn p{width:630px;float:right;margin:0 10px 20px;}.hbn ul{float:right;width:580px;list-style:disc inside;padding:10px 30px;margin:0 10px;line-height:30px;background-color:#ececec;}.hbn a{color:#00e}.hbn a:hover{text-decoration:underline}.hbn .om{width:250px;height:330px;margin:0 30px;display:inline-block;}.nost{list-style:none!important}.nost .ctr{padding-top:20px;}.nost a{color:#fff;text-decoration:none!important}';
-        //}
-        
         if($this->router->module==='held') {
             $this->title=$this->lang['title_held'];
             $hours='24';
@@ -42,7 +35,7 @@ class Blocked extends Page {
                     }
                     else {
                         $hours = ceil($time / 60);
-                        if($this->router=->isArabic()) {
+                        if($this->router->isArabic()) {
                             if($hours==1){
                                 $hours='دقيقة';
                             }elseif($hours==2){

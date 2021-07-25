@@ -11,63 +11,72 @@ use \Core\Model\MobileValidation;
 
 Config::instance()->incModelFile('Db')->incModelFile('Classifieds')->incLibFile('MCUser')->incLibFile('MCSessionHandler');
 
+//\header("Alt-Svc: h3-29=\":443\"; ma=86400, h3=\":443\"; ma=86400");
+\header("X-MC-Version: 2");
 
 class MobileApi {
     private array $config;
     public array $result = ['e'=>'', 'c'=>0, 'd'=>[], 'l'=>0]; // l:log
 
-    var $db;
-    public $command;
-    var $lang;
-    var $demo;
-    var $countryId;
-    var $cityId;
-    public $systemName;
-    public $appVersion;
+    var DB $db;
+    public MCUser $user;
+    
+    var int $demo;
+    public int $command;
+    public int $countryId;
+    public int $cityId;
+    
+    var string $lang;
+    public string $systemName;
+    public string $appVersion;
 
-    var $formatNumbers=1;
-    var $mobileValidator=null;
+    public int $formatNumbers=1; // to be removed (default)
+    public \libphonenumber\PhoneNumberUtil $mobileValidator;
 
-    private static $stmt_get_ad = null;
-    private static $stmt_get_ext = null;
-    private static $stmt_get_loc = null;
+    private static \PDOStatement $stmt_get_ad;
+    private static \PDOStatement $stmt_get_ext;
+    private static \PDOStatement $stmt_get_loc;
 
     public int $uid;
     public string $uuid;
-    public $provider;
-    public MCUser $user;
+    public string $provider;
     public int $json=1;
+    public bool $maintenance;
+    public Config $cfg;
     
     function __construct($config) {
-        $this->lang         = filter_input(INPUT_GET, 'l', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
-        $this->demo         = filter_input(INPUT_GET, 'demo', FILTER_VALIDATE_INT)+0;
-        $this->unixtime     = filter_input(INPUT_GET, 't', FILTER_VALIDATE_INT, ['options'=>['default'=>-1, 'min_range'=>1388534400, 'max_range'=>PHP_INT_MAX]]);
-        $this->countryId    = filter_input(INPUT_GET, 'country', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
-        $this->cityId       = filter_input(INPUT_GET, 'city', FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
+        $this->cfg          =Config::instance();
+        $this->maintenance  =$this->cfg->isMaintenanceMode();
+        $this->lang         = \filter_input(\INPUT_GET, 'l', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
+        $this->demo         = \filter_input(\INPUT_GET, 'demo', \FILTER_VALIDATE_INT)+0;
+        $this->unixtime     = \filter_input(\INPUT_GET, 't', \FILTER_VALIDATE_INT, ['options'=>['default'=>-1, 'min_range'=>1388534400, 'max_range'=>\PHP_INT_MAX]]);
+        $this->countryId    = \filter_input(\INPUT_GET, 'country', \FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
+        $this->cityId       = \filter_input(\INPUT_GET, 'city', \FILTER_VALIDATE_INT, ['options'=>['default'=>0, 'min_range'=>0, 'max_range'=>100000]]);
 
-        $this->uid          = filter_input(INPUT_GET, 'uid', FILTER_VALIDATE_INT)+0;
-        $this->uuid         = filter_input(INPUT_GET, 'uuid', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        $this->systemName   = filter_input(INPUT_GET, 'sn', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-        $this->appVersion   = filter_input(INPUT_GET, 'apv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
+        $this->uid          = \filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
+        $this->uuid         = \filter_input(\INPUT_GET, 'uuid', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->systemName   = \filter_input(\INPUT_GET, 'sn', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->appVersion   = \filter_input(\INPUT_GET, 'apv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
         
-        $this->command      = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT);
+        $this->command      = \filter_input(\INPUT_GET, 'm', \FILTER_VALIDATE_INT);
         
         if (!$this->isAndroid()) {
-            $this->systemName = strtolower($this->systemName);
-            $this->appVersion = filter_input(INPUT_GET, 'bv', FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
+            $this->systemName = \strtolower($this->systemName);
+            $this->appVersion = \filter_input(\INPUT_GET, 'bv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
         }
         
         if ($this->isIOS()) {
-            $this->lang     = filter_input(INPUT_GET, 'dl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
+            $this->lang     = \filter_input(\INPUT_GET, 'dl', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
         }
         
         $this->config=$config;
         $this->db=new DB(true);
         
-        $this->result['server']=$this->config['server_id']; 
+        $this->result['server']=$this->cfg->serverId; 
         
-        if ($this->uuid && $this->command!==API_DATA && $this->command!==API_TOTALS /*&& $this->command!=API_POST_PREFERENCES*/) {
+        if ($this->uuid && $this->command!==API_DATA && $this->command!==API_TOTALS /*&& $this->command!=API_POST_PREFERENCES*/) {            
             $this->user=MCUser::getByUUID($this->uuid);
+            
             /*
             if ($this->user->getID()<=0) {
                 if ($this->command===API_REGISTER && $this->uid!==0) {
@@ -87,14 +96,16 @@ class MobileApi {
     
     function __destruct() {
         if ($this->db) {
-            if (self::$stmt_get_loc) { self::$stmt_get_loc=NULL; }
-            if (self::$stmt_get_ext) { self::$stmt_get_ext=NULL; }
-            if (self::$stmt_get_ad) { self::$stmt_get_ad=NULL; }
+            $this->db->close();
+            //if (self::$stmt_get_loc) { self::$stmt_get_loc=NULL; }
+            //if (self::$stmt_get_ext) { self::$stmt_get_ext=NULL; }
+            //if (self::$stmt_get_ad)  { self::$stmt_get_ad=NULL; }
         }
     }
     
-    function setReraDataIfFound(&$ad){
-        $broker = $this->db->queryResultArray(
+    
+    function setReraDataIfFound(array &$ad) : void {
+        $broker=$this->db->queryResultArray(
                 "select first 1 b.BRN, o.ORN 
                 from RERA_BROKER b 
                 left join CACHE_BRN_AE a on a.ID=b.CACHE_BRN_ID
@@ -103,7 +114,8 @@ class MobileApi {
                 and a.EXPIRY_DATE>=current_date 
                 order by b.ID desc", 
                 [$this->getUID()], true);
-        if(isset($broker[0]['BRN']) && $broker[0]['BRN']){
+        
+        if (isset($broker[0]['BRN']) && $broker[0]['BRN']>0) {
             $ad['rera']=[
                 'permit'    => '',
                 'brn'       => $broker[0]['BRN'],
@@ -113,8 +125,8 @@ class MobileApi {
     }
     
     
-    function isReraRequired($ad){
-        $cityId = 0;
+    function isReraRequired(array $ad) : bool {
+        $cityId=0;
         if(isset($ad['pubTo'])){
             foreach ($ad['pubTo'] as $key => $val){
                 if ($key==14) {
@@ -152,8 +164,9 @@ class MobileApi {
         return $this->user;
     }
     
-    function deleteUserPicturePref(){
-        if($this->uid){
+    
+    function deleteUserPicturePref() : void {
+        if ($this->uid>0) {
             $status = NoSQL::instance()->removeBins(
                             [\Core\Model\ASD\USER_UID=>$this->uid], 
                             [\Core\Model\ASD\USER_CARD_PIC]
@@ -163,6 +176,7 @@ class MobileApi {
             }
         }
     }
+    
     
     function removeUserPicture(){
         if($this->uid){
@@ -280,8 +294,6 @@ class MobileApi {
     
     
     function getUserAdCount(&$publisher) : void {
-        //include_once $this->config['dir'].'/core/lib/SphinxQL.php';
-
         $num=1;
         //$filters=[];
         $ql=$this->db->ql->resetFilters()->setLimits(0, $num, 10)->setSelect('id')->uid($publisher['id']);
@@ -588,12 +600,12 @@ class MobileApi {
     }
 
     
-    function isIOS() {
+    function isIOS() : bool {
         return $this->systemName==='ios';
     }
     
     
-    function isAndroid() {
+    function isAndroid() : bool {
         return $this->systemName==='Android';
     }
     
@@ -2578,7 +2590,7 @@ class MobileApi {
             //echo $msgpack->pack($this->result);
             echo msgpack_pack($this->result);
         }
-        flush();
+        //flush();
     }
 
     
@@ -3298,17 +3310,18 @@ class MobileApi {
     }
     
     
-    public function getCreditTotal($fromDatabase = false) {
-        $opts = $this->userStatus($status);
+    public function getCreditTotal(bool $fromDatabase=false) : void {
+        $opts=$this->userStatus($status);
         $this->result['d']=-1;
-        if ($status==1) {
-            if($fromDatabase){                
+        if ($status===1) {
+            if ($fromDatabase) {
                 $rs = $this->db->get("SELECT sum(r.credit-r.debit) FROM T_TRAN r where r.UID=?", [$this->uid], true);
                 if ($rs && count($rs) && $rs[0]['SUM']!=null) {
                     $this->result['d']=($rs[0]['SUM'])?$rs[0]['SUM']+0:0;
                 }
-            }else{
-                $this->result['d'] = $this->user->getBalance();
+            }
+            else {
+                $this->result['d']=$this->user->getBalance();
             }
         }
     }
@@ -3704,8 +3717,8 @@ class MobileApi {
         }
                 
         if (!file_exists('/tmp/ios')) { mkdir('/tmp/ios', 0777, true); }
-        $normalized = NULL;
-        $opts = $this->userStatus($status);
+        $normalized=NULL;
+        $opts=$this->userStatus($status);
    
         if ($status==1 && !$this->user->isBlocked()) {
             if ($this->user->isSuspended()) {
@@ -4303,9 +4316,9 @@ class MobileApi {
     }
     
         
-    function detectIfAdInPending($adId, $sectionId, $contactInfo=array()){
-        $active_ads = 0;
-        if (count($contactInfo) && $this->getUID()) {
+    function detectIfAdInPending($adId, $sectionId, $contactInfo=array()) {
+        $active_ads=0;
+        if (\count($contactInfo) && $this->getUID()>0) {
             $q='select a.id from ad_user a where (a.id!='.$adId.' and a.section_id ='.$sectionId.' and a.state in (1,2)) and ( ';
             $params=array();
             $pass = 0;
@@ -4336,7 +4349,7 @@ class MobileApi {
     }
     
     
-    function normalizeText(){
+    function normalizeText() {
         if ($this->config['active_maintenance']) {
             $this->result['e'] = "503";
             return;
@@ -4401,7 +4414,8 @@ where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
         }
     }
     
-    function forwardNormalizeText(){
+    
+    function forwardNormalizeText() {
         if ($this->config['active_maintenance']) {
             $this->result['e'] = "503";
             return;

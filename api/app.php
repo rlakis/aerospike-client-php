@@ -1,12 +1,12 @@
 <?php
-
-if (PHP_VERSION_ID>80000) {
+$xprof_enabled=(\extension_loaded("tideways_xhprof") && PHP_VERSION_ID>80000);
+if ($xprof_enabled===true) {
     if (!isset($argc)) {tideways_xhprof_enable();}
 }
 
-ob_start();
-header('Cache-Control: no-cache, must-revalidate');
-header('Expires: Mon, 26 Jul 1997 00:00:00 GMT');
+//\ob_start();
+\header('Cache-Control: no-cache, must-revalidate');
+\header('Expires: Mon, 26 Jul 1997 00:00:00 GMT');
 
 const ERR_INVALID_REQUEST_PARAMS                = 1000;
 const ERR_INVALID_PHONE_NUMBER                  = 1001;
@@ -122,6 +122,7 @@ const API_DB_EVENT                              = 998;
 const API_LOG                                   = 999;
 
 
+
 $appVersion=\filter_input(\INPUT_GET, 'av', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.1']]);
 
 //require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
@@ -146,30 +147,31 @@ if ($appVersion==='1.1') {
 \ini_set('memory_limit', '256M');
 
 class ElapseTime {
-    private float $_total = 0;
-    private float $_start = 0;
-    private float $_stop = 0;
+    private float $_total=0;
+    private float $_start=0;
+    private float $_stop=0;
 
     public function start() : void {
-        $this->_start = microtime(TRUE);
+        $this->_start=\microtime(TRUE);
     }
 
     public function stop() : void {
-        $this->_stop = microtime(TRUE);
-        $this->_total = $this->_total + $this->_stop - $this->_start;
+        $this->_stop=\microtime(TRUE);
+        $this->_total=$this->_total + $this->_stop - $this->_start;
     }
 
     public function get_elapse() : float {
-        return sprintf("%.6f",($this->_stop - $this->_start)*1000.0);
+        return \sprintf("%.6f",($this->_stop - $this->_start)*1000.0);
     }
 
     public function get_total_elapse() : string {
-        return sprintf("%.6f", $this->_total*1000.0);
+        return \sprintf("%.6f", $this->_total*1000.0);
     }
 }
 
 $timer=new ElapseTime;
 $timer->start();
+
 $api=new MobileApi($config);
 if ($api->isIOS() && version_compare($api->appVersion, '1.1.3', '>')) { 
     $u_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
@@ -192,18 +194,23 @@ if (!$api->hasError()) {
         case API_SET_DISPLAY_NAME:
             $api->setUserDisplayName();
             break;
+        
         case API_REMOVE_DISPLAY_PICTURE:
             $api->removeUserPicture();
             break;
+        
         case API_USE_SOCIAL_PIC:
             $api->deleteUserPicturePref();
             break;
+        
         case API_GET_PUB_PROFILE:
             $api->getPublisherProfile();
             break;
+        
         case API_NORMALIZE_TEXT:
             $api->normalizeText();
             break;
+        
         case API_DATA:
             $api->getDatabase();
             break;
@@ -446,7 +453,8 @@ if (!$api->hasError()) {
 
 $timer->stop();
 $api->result['elapsed-time']=$timer->get_elapse();
-if (PHP_VERSION_ID>80000) {
+
+if ($xprof_enabled===true) {
     $data=tideways_xhprof_disable();
     $XHPROF_ROOT= Config::instance()->baseDir .'/web/xhprof';
     include_once $XHPROF_ROOT."/lib/utils/xhprof_lib.php";
@@ -456,4 +464,5 @@ if (PHP_VERSION_ID>80000) {
     $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
     $api->result['profiler']="https://dv.mourjan.com/web/xhprof/html/index.php?run={$run_id}&source=xhprof_mourjan";
 }
+
 $api->done();

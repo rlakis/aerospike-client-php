@@ -100,6 +100,8 @@ class NoSQL extends Singleton {
                 ];
     
     protected \Core\Data\Schema $schema;
+    
+    
     protected function __construct() {
         $this->cluster = new \Aerospike($this->configuration, TRUE, $this->options);
         $this->schema = \Core\Data\Schema::instance();
@@ -300,6 +302,7 @@ class NoSQL extends Singleton {
     protected function beforeUpdate() {
         
     }
+    
     
     public static function Log($message) {
         $dbt = debug_backtrace(DEBUG_BACKTRACE_PROVIDE_OBJECT, 0);

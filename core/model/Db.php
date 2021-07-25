@@ -70,6 +70,7 @@ class DB {
         //self::$LocalitiesVersion = $this->version;
         //self::$TagsVersion = $this->version;
                 
+        \error_log(var_export(\Config::instance()->get('sphinxql'), true));
         $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
         
         //$conf = new \RdKafka\Conf();
