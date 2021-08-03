@@ -1440,8 +1440,7 @@ class Page extends Site {
 
                 if ($hasQuery) {
                     if ($this->extendedId>0 || $this->localityId>0) {
-                        $append_uri='';
-                        $extended_uri='';
+                        $append_uri=$extended_uri='';
                         if ($this->extendedId && isset($this->router->countries[$this->router->countryId])) {
                             $append_uri='/'.($this->router->language!=='ar'?$this->router->language.'/':'').'q-'.$this->extendedId.'-'.($this->router->countryId?($this->hasCities && $this->router->cityId?3:2):1);
                             $extended_uri='/'.$this->router->countries[$this->router->countryId]['uri'].'/';
@@ -1468,17 +1467,18 @@ class Page extends Site {
                     else {
                         foreach ($this->router->pagePurposes as $pid=>$purpose) {
                             if ((int)$pid>0) {
+                               
                                 $pname=$this->extendedId>0?$this->extended[$this->extendedId]['name']:($this->router->sectionId?$this->router->sections[$this->router->sectionId]['name']:($this->router->rootId?$this->router->roots[$this->router->rootId]['name']:''));                            
                                 switch ($pid) {
                                     case 1:
                                     case 2:
                                     case 8:
                                     case 999:
-                                        $pname = $pname.' '. $purpose['name']; //$this->router->purposes[$pid][$this->fieldNameIndex];
+                                        $pname=$pname.' '.$purpose['name']; //$this->router->purposes[$pid][$this->fieldNameIndex];
                                         break;
                                     case 6:
                                     case 7:
-                                        $pname = $purpose['name'] . ' ' . $pname;// $this->router->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
+                                        $pname=$purpose['name'].' '.$pname;// $this->router->purposes[$purpose[0]][$this->fieldNameIndex].' '.$pname;
                                         break;
                                     case 3:
                                     case 4:

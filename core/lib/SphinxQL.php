@@ -412,9 +412,9 @@ class SphinxQL {
     
     
     function resetFilters(bool $resetGroupBy=true) : SphinxQL {
-        $this->filters = [];
-        $this->groupby = [];
-        $this->facets = [];
+        $this->filters=[];
+        $this->groupby=[];
+        $this->facets=[];
         return $this;
     }
     
@@ -748,7 +748,7 @@ class SphinxQL {
     
     function setSortBy(string $sortby) : SphinxQL {
         assert(is_string($sortby));
-        $this->sortby = $sortby;
+        $this->sortby=$sortby;
         return $this;
     }
     
@@ -916,10 +916,10 @@ class SphinxQL {
         $keywords=$this->normalizeDigits($keywords);
         
         if ($this->indexName==='classifier') {
-            $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 ";
+            $this->_query="select {$this->clause} from {$this->indexName} where hold=0 ";
         } 
         else {
-            $this->_query = "select {$this->clause} from {$this->indexName} where hold=0 and canonical_id=0 ";
+            $this->_query="select {$this->clause} from {$this->indexName} where hold=0 and canonical_id=0 ";
         }
         
         foreach ($this->filters as $key => $value) {

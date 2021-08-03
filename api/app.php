@@ -157,11 +157,11 @@ class ElapseTime {
 
     public function stop() : void {
         $this->_stop=\microtime(TRUE);
-        $this->_total=$this->_total + $this->_stop - $this->_start;
+        $this->_total=$this->_total+$this->_stop-$this->_start;
     }
 
     public function get_elapse() : float {
-        return \sprintf("%.6f",($this->_stop - $this->_start)*1000.0);
+        return \sprintf("%.6f",($this->_stop-$this->_start)*1000.0);
     }
 
     public function get_total_elapse() : string {
@@ -173,21 +173,22 @@ $timer=new ElapseTime;
 $timer->start();
 
 $api=new MobileApi($config);
+
 if ($api->isIOS() && version_compare($api->appVersion, '1.1.3', '>')) { 
     $u_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
     if (preg_match('/^Mourjan\/\d+/', $u_agent)) {
        header('Content-type: application/msgpack; charset=UTF-8');
-       $api->json = 0;
+       $api->json=0;
     }
 }
 
 if ($api->json!==0) {
-    header('Content-type: application/json; charset=UTF-8');
+    \header('Content-type: application/json; charset=UTF-8');
 }
 
 if (!$api->hasError()) {    
-    $action = filter_input(INPUT_GET, 'm', FILTER_VALIDATE_INT)+0;    
-    $api->command = $action;
+    $action=\filter_input(\INPUT_GET, 'm', \FILTER_VALIDATE_INT)+0;    
+    $api->command=$action;
     
     
     switch ($action) {

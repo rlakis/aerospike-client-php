@@ -34,22 +34,26 @@ class Blocked extends Page {
                         }
                     }
                     else {
-                        $hours = ceil($time / 60);
+                        $hours=ceil($time / 60);
                         if($this->router->isArabic()) {
                             if($hours==1){
                                 $hours='دقيقة';
-                            }elseif($hours==2){
+                            }
+                            elseif($hours==2){
                                 $hours='دقيقتين';
-                            }elseif($hours>2 && $hours<11){
-                                $hours=$hours.' دقائق';
-                            }else{
-                                $hours = $hours.' دقيقة';
+                            }
+                            elseif($hours>2 && $hours<11){
+                                $hours.=' دقائق';
+                            }
+                            else {
+                                $hours.=' دقيقة';
                             }
                         }else{
                             if($hours>1){                                
-                                $hours = $hours.' minutes';
-                            }else{                                
-                                $hours = $hours.' minute';
+                                $hours.=' minutes';
+                            }
+                            else{                                
+                                $hours.=' minute';
                             }
                         }
                     }

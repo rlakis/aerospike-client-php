@@ -1066,15 +1066,14 @@ class User {
         
         if (!empty($ad)) {
             $ad=$ad[0];
-            include_once $this->cfg['dir'] . '/core/lib/MCSaveHandler.php';                
-            include_once $this->cfg['dir'] . '/core/lib/IPQuality.php';                
-            $normalizer = new MCSaveHandler($this->cfg);
+            Config::instance()->incLibFile('IPQuality')->incLibFile('MCSaveHandler');
+            $normalizer=new MCSaveHandler();
             
             $content=json_decode($ad['CONTENT'], true);
-            if (isset($content['budget'])) { $content['budget'] = 0; }
+            if (isset($content['budget'])) { $content['budget']=0; }
             
             if (!isset($content['user']) || $this->info['id']==$content['user']) {
-                $content['ipfs'] = IPQuality::ipScore();
+                $content['ipfs']=IPQuality::ipScore();
             }
 
 

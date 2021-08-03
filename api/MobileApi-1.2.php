@@ -296,7 +296,7 @@ class MobileApi {
     function getUserAdCount(&$publisher) : void {
         $num=1;
         //$filters=[];
-        $ql=$this->db->ql->resetFilters()->setLimits(0, $num, 10)->setSelect('id')->uid($publisher['id']);
+        $ql=$this->db->ql->resetFilters()->setLimits(0, $num, 10)->setSortBy('')->setSelect('id')->uid($publisher['id']);
         $rs=$ql->query();
         if (!$ql->getLastError()) {
             $publisher['count']=$rs['total_found'];
@@ -675,6 +675,7 @@ class MobileApi {
 
             $ql->id($adId)->region($this->countryId, $this->cityId)->root($rootId)->section($sectionId)
                     ->tag($tagId)->locality($localityId)->purpose($purposeId)->publisherType($publisherType);
+            
             //if ($adId>0) {$sphinxQL->setFilter('id', $adId);}
             //if ($this->countryId>0) {$sphinxQL->setFilter('country', $this->countryId);}
             //if ($this->cityId)      {$sphinxQL->setFilter('city', $this->cityId);}            
@@ -960,6 +961,10 @@ class MobileApi {
             }
         }       
         
+        $cui=$ad[Classifieds::CONTACT_INFO] ?? ['p'=>[], 'e'=>''];
+        if (!isset($cui['p']) || !\is_array($cui['p']) ) {
+            $cui['p']=[];
+        }
         
         $this->result['d'][] = [
             $ad[Classifieds::ID],//0
@@ -990,7 +995,7 @@ class MobileApi {
             isset($ad[Classifieds::PICTURES_DIM]) && count($ad[Classifieds::PICTURES_DIM]) ? $ad[Classifieds::PICTURES_DIM] : "",//28
             $ad[Classifieds::EMAILS],//30
             $isFeatured+0,//31
-            $ad[Classifieds::CONTACT_INFO] ?? "",//32 (revise for production)
+            $cui,//32 (revise for production)
             $ad[Classifieds::USER_RANK] ?? 0,
             $ad[Classifieds::PUBLISHER_TYPE] ?? 0,//34
             $isPremium?1:0,//35
@@ -999,6 +1004,13 @@ class MobileApi {
             $ad[Classifieds::IP_COUNTRY_CODE]??"",
             $ad[Classifieds::AM_COUNTRY_CODE]??""
         ];
+
+        /*
+        if (empty($cui['p'])) {
+            \error_log("Mobile Api 1.2 ".$ad[Classifieds::ID]."\t".var_export($cui, true).PHP_EOL);
+        }
+         * 
+         */
     }
 
 
@@ -1956,9 +1968,9 @@ class MobileApi {
                     }
                 }*/
                 if($this->user->isBuyer()){
-                    $this->result['d']['balance'] = $this->user->getBalance();
+                    $this->result['d']['balance']=$this->user->getBalance();
                 }else{
-                    $this->result['d']['balance'] = -1;
+                    $this->result['d']['balance']=-1;
                 }
                 //error_log($this->result['d']['balance']);
             }
@@ -1972,9 +1984,8 @@ class MobileApi {
             //}
             
             if ($opts->cuid>0) {
-            	include_once $this->config['dir'] .'/core/model/User.php';
-                
-                $user = new User($this->db, $this->config, null, 0);
+            	Config::instance()->incModelFile('User');                
+                $user=new User(null, 0);
                         
                 $ok = $user->mergeDeviceToAccount($this->uuid, $this->getUID(), $opts->cuid);
                 if ($ok) {
@@ -1998,11 +2009,10 @@ class MobileApi {
             
             
             if ( $opts->user_status==1) {
-                include $this->config['dir'] .'/core/model/User.php';
-                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE) && version_compare($this->appVersion, '1.1.0', '<')) {                    
-                    new MCSessionHandler(TRUE);
-                    
-                    $user = new User($this->db, $this->config, null, 0);
+                Config::instance()->incModelFile('User');                
+                if ($this->isIOS() && (session_status()==PHP_SESSION_NONE) && version_compare($this->appVersion, '1.1.0', '<')) {                
+                    new MCSessionHandler(TRUE);                   
+                    $user=new User(null, 0);
                     $user->sysAuthById($this->uid);
                     $user->params['app']=1;
                     $user->update();
@@ -2269,7 +2279,8 @@ class MobileApi {
     }
 
     
-    function activate() {   
+    function activate() {  
+        Config::instance()->incModelFile('MobileValidation');
         $opts = $this->userStatus($status);
         if ($status!=1) {
             $this->result['e'] = 'Invalid user status';
@@ -2366,11 +2377,11 @@ class MobileApi {
                                                                              
                 if (empty($this->result['e'])) {                    
                     if ($activated) {
-                        $rec = NoSQL::instance()->mobileFetch($this->getUID(), $mobile_no);
+                        $rec=NoSQL::instance()->mobileFetch($this->getUID(), $mobile_no);
                         $this->result['d']['status']='activated';
                         $this->result['d']['aepoch']=$rec[Core\Model\ASD\USER_MOBILE_DATE_ACTIVATED];
-                        include $this->config['dir'] .'/core/model/User.php';
-                        $user = new User($this->db, $this->config, null, 0);
+                        Config::instance()->incModelFile('User');
+                        $user=new User(null, 0);
                         $user->sysAuthById($this->uid);
                         $user->params['app']=1;
                         $user->update();
@@ -2581,15 +2592,17 @@ class MobileApi {
         }
         //error_log(header('Content-type'));
         if ($this->json) {
-            echo json_encode($this->result, JSON_UNESCAPED_UNICODE);          
+            echo json_encode($this->result, JSON_UNESCAPED_UNICODE);
+            //\error_log(json_encode($this->result, JSON_UNESCAPED_UNICODE).PHP_EOL);
         }
         else {
-            //$msgpack = new MessagePack(true);
-            //$msgpack->setOption(MessagePack::OPT_PHPONLY, TRUE);
-            //$msgpack->setOption(MessagePack::MSGPACK_SERIALIZE_TYPE_OBJECT, TRUE);
-            //echo $msgpack->pack($this->result);
             echo msgpack_pack($this->result);
         }
+        
+        if ($this->result['elapsed-time']>100.0) {
+            \error_log($this->json.', Duration: '.$this->result['elapsed-time'].PHP_EOL.\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL).PHP_EOL);
+        }
+        
         //flush();
     }
 
@@ -3183,7 +3196,7 @@ class MobileApi {
                     if ($rs && isset($rs[0][0]) && $rs[0][0]) {
                         $this->db->queryResultArray(
                             "insert into log_admin (ad_id, admin_id, state, msg) "
-                                . "values (?, ?, ?, '')", [$id, $this->uid, 9, 'hold ad by user - ios'], true
+                                . "values (?, ?, ?, ?)", [$id, $this->uid, 9, 'hold ad by user - ios'], true
                         );
                     }
                     
@@ -3222,7 +3235,7 @@ class MobileApi {
 
     
     public function userRenewAd() {        
-        $opts = $this->userStatus($status);
+        $opts=$this->userStatus($status);
         $this->result['d']['state']=-1;
         if ($status==1 && !$this->user->isBlocked()) {
             if ($this->user->isSuspended()) {
@@ -3233,8 +3246,8 @@ class MobileApi {
             if ($id) {                
                 $this->db->setWriteMode();
                 
-                include_once $this->config['dir'] . '/core/model/User.php';
-                $user = new User($this->db, $this->config, null, 0);
+                Config::instance()->incModelFile('User');
+                $user=new User(null, 0);
                 $user->info['id'] = $this->uid;
                 $user->info['level'] = 0;
                 
@@ -3652,8 +3665,8 @@ class MobileApi {
                     }
                     
                     if ($userId>0 && $userId!=$this->getUID()) {                                             
-                        include $this->config['dir'] .'/core/model/User.php';
-                        $user = new User($this->db, $this->config, null, 0);
+                        Config::instance()->incModelFile('User');
+                        $user=new User(null, 0);
                         
                         $ok = $user->mergeDeviceToAccount($this->uuid, $this->getUID(), $userId, $this->isIOS());
                         if ($ok) {
