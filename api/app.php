@@ -123,7 +123,7 @@ const API_LOG                                   = 999;
 
 
 
-$appVersion=\filter_input(\INPUT_GET, 'av', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.1']]);
+$apiVersion=\filter_input(\INPUT_GET, 'av', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'1.1']]);
 
 //require_once get_cfg_var('mourjan.path') . '/deps/autoload.php';
 //include_once get_cfg_var('mourjan.path') . '/config/cfg.php';
@@ -134,7 +134,7 @@ include_once dirname(__DIR__).'/deps/autoload.php';
 //include_once __DIR__."/MobileApi-{$appVersion}.php";
 include_once __DIR__."/MobileApi-1.2.php";
 
-if ($appVersion==='1.1') {
+if ($apiVersion==='1.1') {
     include_once $config['dir'].'/core/model/Db.php';
     include_once $config['dir'].'/core/model/NoSQL.php';
     include_once $config['dir'].'/core/model/MobileValidation.php';
@@ -174,10 +174,11 @@ $timer->start();
 
 $api=new MobileApi($config);
 
-if ($api->isIOS() && version_compare($api->appVersion, '1.1.3', '>')) { 
-    $u_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
-    if (preg_match('/^Mourjan\/\d+/', $u_agent)) {
-       header('Content-type: application/msgpack; charset=UTF-8');
+if ($api->isIOS() && version_compare($apiVersion, '1.1.3', '>')) { 
+    $ua=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
+    
+    if (preg_match('/^Mourjan\/\d+/', $ua)) {
+       \header('Content-type: application/msgpack; charset=UTF-8');
        $api->json=0;
     }
 }
