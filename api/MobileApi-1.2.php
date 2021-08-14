@@ -11,7 +11,7 @@ use \Core\Model\MobileValidation;
 
 Config::instance()->incModelFile('Db')->incModelFile('Classifieds')->incLibFile('MCUser')->incLibFile('MCSessionHandler');
 
-//\header("Alt-Svc: h3-29=\":443\"; ma=86400, h3=\":443\"; ma=86400");
+\header("Alt-Svc: h3-29=\":443\"; ma=86400, h3=\":443\"; ma=86400");
 \header("X-MC-Version: 2");
 
 class MobileApi {

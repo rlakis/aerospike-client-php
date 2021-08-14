@@ -6,6 +6,7 @@ const TS_DEVICE = 'devices';
 
 const USER_DEVICE_ISO_COUNTRY       = 'iso_country';
 const USER_DEVICE_VISITS_COUNT      = 'counter';
+const USER_DEVICE_IP_ADDRESS        = 'ip';
 const USER_DEVICE_CHANGE_TO_UID     = 'cuid';
 const USER_DEVICE_APP_SETTINGS      = 'app_prefs';
 const USER_DEVICE_BAN_TRANSACTIONS  = 'ban_tran';
@@ -28,6 +29,17 @@ trait DeviceTrait {
     private function as_key(string $uuid) : array {
         $key = $this->getConnection()->initKey(\Core\Data\NS_USER, TS_DEVICE, $uuid);        
         return $key;
+    }
+    
+    
+     public function getIP() : string {
+        if ($_SERVER['REMOTE_ADDR']) { return $_SERVER['REMOTE_ADDR']; }
+        if ($_SERVER['HTTP_CLIENT_IP']) { return $_SERVER['HTTP_CLIENT_IP']; }
+        if ($_SERVER['HTTP_X_FORWARDED_FOR']) { return $_SERVER['HTTP_X_FORWARDED_FOR']; }
+        if ($_SERVER['HTTP_X_FORWARDED']) { return $_SERVER['HTTP_X_FORWARDED']; }
+        if ($_SERVER['HTTP_FORWARDED_FOR']) { return $_SERVER['HTTP_FORWARDED_FOR']; }
+        if ($_SERVER['HTTP_FORWARDED']) { return $_SERVER['HTTP_FORWARDED']; }        
+        return 'UNKNOWN';
     }
     
     
@@ -56,6 +68,9 @@ trait DeviceTrait {
                 $bins[USER_DEVICE_PUSH_ENABLED] = 1;
             }
         }
+        
+        $ip=$this->getIP();
+        $bins[USER_DEVICE_IP_ADDRESS]=$ip;
                 
         return $this->setBins($pk, $bins);                
     }
