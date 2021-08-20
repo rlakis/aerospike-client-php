@@ -4007,6 +4007,7 @@ class Page extends Site {
             echo ' data-key="', $this->user->info['idKey'], '" data-level=', $this->user()->level()*($this->user()->isSuperUser()?10:1);
         }
         echo ' data-repo="', $this->router->config->adImgURL, '">';
+        
         /*
         ?><!-- Google Tag Manager (noscript) --><noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TT7694Q" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript><!-- End Google Tag Manager (noscript) --><?php
         */

@@ -914,6 +914,7 @@ class Photo {
                 var data;
                 if(HAS_WEBP){ type='image/webp'; }
                 var data = img.toDataURL(type);
+                console.log('has webp', HAS_WEBP);
                 console.log("image mime type", type);
                 _.uploadData(data, type);
             },
@@ -922,6 +923,7 @@ class Photo {
     }
     
     uploadData(data, type){
+        console.log('uploadData');
         let _=this;        
         _.image=_.e.query('img');
                                     
@@ -970,6 +972,7 @@ class Photo {
         
         let form = new FormData();
         const UUID=UI.guid();
+        //multipart/form-data
         form.append('UPLOAD_IDENTIFIER', UUID);
         form.append('pic', data);
         form.append('type', type);
@@ -977,7 +980,7 @@ class Photo {
         form.append('aid', Ad.id);
         form.append('ext', ext);
         
-        console.log(type, UI.sessionID, Ad.id, ext);
+        console.log('upload', type, UI.sessionID, Ad.id, ext);
                                     
         let xhr = new XMLHttpRequest();
         xhr.upload.addEventListener('loadstart', onloadstartHandler, false);
@@ -985,7 +988,7 @@ class Photo {
         xhr.upload.addEventListener('load', onloadHandler, false);
         xhr.upload.addEventListener('error', onErrorHandler, false);
         xhr.addEventListener('readystatechange', onreadystatechangeHandler, false);
-        xhr.open('POST', '/upload/', true);
+        xhr.open('POST', 'https://s1.mourjan.com/upload/', true);
         //xhr.open('POST', '/upload/?t='+t+'&s='+UI.sessionID, true);
         xhr.send(form);  
     }

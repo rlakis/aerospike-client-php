@@ -4,6 +4,24 @@ ini_set('error_reporting', E_ALL);
 
 if (php_sapi_name()!=='cli' || $argc!==2 || !file_exists($argv[1])) { exit (0); }
 
+include_once dirname(__DIR__).'/config/cfg.php';
+include_once dirname(__DIR__).'/deps/autoload.php';
+
+if (1) exit(0);
+$path=\pathinfo($argv[1]);
+if ($path['extension']==='tsv') {
+    Config::instance()->incModelFile('Db')->incModelFile('Classifieds');
+    $redis=new Redis;
+    try {
+        $redis->connect($config['rs-host'], $config['rs-port'], 1, NULL, 100);
+    } 
+    catch (Exception $ex) {
+        echo $ex->getMessage(), "\n", $ex->getTraceAsString(), "\n";
+    }
+    
+}
+
+
 include_once get_cfg_var('mourjan.path').'/deps/autoload.php';
 include_once get_cfg_var('mourjan.path').'/config/cfg.php';
 include_once $config['dir'].'/core/lib/MCCache.php';

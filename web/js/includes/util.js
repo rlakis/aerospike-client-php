@@ -51,7 +51,10 @@ Element.prototype.queryAll=function(selector){
 
 function hasWebP() {
     var e = createElem('canvas');
+    console.log('hasWebP', e.getContext);
+    console.log('hasWebP', e.getContext('2d'));
     if (!!(e.getContext && e.getContext('2d'))) {
+        console.log('hasWebP', e.toDataURL('image/webp'));
         return e.toDataURL('image/webp').indexOf('data:image/webp') === 0;
     }
     return false;

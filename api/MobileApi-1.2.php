@@ -1706,7 +1706,7 @@ class MobileApi {
             $this->result['d']['aepoch'] = $this->user->getMobile()->getNumber() ? $this->user->getMobile()->getActicationUnixtime() : 0;
             $this->result['d']['sepoch'] = time();
             $this->result['d']['cdn'] = 'https://doxplxe8wce37.cloudfront.net'; /*c6.mourjan.com';*/
-            $this->result['d']['upload'] = 'https://h5.mourjan.com';
+            $this->result['d']['upload'] = 'https://s1.mourjan.com';
             $this->result['d']['detail_ad_unit'] = 'ca-app-pub-2427907534283641/4303349312';
             $this->result['d']['listing_ad_unit'] = 'ca-app-pub-2427907534283641/8260964224';      
             $this->result['d']['detail_native_ad_unit'] = 'ca-app-pub-2427907534283641/5953144699';      
