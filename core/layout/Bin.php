@@ -814,7 +814,7 @@ class Bin extends AjaxHandler {
                             if (NoSQL::instance()->mobileInsert([
                                                         \Core\Model\ASD\USER_UID=> $this->user->id(),
                                                         \Core\Model\ASD\USER_MOBILE_NUMBER=> $number,
-                                                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$keyCode,
+                                                        \Core\Model\ASD\USER_MOBILE_ACTIVATION_CODE=>$pin,
                                                         \Core\Model\ASD\USER_MOBILE_FLAG=>1,
                                                         \Core\Model\ASD\USER_MOBILE_REQUEST_TYPE=>0])) {
                                 $mrs=NoSQL::instance()->mobileFetch($this->user->id(), $number);

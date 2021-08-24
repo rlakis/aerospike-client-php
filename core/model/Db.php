@@ -140,6 +140,7 @@ class DB {
         return $this->ql;
     }
     
+       
     
     public function setWriteMode(bool $on=TRUE) : void {
         $this->setReadOnly(!$on);

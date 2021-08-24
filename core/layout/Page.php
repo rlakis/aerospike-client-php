@@ -3846,7 +3846,7 @@ class Page extends Site {
                                         $canonicalCurrentUrl=\preg_replace("/\/{$this->router->language}\//", "/", $this->extended_uri);
                                     
                                         if ($this->localityId) {
-                                            $alter = $this->router->db->index()
+                                            $alter = $this->router->db->masterQL
                                                     ->directQuery("select id, locality_id from locality_counts where city_id={$this->localities[$this->localityId]['city_id']} and section_id={$this->router->sectionId} and lang='ar'");
                                         
                                             if ($alter && \count($alter)==1) {
@@ -3857,7 +3857,7 @@ class Page extends Site {
                                         }
                                     
                                         if ($this->extendedId) {
-                                            $alter = $this->router->db->index()
+                                            $alter = $this->router->db->masterQL
                                                     ->directQuery("select id, section_tag_id from section_tag_counts where country_id={$this->router->countryId} and section_id={$this->router->sectionId} and lang='ar' and uri='{$this->extended[$this->extendedId]['uri']}'");
                                             if ($alter && \count($alter)==1) {
                                                 foreach ($alter as $value) {
