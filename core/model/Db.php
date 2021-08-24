@@ -26,6 +26,7 @@ class DB {
     
     private bool $slaveOfRedis;
     public SphinxQL $ql;
+    public SphinxQL $masterQL;
     public NoSQL $as;
     
     public \Manticoresearch\Client $manticore;
@@ -72,6 +73,8 @@ class DB {
                 
         //\error_log(var_export(\Config::instance()->get('sphinxql'), true));
         $this->ql=new SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')); 
+        $this->masterQL=new SphinxQL(['host' => 'p2.mourjan.com', 'port' => 8307, 'socket' => ''], \Config::instance()->get('search_index')); 
+        
         
         //$conf = new \RdKafka\Conf();
         //$conf->set('log_level', LOG_ERR);
@@ -79,6 +82,7 @@ class DB {
         //$this->kafkaProducer = new \RdKafka\Producer($conf);
         //$this->kafkaProducer->addBrokers("a1.mourjan.com:9092,www.edigear.com:9092");
 
+        /*
         $params = ['connections'=>
             [                
                 ['host' => '148.251.186.42', 'port' => 8308],
@@ -91,6 +95,8 @@ class DB {
         $this->manticore=new \Manticoresearch\Client($params);
         
         $this->idx=new \Manticoresearch\Index($this->manticore, 'ad');
+         * 
+         */
         //$this->search=new \Manticoresearch\Search($this->manticore);
         //$this->search->setIndex('ad');
         //var_dump($this->idx->search('mbw 320')->get());
@@ -1015,9 +1021,9 @@ class DB {
         $sort_field = $sortByCount ? "count desc" : "section_name_{$lang} asc";
         $q.="group by section_id order by {$sort_field} limit 1000";
         
-        $resource = $this->ql->getConnection()->query($q);
-        if ($this->ql->getConnection()->error) {
-            throw new \Exception('['.$this->ql->getConnection()->errno.'] '.$this->ql->getConnection()->error.' [ '.$q.']');
+        $resource = $this->masterQL->getConnection()->query($q);
+        if ($this->masterQL->getConnection()->error) {
+            throw new \Exception('['.$this->masterQL->getConnection()->errno.'] '.$this->masterQL->getConnection()->error.' [ '.$q.']');
         }
         
         $keys=[];

@@ -2599,7 +2599,7 @@ class MobileApi {
             echo msgpack_pack($this->result);
         }
         
-        if ($this->result['elapsed-time']>100.0) {
+        if ($this->result['elapsed-time']>125.0) {
             \error_log($this->json.', Duration: '.$this->result['elapsed-time'].PHP_EOL.\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL).PHP_EOL);
         }
         
