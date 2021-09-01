@@ -142,7 +142,7 @@ class AdList extends \SplDoublyLinkedList {
                     //\error_log($w);
                 }
             }
-            $w.= ' and (AD_OBJECT.super_admin<='.$adLevel.') ';
+            $w.= ' and (IIF(AD_OBJECT.ID IS NULL, 0, AD_OBJECT.super_admin)<='.$adLevel.') ';
             
             if ($this->purposeId>0) {
                 $w.= "and AD_USER.purpose_id={$this->purposeId} ";
@@ -184,7 +184,7 @@ class AdList extends \SplDoublyLinkedList {
                     $fixes[$rs['ID']]=$rs['CONTENT'];                   
                 }
                 $ad->setParent($this)->parseDbRow($rs);
-                $this->push($ad);
+                $this->push($ad);                
             }
         }
         $st->closeCursor();
