@@ -92,7 +92,7 @@ class NoSQL extends Singleton {
     const ERR_GEO_INVALID_GEOJSON       = \Aerospike::ERR_GEO_INVALID_GEOJSON;
         
     private \Aerospike $cluster;
-    private array $configuration = ["hosts" => [["addr"=>"88.198.67.89", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
+    private array $configuration = ["hosts" => [["addr"=>"138.201.50.158", "port"=>3000], ["addr"=>"138.201.28.229", "port"=>3000], ["addr"=>"88.99.164.79", "port"=>3000]]];
     private array $options = [
                 \Aerospike::OPT_POLICY_KEY      => \Aerospike::POLICY_KEY_SEND, 
                 \Aerospike::OPT_POLICY_EXISTS   => \Aerospike::POLICY_EXISTS_IGNORE, 

@@ -26,7 +26,7 @@ class MobileApi {
     public int $countryId;
     public int $cityId;
     
-    var string $lang;
+    public string $lang;
     public string $systemName;
     public string $appVersion;
 
@@ -61,12 +61,13 @@ class MobileApi {
         $this->command      = \filter_input(\INPUT_GET, 'm', \FILTER_VALIDATE_INT);
         
         if (!$this->isAndroid()) {
-            $this->systemName = \strtolower($this->systemName);
-            $this->appVersion = \filter_input(\INPUT_GET, 'bv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
+            $this->systemName=\strtolower($this->systemName);
+            $this->appVersion=\filter_input(\INPUT_GET, 'bv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
         }
         
         if ($this->isIOS()) {
-            $this->lang     = \filter_input(\INPUT_GET, 'dl', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
+            $this->appVersion=\filter_input(\INPUT_GET, 'apv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
+            $this->lang=\filter_input(\INPUT_GET, 'dl', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]);
         }
         
         $this->config=$config;
@@ -323,33 +324,35 @@ class MobileApi {
         $isAndroid = !isset($_GET['sn']);
         
         if($isAndroid){
-            $dict = $this->db->getCountriesDictionaryAndroid();
+            $dict=$this->db->getCountriesDictionaryAndroid();
         }else{
-            $dict = $this->db->getCountriesDictionary();
+            $dict=$this->db->getCountriesDictionary();
         }
-        $ds = [];
+        $ds=[];
         foreach ($dict as $id=>$record) {
             if ($isAndroid || $record[10] > $this->unixtime) {
-                $ds[] = [$id, $record[1], $record[2], strtoupper($record[3]), $record[11], $record[7], $record[8], $record[5], $record[4], $record[9]];
+                $ds[]=[$id, $record[1], $record[2], strtoupper($record[3]), $record[11], $record[7], $record[8], $record[5], $record[4], $record[9]];
             }
         }
-        $this->result['d']['country'] = $ds;
+        $this->result['d']['country']=$ds;
      
-        if($isAndroid){
-            $dict = $this->db->getCitiesDictionaryAndroid();
-        }else{
-            $dict = $this->db->getCitiesDictionary(); 
+        if ($isAndroid) {
+            $dict=$this->db->getCitiesDictionaryAndroid();
         }
-        $ds = [];
+        else {
+            $dict=$this->db->getCitiesDictionary(); 
+        }
+        
+        $ds=[];
         foreach ($dict as $id=>$record) {
             if ($isAndroid || $record[8] > $this->unixtime) {
                 $ds[] = [$id, $record[1], $record[2], $record[9], $record[4], $record[5], $record[6], $record[7], $record[3]];
             }            
         }
-        $this->result['d']['city'] = $ds;
+        $this->result['d']['city']=$ds;
 
        
-        $dict = $this->db->getPurposes(); $ds = [];
+        $dict=$this->db->getPurposes(); $ds = [];
         foreach ($dict as $id=>$record) {
             if ($record[4] > $this->unixtime) {
                 $ds[] = [$id, $record[1], $record[2], 0, $record[3]];
@@ -358,10 +361,11 @@ class MobileApi {
         $this->result['d']['purpose']= $ds;
         
      
-        $dict = $this->db->getRoots(); $ds = [];
+        $dict=$this->db->getRoots(); $ds=[];
         foreach ($dict as $id=>$record) {
-            if ($record[6] > $this->unixtime) {
-                $ds[] = [$id, $record[1], $record[2], $record[3], $record[4]];
+            //\error_log(var_export($record, true));
+            if ($record[6]>$this->unixtime) {
+                $ds[]=[$id, $record[1], $record[2], $record[5], $record[4]];
             }            
         }
         $this->result['d']['root']=$ds;
@@ -1067,102 +1071,102 @@ class MobileApi {
     }
     
     
-    function sphinxTotalsQL() {
+    function sphinxTotalsQL() : void {
         if ($this->countryId==0) return;
-        //$apiMemVersion = $this->db->getCache()->incrBy('api-mem-version', 0);
+        //$apiMemVersion=$this->db->getCache()->incrBy('api-mem-version', 0);
         
-        $apiMemVersion = $this->db->getCache()->get('api-mem-version');
+        $apiMemVersion=$this->db->getCache()->get('api-mem-version');
         
-        if (!is_numeric($apiMemVersion)) {
+        if (!\is_numeric($apiMemVersion)) {
             //$this->db->getCache()->incr('api-mem-version');
             $apiMemVersion=1;
         }
-        $this->result['version'] = $apiMemVersion+0;
+        $this->result['version']=$apiMemVersion+0;
 
-        $dataVersion = filter_input(INPUT_GET, 'v', FILTER_VALIDATE_INT)+0;
+        $dataVersion=\filter_input(\INPUT_GET, 'v', \FILTER_VALIDATE_INT)+0;
         if ($dataVersion>0 && $dataVersion==$apiMemVersion) {
             $this->result['no-change']=1;
             return;
         }
 
-        $rootId = filter_input(INPUT_GET, 'root', FILTER_VALIDATE_INT)+0;
-        $sectionId = filter_input(INPUT_GET, 'section', FILTER_VALIDATE_INT)+0;
-        $purposeId = filter_input(INPUT_GET, 'purpose', FILTER_VALIDATE_INT)+0;
-        $tagId = filter_input(INPUT_GET, 'tag', FILTER_VALIDATE_INT)+0;
-        $localityId = filter_input(INPUT_GET, 'locality', FILTER_VALIDATE_INT)+0;
+        $rootId=\filter_input(\INPUT_GET, 'root', \FILTER_VALIDATE_INT)+0;
+        $sectionId=\filter_input(\INPUT_GET, 'section', \FILTER_VALIDATE_INT)+0;
+        $purposeId=\filter_input(\INPUT_GET, 'purpose', \FILTER_VALIDATE_INT)+0;
+        $tagId=\filter_input(\INPUT_GET, 'tag', \FILTER_VALIDATE_INT)+0;
+        $localityId=\filter_input(\INPUT_GET, 'locality', \FILTER_VALIDATE_INT)+0;
 
         $MCKey="API-{$apiMemVersion}-{$this->countryId}-{$this->cityId}-{$rootId}-{$sectionId}-{$purposeId}-{$tagId}-{$localityId}";
 
-        $cached = $this->db->getCache()->get($MCKey);
+        $cached=$this->db->getCache()->get($MCKey);
 
+        
         if ($cached) {
             $this->result['d']=$cached;
             return;
         }
 
+        /*
         include_once $this->config['dir'] . '/core/lib/SphinxQL.php';
- 
-        $sphinx = new SphinxQL($this->config['sphinxql'], $this->config['search_index']);
+        */
+        
+        $sphinx=new SphinxQL($this->cfg->get('sphinxql'), $this->cfg->get('search_index'));
         $sphinx->setLimits(0, 1000);
 
-        $group = '';
+        $group='';
 
-        if ($this->countryId) {
-            $sphinx->setFilter('country', $this->countryId);
+        if ($this->countryId>0) {
+            $sphinx->setFilter('country', $this->countryId)->setFacet('root_id');
             $group='root_id';
-            $sphinx->setFacet('root_id');
         }
 
-        if ($this->cityId) {
-            $sphinx->setFilter('city', $this->cityId);
+        if ($this->cityId>0) {
+            $sphinx->setFilter('city', $this->cityId)->setFacet('root_id');
             $group='root_id';
-            $sphinx->setFacet('root_id');
         }
 
-        if ($rootId) {
+        if ($rootId>0) {
             $sphinx->setFilter('root_id', $rootId);
             $group='section_id';
         }
 
-        if ($sectionId) {
-            $sphinx->setFilter('section_id', $sectionId);
-            $group = "purpose_id";
-            $sphinx->clearFacets();
+        if ($sectionId>0) {
+            $sphinx->setFilter('section_id', $sectionId)->clearFacets();
+            $group='purpose_id';
         }
 
-        if ($tagId) {
+        if ($tagId>0) {
             $sphinx->setFilter('section_tag_id', $tagId);
-            $group = "purpose_id";
+            $group='purpose_id';
         }
 
-        if ($localityId) {
+        if ($localityId>0) {
             $sphinx->setFilter('locality_id', $localityId);
-            $group = "purpose_id";
+            $group='purpose_id';
         }
 
-        if ($purposeId) {
+        if ($purposeId>0) {
             $sphinx->setFilter('purpose_id', $purposeId);
         }
 
-        if(!empty($group)) $sphinx->setGroupBy ($group);
+        if (!empty($group)) { $sphinx->setGroupBy($group); }
 
-        if ($sectionId==0) {
+        if ($sectionId===0) {
             $sphinx->setFacet("{$group}, purpose_id", TRUE);
-            if ($rootId==1 && $this->countryId>0) {
-            }
+            //if ($rootId==1 && $this->countryId>0) {
+            //}
         } 
-        else {
-        }
+        //else {
+        //}
         
         $sphinx->setSelect("groupby() as {$group}, count(*)");
-        $query = $sphinx->query("", MYSQLI_ASSOC);
+        $query=$sphinx->query("", \MYSQLI_ASSOC);
         if ($sphinx->getLastError()) {
             $this->result['e']=$sphinx->getLastError();
             return;
         }
 
         $this->result['query']=$query;
-        $purposes = array();
+        $purposes=[];
         
         if ($sectionId>0) {
             foreach ($query['matches'] as $item) {
@@ -1176,10 +1180,10 @@ class MobileApi {
 
             $sections=[];
             foreach ($query['matches'][0] as $item) {
-                $_id = $item[$group]+0;
-                $rs = [$_id, $item['count(*)']+0, isset($purposes[$_id]) ? $purposes[$_id] : []];
+                $_id=$item[$group]+0;
+                $rs=[$_id, $item['count(*)']+0, isset($purposes[$_id]) ? $purposes[$_id] : []];
 
-                if (($rootId==1||$rootId==2) && $sectionId==0 && $this->countryId>0) {
+                if (($rootId===1||$rootId===2) && $sectionId===0 && $this->countryId>0) {
                     $sections[]=$_id;
                 }
 
@@ -1188,10 +1192,10 @@ class MobileApi {
             }
         }
 
-        if ($sectionId==0 && $this->countryId>0) {
-            if ($rootId==1) {
-                $locs = $this->sphinxLocalitiesQL($sections, $sphinx);
-                $num = count($this->result['d']);
+        if ($sectionId===0 && $this->countryId>0) {
+            if ($rootId===1) {
+                $locs=$this->sphinxLocalitiesQL($sections, $sphinx);
+                $num=\count($this->result['d']);
                 for ($i=0; $i<$num; $i++) {
                     if (isset($locs[$this->result['d'][$i][0]])) {
                         $this->result['d'][$i][]=$locs[$this->result['d'][$i][0]];
@@ -1202,13 +1206,13 @@ class MobileApi {
                 }
             }
 
-            if ($rootId==2) {
-                $tags = $this->sphinxTagsQL($sections, $sphinx);
+            if ($rootId===2) {
+                $tags=$this->sphinxTagsQL($sections, $sphinx);
 
-                $num = count($this->result['d']);
+                $num=\count($this->result['d']);
                 for ($i=0; $i<$num; $i++) {
-                    if (isset( $tags[$this->result['d'][$i][0]] )) {
-                        $this->result['d'][$i][] = $tags[ $this->result['d'][$i][0] ];
+                    if (isset( $tags[$this->result['d'][$i][0]])) {
+                        $this->result['d'][$i][]=$tags[ $this->result['d'][$i][0] ];
                     } 
                     else {
                         $this->result['d'][$i][]=[];
@@ -1217,7 +1221,7 @@ class MobileApi {
             }
         }
 
-        $this->db->getCache()->setEx($MCKey, $this->config['ttl_short'], $this->result['d']);
+        $this->db->getCache()->setEx($MCKey, $this->cfg->get('ttl_short'), $this->result['d']);
     }
 
 
@@ -2587,9 +2591,9 @@ class MobileApi {
 
     function done() {
         $this->db->close();
-        if ($this->uuid=="B066D32F-08F6-4C2E-973C-9658CA745F09") {
-            $this->result['l']=1;
-        }
+        //if ($this->uuid==="B066D32F-08F6-4C2E-973C-9658CA745F09") {
+        //    $this->result['l']=1;
+        //}
         //error_log(header('Content-type'));
         if ($this->json) {
             echo json_encode($this->result, JSON_UNESCAPED_UNICODE);
@@ -2853,7 +2857,7 @@ class MobileApi {
     }
 
 
-    public function unregister() { 
+    public function unregister() : void { 
         $opts = $this->userStatus($status);
         if ($status==1 && $opts->phone_number>0) {
             $phone_number=filter_input(INPUT_GET, 'tel', FILTER_VALIDATE_INT)+0;
@@ -2863,6 +2867,10 @@ class MobileApi {
                 return;
             }
 
+            
+            error_log(sprintf("%s\t%s\t%d\t%d\t%s", date("Y-m-d H:i:s"), $this->getUUID(), $this->getUID(), $phone_number, 'Unistalled').PHP_EOL, 3, "/var/log/mourjan/purchase.log");
+            $this->result['d']['status']='deleted';
+            /*
             if (NoSQL::instance()->mobileUpdate($this->getUID(), $phone_number, [Core\Model\ASD\USER_DEVICE_UNINSTALLED=>1])) {                
                 $this->result['d']['status']='deleted';
                 NoSQL::instance()->setUserLevel($this->getUID(), 5);                
@@ -2870,6 +2878,8 @@ class MobileApi {
             else {
                 $this->result['d']['status']='failed';
             }
+             * 
+             */
         }
         else {
             $this->result['e']='Invalid user request!';
@@ -2974,15 +2984,19 @@ class MobileApi {
 
 
     public function getUserAdStat() : void {
+        /*
         if ($this->demo) {
             $this->getDemoUserAdStat();
             return;
         }
+        */
         
         $opts=$this->userStatus($status);
         if ($status===1) {            
-            // Register session            
+            // Register session
+            //$this->appVersion=\filter_input(\INPUT_GET, 'apv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']]);
             if ( $opts->user_status==1 && \version_compare($this->appVersion, '1.1.0', '<')) {
+                \error_log($this->appVersion."\t".($_GET['apv']??'-').\filter_input(\INPUT_GET, 'apv', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'0.0.0']])."-".\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_URL).PHP_EOL);
                 MCSessionHandler::instance();                
                 Config::instance()->incModelFile('Router')->incModelFile('User');
                 $user=new User(null, 0);
@@ -3451,26 +3465,25 @@ class MobileApi {
     
     
     public function getStatsAdSummary($opts=NULL, $status=0) {
-        $fbal = FALSE;
+        $fbal=FALSE;
         if ($opts==NULL) {
-            $opts = $this->userStatus($status);
+            $opts=$this->userStatus($status);
             $fbal=TRUE;
         }
         
-        $archive = filter_input(INPUT_POST, 'x', FILTER_VALIDATE_INT)+0;
+        $archive=\filter_input(\INPUT_POST, 'x', \FILTER_VALIDATE_INT)+0;
         //$archive=1;
         if ($status==1) {
-            $redis = new Redis();
+            $redis=new \Redis;                                    
+            $redis->connect($this->cfg->get('rs-host'), $this->cfg->get('rs-port'), 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
+            $redis->setOption(\Redis::OPT_PREFIX, $this->cfg->get('rs-prefix'));
+            $redis->select($this->cfg->get('rs-index'));
             
-            $redis->connect($this->config['rs-host'], $this->config['rs-port'], 1, NULL, 100); // 1 sec timeout, 100ms delay between reconnection attempts.
-            $redis->setOption(Redis::OPT_PREFIX, $this->config['rs-prefix']);
-            $redis->select($this->config['rs-index']);
+            $ads=$redis->sMembers('U'.$this->uid);
             
-            $ads = $redis->sMembers('U'.$this->uid);
-            
-            $summary = [];
+            $summary=[];
             foreach ($ads as $id) {                            
-                $impressions = $redis->hGetAll('AI'.$id);
+                $impressions=$redis->hGetAll('AI'.$id);
                 foreach ($impressions as $date => $value) {
                     if (isset($summary[$id])) {
                         $summary[$id]+=$value+0;
@@ -3479,13 +3492,13 @@ class MobileApi {
                     }
                 }                                
             }
-            $this->result['d']['ads'] = $summary;
-            $redis->close();
-            
+            $this->result['d']['ads']=$summary;
+            $redis->close();   
         }
         //error_log(var_export($this->result, TRUE));
-        if ($fbal)
+        if ($fbal) {
             $this->getBalance();
+        }
     }
     
     

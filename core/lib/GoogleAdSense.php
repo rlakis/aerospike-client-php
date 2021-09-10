@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../deps/autoload.php';
-require_once __DIR__ . '/../../config/cfg.php';
+//require_once __DIR__ . '/../../deps/autoload.php';
+require_once '/var/www/mourjan/deps/autoload.php';
+require_once '/var/www/mourjan/config/cfg.php';
 // Configure token storage on disk.
 // If you want to store refresh tokens in a local disk file, set this to true.
 define('STORE_ON_DISK', true, false);
@@ -15,16 +16,16 @@ class MCAdSense {
     
     public function __construct() {
         // Set up authentication.
-        $this->client = new Google_Client();
+        $this->client=new Google_Client();
         $this->client->setApplicationName("Berysoft");
         $this->client->addScope('https://www.googleapis.com/auth/adsense.readonly');
         $this->client->setAccessType('offline');
         $this->client->setAuthConfigFile('/opt/client_secrets.json');
-        $this->client->setPrompt('select_account consent');
+        //$this->client->setPrompt('select_account consent');
        
-        $tokenPath = '/opt/token.json';
-        if (file_exists($tokenPath)) {
-            $accessToken = json_decode(file_get_contents($tokenPath), true);
+        $tokenPath='/opt/token.json';
+        if (\file_exists($tokenPath)) {
+            $accessToken=\json_decode(file_get_contents($tokenPath), true);
             $this->client->setAccessToken($accessToken);
         }
         
@@ -56,8 +57,9 @@ class MCAdSense {
             }
             file_put_contents($tokenPath, json_encode($this->client->getAccessToken()));
         }
+        include_once '/var/www/mourjan/deps/google/apiclient-services/src/Adsense.php';
         
-        $this->service = new Google_Service_AdSense($this->client);
+        $this->service=new Google_Service_AdSense($this->client);
     }
     
     
@@ -86,8 +88,9 @@ class MCAdSense {
             'maxResults' => 20,
             'useTimezoneReporting' => true
             ];
+        echo $this->accountId, "\n";
         
-        $report = $this->service->accounts_reports->generate($this->accountId, $startDate, $endDate, $optParams);
+        $report=$this->service->accounts_reports->generate($this->accountId, $startDate, $endDate, $optParams);
         if (isset($report) && isset($report['rows'])) {
             $result['headers']=$report['headers'];
             $result['current']=$report['totals'];
@@ -106,7 +109,7 @@ class MCAdSense {
     
     
     public function salesByCountry(int $year, int $month) : void {
-        $startDate=new DateTime();
+        $startDate=new \DateTime;
         $startDate->setDate($year, $month, 1);
         $endDate=new DateTime("last day of {$year}-{$month}");
         
@@ -219,5 +222,5 @@ if (php_sapi_name()==='cli') {
     $mcAdSense=new MCAdSense;
     $mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
         ->setAccountId("pub-2427907534283641")
-        ->salesByCountry(2020, 3);
+        ->earnings();
 }

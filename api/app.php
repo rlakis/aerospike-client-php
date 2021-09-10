@@ -173,7 +173,7 @@ $timer=new ElapseTime;
 $timer->start();
 
 $api=new MobileApi($config);
-
+/*
 if ($api->isIOS() && version_compare($apiVersion, '1.1.3', '>')) { 
     $ua=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
     
@@ -186,8 +186,10 @@ if ($api->isIOS() && version_compare($apiVersion, '1.1.3', '>')) {
 if ($api->json!==0) {
     \header('Content-type: application/json; charset=UTF-8');
 }
+*/
+\header('Content-type: application/json; charset=UTF-8');
 
-if (!$api->hasError()) {    
+if (!$api->hasError()) {
     $action=\filter_input(\INPUT_GET, 'm', \FILTER_VALIDATE_INT)+0;    
     $api->command=$action;
     

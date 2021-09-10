@@ -23,7 +23,7 @@
         "kreait/firebase-php":"^3.7.0",
         "edigear/client-sdk": "dev-master",
         "manticoresoftware/manticoresearch-php": "dev-master",
-        "google/apiclient": "^2.0",
+        "google/apiclient": "^2.10",
 	"tedivm/jshrink": "~1.0",
         "katzgrau/klogger": "dev-master",
         "aerospike/aerospike-client-php": "~7.0",

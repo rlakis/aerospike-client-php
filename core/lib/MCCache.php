@@ -13,11 +13,12 @@ class MCCache extends \Redis {
         $this->writeBuffering=TRUE;
         $memstore=\Config::instance()->get('memstore');
         
+        
         if ($memstore['tcp']) {
-            $success = $this->connect($memstore['host'], $memstore['port'], 1, NULL, 100);
+            $success=$this->connect($memstore['host'], $memstore['port'], 1, NULL, 100);
         } 
         else {
-            $success = $this->connect($memstore['socket']);           
+            $success=$this->connect($memstore['socket']);           
         }
 
         if (!$success) {

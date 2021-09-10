@@ -201,7 +201,7 @@ $config=array (
     1 => 220906,
   ),
   'max_upload' => 2097152,
-  'android_url_upload' => 'https://h5.mourjan.com/upload/index.php',
+  'android_url_upload' => 'https://s1.mourjan.com/upload/index.php',
   'android_url_web' => 'https://www.mourjan.com/',
   'android_url_img' => 'https://doxplxe8wce37.cloudfront.net/repos',
   'android_url_api' => 'https://www.mourjan.com/api/app.php',
@@ -282,7 +282,7 @@ $config=array (
   'ttl_medium' => 14400,
   'ttl_long' => 86400,
   'ttl_unlimited' => 0,
-  'url_uploader' => 'https://h5.mourjan.com',
+  'url_uploader' => 'https://s1.mourjan.com',
   'url_resources' => 'https://www.mourjan.com',
   'url_ad_img' => 'https://doxplxe8wce37.cloudfront.net/repos',
   'url_img' => '/img/1.0.3',
@@ -1447,8 +1447,8 @@ $config=array (
       1 => 2,
     ),
   ),
-  'rs-host' => 'h5.mourjan.com',
-  'rs-port' => 6379,
+  'rs-host' => 'p2.mourjan.com',
+  'rs-port' => 6380,
   'io_host' => 'ws.mourjan.com',
   'paypal_pass' => '352CK9CLCZN9GF9N',
   'nexmo_key' => '8984ddf8',
@@ -1660,3 +1660,20 @@ $config=array (
         ',
   ),
 );
+
+
+/*
+ 
+ ,
+    "scripts": {
+        "pre-autoload-dump": "Google\\Task\\Composer::cleanup"
+    },
+    "extra": {
+        "google/apiclient-services": [
+            "Adsense",
+            "Analytics",
+            "AnalyticsReporting"
+        ]
+    }
+ * 
+ */

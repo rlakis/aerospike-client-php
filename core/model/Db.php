@@ -124,7 +124,7 @@ class DB {
     
     
     public static function getCacheStorage() : MCCache {
-        if (!isset(DB::$Cache)) { DB::$Cache = new MCCache(); }
+        if (!isset(DB::$Cache)) { DB::$Cache=new MCCache(); }
         return self::$Cache;
     }
 
@@ -638,6 +638,7 @@ class DB {
     
     
     function asCitiesDictionary() : array {
+        //$this->citiesDictionary=[];
         if (empty($this->citiesDictionary)) {
             $where=\Aerospike::predicateEquals(\Core\Data\Schema::BIN_BLOCKED, 0);
             $status= NoSQL::instance()->getConnection()->query(\Core\Data\NS_MOURJAN, \Core\Data\TS_CITY, $where,
@@ -651,6 +652,7 @@ class DB {
             }
         
         }
+        //error_log(var_export($this->citiesDictionary, true));
         return $this->citiesDictionary;
     }
     
