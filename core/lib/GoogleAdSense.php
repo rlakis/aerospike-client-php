@@ -77,33 +77,57 @@ class MCAdSense {
     
     public function earnings(string $startDate='today', string $endDate='today', string $pStartDate='today-1d', string $pEndDate='today-1d') :array {
         $result=[];  
-       
-        $optParams = [
-            'metric' => [
-                'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
-                'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'EARNINGS'],
-            'dimension' => 'PRODUCT_CODE',
-            'sort' => '-EARNINGS',
-            'currency' => 'USD',
-            'maxResults' => 20,
-            'useTimezoneReporting' => true
-            ];
-        echo $this->accountId, "\n";
+       /*
+        * $optParams = array(
+      'startDate.year' => 2021,
+      'startDate.month' => 3,
+      'startDate.day' => 1,
+      'endDate.year' => 2021,
+      'endDate.month' => 3,
+      'endDate.day' => 31,
+      'metrics' => array(
         
-        $report=$this->service->accounts_reports->generate($this->accountId, $startDate, $endDate, $optParams);
+        ),
+      'dimensions' => 'DATE',
+      'orderBy' => '+DATE',
+      'filters' => array(
+        'AD_CLIENT_ID==' . $adClientCode
+      )
+    );
+
+        */
+        $optParams = [
+            'startDate.day'=>1,
+            'startDate.month'=>8,
+            'startDate.year'=>2021,
+            'endDate.day'=>31,
+            'endDate.month'=>8,
+            'endDate.year'=>2021,
+            'metrics' => [
+                'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
+                'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'ESTIMATED_EARNINGS'],
+            'dimensions' => [ 'PRODUCT_CODE' ],
+            'orderBy' => [ '-ESTIMATED_EARNINGS' ],
+            'currencyCode' => 'USD',
+            'limit' => 20,
+            'reportingTimeZone' => 'GOOGLE_TIME_ZONE'
+            ];
+   
+        
+        $report=$this->service->accounts_reports->generate($this->accountId, $optParams);
         if (isset($report) && isset($report['rows'])) {
             $result['headers']=$report['headers'];
             $result['current']=$report['totals'];
             $result['currows']=$report['rows'];
         } 
       
-        
+      /*  
         $report = $this->service->accounts_reports->generate($this->accountId, $pStartDate, $pEndDate, $optParams);
         if (isset($report) && isset($report['rows'])) {
             if (!isset($result['headers'])) { $result['headers']=$report['headers']; }
             $result['previous']=$report['totals'];
             $result['prevrows']=$report['rows'];
-        }
+        }*/
         return $result;      
     }
     
