@@ -75,6 +75,149 @@ class MCAdSense {
     }
     
     
+    private static function displayTree($service, $parentAccount, $level) {
+        print str_repeat(' ', $level);
+        printf("Account with ID \"%s\" and name \"%s\" was found.\n", $parentAccount['name'], $parentAccount['displayName']);
+
+        $childAccounts = $service->accounts->listChildAccounts($parentAccount['name']);
+        if (!empty($childAccounts)) {
+            foreach ($childAccounts as $childAccount) {
+                self::displayTree($childAccount, $level + 1);
+            }
+        }
+    }
+    
+  
+    public function tt() {
+        $c=new Google_Client();
+        $c->addScope('https://www.googleapis.com/auth/adsense.readonly');
+        $c->setAccessType('offline');
+        $c->setAuthConfig('/opt/client_secrets.json');
+        $s=new Google_Service_Adsense($c);
+        $tokenPath='/opt/token.json';
+        if (\file_exists($tokenPath)) {
+            $accessToken=\json_decode(file_get_contents($tokenPath), true);
+            $c->setAccessToken($accessToken);
+        }
+        
+        //$accessToken=\json_decode(file_get_contents('/opt/client_secrets.json'), true);
+        //$c->setAccessToken($accessToken);
+
+        
+        if ($c->getAccessToken()) {
+            echo 'Start', "\n";
+        }
+        $separator = str_repeat('=', 80) . "\n";
+        print $separator;
+        print "Listing all AdSense accounts\n";
+        print $separator;
+
+        $optParams['pageSize'] = 20;
+        $pageToken = null;
+        do {
+            $optParams['pageToken'] = $pageToken;
+            $result = $s->accounts->listAccounts($optParams);
+            $accounts = null;
+            if (!empty($result['accounts'])) {
+                $accounts = $result['accounts'];
+                foreach ($accounts as $account) {
+                    printf("Account with ID \"%s\" and name \"%s\" was found.\n", $account['name'], $account['displayName']);
+                }
+                $pageToken = $result['nextPageToken'];
+            } 
+            else {
+                print "No accounts found.\n";
+            }
+        } while ($pageToken);
+        print "\n";
+        
+        if (isset($accounts) && !empty($accounts)) {
+            echo $accountId=$accounts[0]['name'];
+            print $separator;
+            printf("Displaying AdSense account tree for %s\n", $accountId);
+            print $separator;
+
+            $account=$s->accounts->get($accountId);
+            self::displayTree($s, $account, 0);
+            //var_dump($account);
+    
+            print $separator;
+            printf("Listing all ad clients for account %s\n", $accountId);
+            print $separator;
+    
+            $pageToken=null;
+            $adClients=null;
+            do {
+                $optParams['pageToken']=$pageToken;
+                $result=$s->accounts_adclients->listAccountsAdclients($accountId, $optParams);
+                if (!empty($result['adClients'])) {
+                    $adClients=$result['adClients'];
+                    foreach ($adClients as $adClient) {
+                        printf("Ad client for product \"%s\" with ID \"%s\" was found.\n", $adClient['productCode'], $adClient['name']);
+                    }
+                    $pageToken=$result['nextPageToken'];
+                } 
+                else {
+                    print "No ad clients found.\n";
+                }
+            } while ($pageToken);
+            print "\n";
+    
+            if (isset($adClients) && !empty($adClients)) {
+                // Get an ad client ID, so we can run the rest of the samples.
+                $exampleAdClient=end($adClients);
+                $adClientId=$exampleAdClient['name'];
+                
+                print $separator;
+                printf("Running report for ad client %s\n", $adClientId);
+                print $separator;
+                
+                $adClientCode=substr($adClientId, strrpos($adClientId, '/') + 1);
+
+                $optParams=array(
+                    'startDate.year' => 2021,
+                    'startDate.month' => 3,
+                    'startDate.day' => 1,
+                    'endDate.year' => 2021,
+                    'endDate.month' => 3,
+                    'endDate.day' => 31,
+                    'metrics' => array(
+                        'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
+                        'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM',
+                        'ESTIMATED_EARNINGS'),
+                    'dimensions' => 'DATE',
+                    'orderBy' => '+DATE'
+                );
+
+                // Run report.
+                $report=$s->accounts_reports->generate($accountId, $optParams);
+
+                if (isset($report) && isset($report['rows'])) {
+                    // Display headers.
+                    foreach($report['headers'] as $header) {
+                        printf('%25s', $header['name']);
+                    }
+                    print "\n";
+
+                    // Display results.
+                    foreach($report['rows'] as $row) {
+                        foreach($row['cells'] as $column) {
+                            printf('%25s', $column['value']);
+                        }
+                        print "\n";
+                    }
+                } 
+                else {
+                    print "No rows returned.\n";
+                }
+
+                print "\n";
+            }
+        }
+
+    }
+    
+    
     public function earnings(string $startDate='today', string $endDate='today', string $pStartDate='today-1d', string $pEndDate='today-1d') :array {
         $result=[];  
        /*
@@ -121,6 +264,7 @@ class MCAdSense {
             $result['currows']=$report['rows'];
         } 
       
+        var_dump($report);
       /*  
         $report = $this->service->accounts_reports->generate($this->accountId, $pStartDate, $pEndDate, $optParams);
         if (isset($report) && isset($report['rows'])) {
@@ -245,6 +389,6 @@ class MCAdSense {
 if (php_sapi_name()==='cli') {
     $mcAdSense=new MCAdSense;
     $mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
-        ->setAccountId("pub-2427907534283641")
+        ->setAccountId("accounts/pub-2427907534283641")
         ->earnings();
 }
