@@ -218,34 +218,23 @@ class MCAdSense {
     }
     
     
-    public function earnings(string $startDate='today', string $endDate='today', string $pStartDate='today-1d', string $pEndDate='today-1d') :array {
-        $result=[];  
-       /*
-        * $optParams = array(
-      'startDate.year' => 2021,
-      'startDate.month' => 3,
-      'startDate.day' => 1,
-      'endDate.year' => 2021,
-      'endDate.month' => 3,
-      'endDate.day' => 31,
-      'metrics' => array(
+    public function earnings(string $startDate='2021-1-1', string $endDate='2021-1-31', string $pStartDate='2021-1-1', string $pEndDate='2021-1-31') :array {
+        $result=[];
+        $startDateTime=DateTime::createFromFormat('Y-m-j', $startDate);
+        $endDateTime=DateTime::createFromFormat('Y-m-j', $endDate);
+        $prevStartDateTime=DateTime::createFromFormat('Y-m-j', $pStartDate);
+        $precEndDateTime=DateTime::createFromFormat('Y-m-j', $pEndDate);
         
-        ),
-      'dimensions' => 'DATE',
-      'orderBy' => '+DATE',
-      'filters' => array(
-        'AD_CLIENT_ID==' . $adClientCode
-      )
-    );
-
-        */
-        $optParams = [
-            'startDate.day'=>1,
-            'startDate.month'=>8,
-            'startDate.year'=>2021,
-            'endDate.day'=>31,
-            'endDate.month'=>8,
-            'endDate.year'=>2021,
+        \error_log( $startDateTime->format('j').'.'.$startDateTime->format('n').'.'.$startDateTime->format('Y').' - '.$endDateTime->format('j').'.'.$endDateTime->format('n').'.'.$endDateTime->format('Y'). "\n");
+        \error_log( $prevStartDateTime->format('j').'.'.$prevStartDateTime->format('n').'.'.$prevStartDateTime->format('Y').' - '.$precEndDateTime->format('j').'.'.$precEndDateTime->format('n').'.'.$precEndDateTime->format('Y'). "\n");
+      
+        $optParams=[
+            'startDate.day'=>intval($startDateTime->format('j')),
+            'startDate.month'=>intval($startDateTime->format('n')),
+            'startDate.year'=>intval($startDateTime->format('Y')),
+            'endDate.day'=>intval($endDateTime->format('j')),
+            'endDate.month'=>intval($endDateTime->format('n')),
+            'endDate.year'=>intval($endDateTime->format('Y')),
             'metrics' => [
                 'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
                 'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'ESTIMATED_EARNINGS'],
@@ -257,21 +246,73 @@ class MCAdSense {
             ];
    
         
+        $json_array=['headers'=>[], 'current'=>[], 'previous'=>[]];
         $report=$this->service->accounts_reports->generate($this->accountId, $optParams);
         if (isset($report) && isset($report['rows'])) {
             $result['headers']=$report['headers'];
             $result['current']=$report['totals'];
             $result['currows']=$report['rows'];
-        } 
+            
+            foreach($report['headers'] as $header) {
+                printf('%25s', $header['name']);
+                $json_array['headers'][]=$header['name'];
+            }
+            print "\n";
+
+            // Display results.
+            foreach($report['rows'] as $row) {
+                foreach($row['cells'] as $column) {
+                    printf('%25s', $column['value']);
+                    $json_array['current'][]=$column['value'];
+                }
+                print "\n";
+            }
+        }
+        
+        
+        $optParams = [
+            'startDate.day'=>intval($prevStartDateTime->format('j')),
+            'startDate.month'=>intval($prevStartDateTime->format('n')),
+            'startDate.year'=>intval($prevStartDateTime->format('Y')),
+            'endDate.day'=>intval($precEndDateTime->format('j')),
+            'endDate.month'=>intval($precEndDateTime->format('n')),
+            'endDate.year'=>intval($precEndDateTime->format('Y')),
+            'metrics' => [
+                'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
+                'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'ESTIMATED_EARNINGS'],
+            'dimensions' => [ 'PRODUCT_CODE' ],
+            'orderBy' => [ '-ESTIMATED_EARNINGS' ],
+            'currencyCode' => 'USD',
+            'limit' => 20,
+            'reportingTimeZone' => 'GOOGLE_TIME_ZONE'
+            ];
       
-        var_dump($report);
-      /*  
-        $report = $this->service->accounts_reports->generate($this->accountId, $pStartDate, $pEndDate, $optParams);
+        $report=$this->service->accounts_reports->generate($this->accountId, $optParams);
         if (isset($report) && isset($report['rows'])) {
             if (!isset($result['headers'])) { $result['headers']=$report['headers']; }
             $result['previous']=$report['totals'];
             $result['prevrows']=$report['rows'];
-        }*/
+            
+            if (empty($json_array['headers'])) {
+                foreach($report['headers'] as $header) {
+                    printf('%25s', $header['name']);
+                    $json_array['headers'][]=$header['name'];
+                }
+                print "\n";
+            }
+
+            // Display results.
+            foreach($report['rows'] as $row) {
+                foreach($row['cells'] as $column) {
+                    printf('%25s', $column['value']);
+                    $json_array['previous'][]=$column['value'];
+                }
+                print "\n";
+            }
+           
+        }
+        
+        print_r($json_array);
         return $result;      
     }
     
@@ -390,5 +431,5 @@ if (php_sapi_name()==='cli') {
     $mcAdSense=new MCAdSense;
     $mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
         ->setAccountId("accounts/pub-2427907534283641")
-        ->earnings();
+        ->earnings('2021-1-1', '2021-9-10', '2020-1-1', '2020-12-31');
 }
