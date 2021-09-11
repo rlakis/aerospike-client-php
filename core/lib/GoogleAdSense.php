@@ -220,13 +220,16 @@ class MCAdSense {
     
     public function earnings(string $startDate='2021-1-1', string $endDate='2021-1-31', string $pStartDate='2021-1-1', string $pEndDate='2021-1-31') :array {
         $result=[];
+        $json_array=['headers'=>[], 'current'=>[], 'previous'=>[]];
         $startDateTime=DateTime::createFromFormat('Y-m-j', $startDate);
         $endDateTime=DateTime::createFromFormat('Y-m-j', $endDate);
         $prevStartDateTime=DateTime::createFromFormat('Y-m-j', $pStartDate);
         $precEndDateTime=DateTime::createFromFormat('Y-m-j', $pEndDate);
         
-        \error_log( $startDateTime->format('j').'.'.$startDateTime->format('n').'.'.$startDateTime->format('Y').' - '.$endDateTime->format('j').'.'.$endDateTime->format('n').'.'.$endDateTime->format('Y'). "\n");
-        \error_log( $prevStartDateTime->format('j').'.'.$prevStartDateTime->format('n').'.'.$prevStartDateTime->format('Y').' - '.$precEndDateTime->format('j').'.'.$precEndDateTime->format('n').'.'.$precEndDateTime->format('Y'). "\n");
+        \error_log(PHP_EOL."current:\t". $startDateTime->format('j').'.'.$startDateTime->format('n').'.'.$startDateTime->format('Y').' - '.
+                $endDateTime->format('j').'.'.$endDateTime->format('n').'.'.$endDateTime->format('Y'). "\n".
+                "previous:\t". $prevStartDateTime->format('j').'.'.$prevStartDateTime->format('n').'.'.$prevStartDateTime->format('Y').' - '.
+                $precEndDateTime->format('j').'.'.$precEndDateTime->format('n').'.'.$precEndDateTime->format('Y'). "\n");
       
         $optParams=[
             'startDate.day'=>intval($startDateTime->format('j')),
@@ -242,30 +245,33 @@ class MCAdSense {
             'orderBy' => [ '-ESTIMATED_EARNINGS' ],
             'currencyCode' => 'USD',
             'limit' => 20,
-            'reportingTimeZone' => 'GOOGLE_TIME_ZONE'
+            'reportingTimeZone' => 'ACCOUNT_TIME_ZONE'
             ];
    
         
-        $json_array=['headers'=>[], 'current'=>[], 'previous'=>[]];
+        
         $report=$this->service->accounts_reports->generate($this->accountId, $optParams);
         if (isset($report) && isset($report['rows'])) {
-            $result['headers']=$report['headers'];
+            //$result['headers']=$report['headers'];
             $result['current']=$report['totals'];
             $result['currows']=$report['rows'];
             
             foreach($report['headers'] as $header) {
-                printf('%25s', $header['name']);
+                //printf('%25s', $header['name']);
                 $json_array['headers'][]=$header['name'];
             }
-            print "\n";
+            //print "\n";
 
             // Display results.
+            
             foreach($report['rows'] as $row) {
+                $i=0;
                 foreach($row['cells'] as $column) {
-                    printf('%25s', $column['value']);
-                    $json_array['current'][]=$column['value'];
+                    //printf('%25s', $column['value']);
+                    $json_array['current'][$json_array['headers'][$i]]=$column['value'];
+                    $i++;
                 }
-                print "\n";
+                //print "\n";
             }
         }
         
@@ -289,31 +295,37 @@ class MCAdSense {
       
         $report=$this->service->accounts_reports->generate($this->accountId, $optParams);
         if (isset($report) && isset($report['rows'])) {
-            if (!isset($result['headers'])) { $result['headers']=$report['headers']; }
+            //if (!isset($result['headers'])) { $result['headers']=$report['headers']; }
+            
             $result['previous']=$report['totals'];
-            $result['prevrows']=$report['rows'];
+            //$result['prevrows']=$report['rows'];
             
             if (empty($json_array['headers'])) {
                 foreach($report['headers'] as $header) {
-                    printf('%25s', $header['name']);
+                    //printf('%25s', $header['name']);
                     $json_array['headers'][]=$header['name'];
                 }
-                print "\n";
+                //print "\n";
             }
 
             // Display results.
             foreach($report['rows'] as $row) {
+                $i=0;
                 foreach($row['cells'] as $column) {
-                    printf('%25s', $column['value']);
-                    $json_array['previous'][]=$column['value'];
+                    //printf('%25s', $column['value']);
+                    //$json_array['previous'][]=$column['value'];
+                    $json_array['previous'][$json_array['headers'][$i]]=$column['value'];
+                    $i++;
                 }
-                print "\n";
+                //print "\n";
             }
            
         }
         
-        print_r($json_array);
-        return $result;      
+        //print_r($json_array);
+        unset($json_array['headers']);
+        return $json_array;
+        //return $result;      
     }
     
     
