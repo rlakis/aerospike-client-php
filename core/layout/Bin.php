@@ -1828,13 +1828,15 @@ class Bin extends AjaxHandler {
                 
                 if ($this->getGetInt('adsense')===1) {
                     \Config::instance()->incLibFile('GoogleAdSense');
-                    $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
-                    $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today']]);
-                    $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today-1d']]);
-                    $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'today-1d']]);
+                    $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-1']]);
+                    $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-31']]);
+                    $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2020-1-1']]);
+                    $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-31']]);
                     $mcAdSense = new MCAdSense;
                     $res=$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
-                            ->setAccountId("pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
+                            ->setAccountId("accounts/pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
+                    
+                    \error_log(var_export($res, true));
                     $this->success($res);
                 }
                 $this->error(self::ERR_DATA_INVALID_PARAM);                
