@@ -19,6 +19,7 @@ class MCAdSense {
         $this->client=new Google_Client();
         $this->client->setApplicationName("Berysoft");
         $this->client->addScope('https://www.googleapis.com/auth/adsense.readonly');
+        $this->client->addScope('https://www.googleapis.com/auth/admob.readonly');
         $this->client->setAccessType('offline');
         $this->client->setAuthConfigFile('/opt/client_secrets.json');
         //$this->client->setPrompt('select_account consent');
@@ -58,6 +59,7 @@ class MCAdSense {
             file_put_contents($tokenPath, json_encode($this->client->getAccessToken()));
         }
         include_once '/var/www/mourjan/deps/google/apiclient-services/src/Adsense.php';
+        include_once '/var/www/mourjan/deps/google/apiclient-services/src/AdMob.php';
         
         $this->service=new Google_Service_AdSense($this->client);
     }
@@ -88,7 +90,7 @@ class MCAdSense {
     }
     
   
-    public function tt() {
+    public static function adsense() {
         $c=new Google_Client();
         $c->addScope('https://www.googleapis.com/auth/adsense.readonly');
         $c->setAccessType('offline');
@@ -104,9 +106,7 @@ class MCAdSense {
         //$c->setAccessToken($accessToken);
 
         
-        if ($c->getAccessToken()) {
-            echo 'Start', "\n";
-        }
+ 
         $separator = str_repeat('=', 80) . "\n";
         print $separator;
         print "Listing all AdSense accounts\n";
@@ -218,6 +218,325 @@ class MCAdSense {
     }
     
     
+    public static function admob() {
+        $c=new Google_Client();
+        $c->addScope('https://www.googleapis.com/auth/admob.readonly');
+        $c->addScope('https://www.googleapis.com/auth/adsense.readonly');
+        $c->setAccessType('offline');
+        $c->setPrompt('select_account consent');
+        $c->setAuthConfig('/opt/new_client_secrets.json');
+        $s=new Google_Service_AdMob($c);
+        $tokenPath='/opt/tokens.json';
+        if (\file_exists($tokenPath)) {
+            $c->setAccessToken(\json_decode(file_get_contents($tokenPath), true));
+        }
+        
+        if ($c->isAccessTokenExpired()) {
+      
+            if ($c->getRefreshToken()) {
+                $c->fetchAccessTokenWithRefreshToken($c->getRefreshToken());
+            }
+            else {
+                echo "Request authorization from the user.\n";
+                $authUrl=$c->createAuthUrl();
+                printf("Open the following link in your browser:\n%s\n", $authUrl);
+                print 'Enter verification code: ';
+                $authCode=trim(fgets(STDIN));
+
+                // Exchange authorization code for an access token.
+                $accessToken=$c->fetchAccessTokenWithAuthCode($authCode);
+                $c->setAccessToken($accessToken);
+
+                // Check to see if there was an error.
+                if (array_key_exists('error', $accessToken)) {
+                    throw new Exception(join(', ', $accessToken));
+                }
+                // Save the token to a file.
+                file_put_contents($tokenPath, json_encode($c->getAccessToken()));
+            }
+        }
+        
+        
+        $separator=str_repeat('=', 80) . "\n";
+       
+        $account="accounts/pub-2427907534283641";
+        
+        
+        $startDate=new \Google_Service_AdMob_Date();
+        $startDate->setDay(1);
+        $startDate->setMonth(1);
+        $startDate->setYear(2021);
+        $endDate=new \Google_Service_AdMob_Date();
+        $endDate->setDay(31);
+        $endDate->setMonth(1);
+        $endDate->setYear(2021);
+
+        // Specify date range.
+        $dateRange=new \Google_Service_AdMob_DateRange();
+        $dateRange->setStartDate($startDate);
+        $dateRange->setEndDate($endDate);
+
+        // Create network report specification.
+        $reportSpec=new \Google_Service_AdMob_NetworkReportSpec();
+        $reportSpec->setMetrics(['IMPRESSIONS', 'AD_REQUESTS', 'MATCH_RATE', 'CLICKS', 'ESTIMATED_EARNINGS']);
+        $reportSpec->setDimensions(['PLATFORM']);
+        $reportSpec->setDateRange($dateRange);
+        
+        $localized=new \Google_Service_AdMob_LocalizationSettings();
+        $localized->setCurrencyCode('USD');
+        $reportSpec->setLocalizationSettings($localized);
+        // Create network report request.
+        $networkReportRequest = new \Google_Service_AdMob_GenerateNetworkReportRequest();
+        $networkReportRequest->setReportSpec($reportSpec);
+        
+        $networkReportResponse=$s->accounts_networkReport->generate(
+            $account,
+            $networkReportRequest
+        );
+
+        //var_dump( $networkReportResponse->toSimpleObject() );
+        // Print each record in the report.
+        $total=$impressions=0;
+        $result=['current'=>[], 'previous'=>[]];
+        if (!empty($networkReportResponse)) {
+            print $separator;
+            print "AdMob Network Report\n";
+            print $separator;
+            foreach ($networkReportResponse->toSimpleObject() as $record) {
+                if (isset($record['row'])) {
+                    var_dump($record['row']);
+                    $total+=$record['row']['metricValues']['ESTIMATED_EARNINGS']['microsValue']/1000000.0;
+                    $impressions+=$record['row']['metricValues']['IMPRESSIONS']['integerValue'];
+                }
+            }
+            $result['current']['ESTIMATED_EARNINGS']=$total;
+        } else {
+            print "No report found.\n";
+        }
+        print "\n";
+        
+        echo $impressions, "\t", $total, "\n";
+        
+        $adsense=new Google_Service_Adsense($c);
+        $optParams=['startDate.year' => 2021, 'startDate.month' => 3, 'startDate.day' => 1,
+                    'endDate.year' => 2021, 'endDate.month' => 3, 'endDate.day' => 31,
+                    'metrics' => [
+                        'PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
+                        'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM',
+                        'ESTIMATED_EARNINGS'],
+                    'dimensions' => 'DATE',
+                    'orderBy' => '+DATE'
+                    ];
+        // Run report.
+        $report=$adsense->accounts_reports->generate($account, $optParams);
+
+        if (isset($report) && isset($report['rows'])) {
+                    // Display headers.
+                    foreach($report['headers'] as $header) {
+                        printf('%25s', $header['name']);
+                    }
+                    print "\n";
+
+                    // Display results.
+                    foreach($report['rows'] as $row) {
+                        foreach($row['cells'] as $column) {
+                            printf('%25s', $column['value']);
+                        }
+                        print "\n";
+                    }
+                } 
+                else {
+                    print "No rows returned.\n";
+                }
+
+                print "\n";
+        
+    }
+    
+    
+    public static function ad_earnings(string $startDate='2021-1-1', string $endDate='2021-1-31', string $pStartDate='2021-1-1', string $pEndDate='2021-1-31') : array {
+        $output=['current'=>['adsense'=>[], 'admob'=>[]], 'previous'=>['adsense'=>[], 'admob'=>[]]];
+        $startDateTime=DateTime::createFromFormat('Y-m-j', $startDate);
+        $endDateTime=DateTime::createFromFormat('Y-m-j', $endDate);
+        $prevStartDateTime=DateTime::createFromFormat('Y-m-j', $pStartDate);
+        $prevEndDateTime=DateTime::createFromFormat('Y-m-j', $pEndDate);
+        
+        $client=new Google_Client();
+        $client->addScope('https://www.googleapis.com/auth/admob.readonly');
+        $client->addScope('https://www.googleapis.com/auth/adsense.readonly');
+        $client->setAccessType('offline');
+        $client->setPrompt('select_account consent');
+        $client->setAuthConfig('/opt/new_client_secrets.json');
+        $admob=new Google_Service_AdMob($client);
+        $adsense=new Google_Service_Adsense($client);
+        $tokenPath='/opt/tokens.json';
+        if (\file_exists($tokenPath)) {
+            $client->setAccessToken(\json_decode(file_get_contents($tokenPath), true));
+        }
+        
+        if ($client->isAccessTokenExpired()) {
+      
+            if ($client->getRefreshToken()) {
+                $client->fetchAccessTokenWithRefreshToken($client->getRefreshToken());
+            }
+            else {
+                echo "Request authorization from the user.\n";
+                $authUrl=$client->createAuthUrl();
+                printf("Open the following link in your browser:\n%s\n", $authUrl);
+                print 'Enter verification code: ';
+                $authCode=trim(fgets(STDIN));
+
+                // Exchange authorization code for an access token.
+                $accessToken=$client->fetchAccessTokenWithAuthCode($authCode);
+                $client->setAccessToken($accessToken);
+
+                // Check to see if there was an error.
+                if (array_key_exists('error', $accessToken)) {
+                    throw new Exception(join(', ', $accessToken));
+                }
+                // Save the token to a file.
+                file_put_contents($tokenPath, json_encode($client->getAccessToken()));
+            }
+        }
+        
+        $account="accounts/pub-2427907534283641";
+        $optParams=['startDate.day'=>intval($startDateTime->format('j')),
+            'startDate.month'=>intval($startDateTime->format('n')),
+            'startDate.year'=>intval($startDateTime->format('Y')),
+            'endDate.day'=>intval($endDateTime->format('j')),
+            'endDate.month'=>intval($endDateTime->format('n')),
+            'endDate.year'=>intval($endDateTime->format('Y')),
+            'metrics' => ['PAGE_VIEWS', 'AD_REQUESTS', 'AD_REQUESTS_COVERAGE', 'CLICKS',
+                'AD_REQUESTS_CTR', 'COST_PER_CLICK', 'AD_REQUESTS_RPM', 'ESTIMATED_EARNINGS'],
+            'dimensions' => [ 'PRODUCT_CODE' ],
+            'orderBy' => [ '-ESTIMATED_EARNINGS' ],
+            'currencyCode' => 'USD',
+            'limit' => 20,
+            'reportingTimeZone' => 'ACCOUNT_TIME_ZONE'];
+   
+        $names=[];
+        $report=$adsense->accounts_reports->generate($account, $optParams);
+        if (isset($report) && isset($report['rows'])) {
+            foreach($report['headers'] as $header) {               
+                $names[]=$header['name'];
+            }
+            foreach($report['rows'] as $row) {
+                $i=0;
+                foreach($row['cells'] as $column) {
+                    $output['current']['adsense'][$names[$i]]=$column['value'];
+                    $i++;
+                }
+            }
+        }
+        
+        $optParams['startDate.day']=intval($prevStartDateTime->format('j'));
+        $optParams['startDate.month']=intval($prevStartDateTime->format('n'));
+        $optParams['startDate.year']=intval($prevStartDateTime->format('Y'));
+        $optParams['endDate.day']=intval($prevEndDateTime->format('j'));
+        $optParams['endDate.month']=intval($prevEndDateTime->format('n'));
+        $optParams['endDate.year']=intval($prevEndDateTime->format('Y'));
+        
+        $report=$adsense->accounts_reports->generate($account, $optParams);
+        if (isset($report) && isset($report['rows'])) {
+            if (empty($names)) {
+                foreach($report['headers'] as $header) {               
+                    $names[]=$header['name'];
+                }
+            }
+            
+            foreach($report['rows'] as $row) {
+                $i=0;
+                foreach($row['cells'] as $column) {
+                    $output['previous']['adsense'][$names[$i]]=$column['value'];
+                    $i++;
+                }
+            }
+        }
+        
+        
+        $adMobStartDate=new \Google_Service_AdMob_Date;
+        $adMobStartDate->setDay( intval($startDateTime->format('j')) );
+        $adMobStartDate->setMonth( intval($startDateTime->format('n')) );
+        $adMobStartDate->setYear( intval($startDateTime->format('Y')) );
+        $adMobEndDate=new \Google_Service_AdMob_Date;
+        $adMobEndDate->setDay( intval($endDateTime->format('j')) );
+        $adMobEndDate->setMonth( intval($endDateTime->format('n')) );
+        $adMobEndDate->setYear( intval($endDateTime->format('Y')) );
+
+        // Specify date range.
+        $dateRange=new \Google_Service_AdMob_DateRange;
+        $dateRange->setStartDate($adMobStartDate);
+        $dateRange->setEndDate($adMobEndDate);
+
+        // Create network report specification.
+        $reportSpec=new \Google_Service_AdMob_NetworkReportSpec;
+        $reportSpec->setMetrics(['IMPRESSIONS', 'AD_REQUESTS', 'IMPRESSION_RPM', 'CLICKS', 'ESTIMATED_EARNINGS']);
+        $reportSpec->setDimensions(['PLATFORM']);
+        $reportSpec->setDateRange($dateRange);
+        
+        $localized=new \Google_Service_AdMob_LocalizationSettings;
+        $localized->setCurrencyCode('USD');
+        $reportSpec->setLocalizationSettings($localized);
+        
+        // Create network report request.
+        $networkReportRequest=new \Google_Service_AdMob_GenerateNetworkReportRequest;
+        $networkReportRequest->setReportSpec($reportSpec);
+        
+        $networkReportResponse=$admob->accounts_networkReport->generate($account, $networkReportRequest);
+
+        $total=$impressions=0;
+        if (!empty($networkReportResponse)) {
+            foreach ($networkReportResponse->toSimpleObject() as $record) {
+                if (isset($record['row'])) {
+                    $total+=$record['row']['metricValues']['ESTIMATED_EARNINGS']['microsValue']/1000000.0;
+                    $impressions+=$record['row']['metricValues']['IMPRESSIONS']['integerValue'];                    
+                }
+            }            
+        }
+        
+        if ($impressions>0 || $total>0) {
+            $output['current']['admob']['AD_REQUESTS_RPM']=$total/($impressions/1000.0);
+            $output['current']['admob']['ESTIMATED_EARNINGS']=$total;
+        }
+        
+        $adMobStartDate=new \Google_Service_AdMob_Date;
+        $adMobStartDate->setDay( intval($prevStartDateTime->format('j')) );
+        $adMobStartDate->setMonth( intval($prevStartDateTime->format('n')) );
+        $adMobStartDate->setYear( intval($prevStartDateTime->format('Y')) );
+        $adMobEndDate=new \Google_Service_AdMob_Date;
+        $adMobEndDate->setDay( intval($prevEndDateTime->format('j')) );
+        $adMobEndDate->setMonth( intval($prevEndDateTime->format('n')) );
+        $adMobEndDate->setYear( intval($prevEndDateTime->format('Y')) );
+        $dateRange=new \Google_Service_AdMob_DateRange;
+        $dateRange->setStartDate($adMobStartDate);
+        $dateRange->setEndDate($adMobEndDate);
+        var_dump($dateRange);
+        $reportSpec->setDateRange($dateRange);
+        $networkReportRequest=new \Google_Service_AdMob_GenerateNetworkReportRequest;
+        $networkReportRequest->setReportSpec($reportSpec);
+        $networkReportResponse=$admob->accounts_networkReport->generate($account, $networkReportRequest);
+
+        $total=$impressions=0;
+        if (!empty($networkReportResponse)) {
+            foreach ($networkReportResponse->toSimpleObject() as $record) {
+                if (isset($record['row'])) {
+                    $total+=$record['row']['metricValues']['ESTIMATED_EARNINGS']['microsValue']/1000000.0;
+                    $impressions+=$record['row']['metricValues']['IMPRESSIONS']['integerValue'];                    
+                }
+            }            
+        }
+        
+        if ($impressions>0 || $total>0) {
+            $output['previous']['admob']['AD_REQUESTS_RPM']=$total/($impressions/1000.0);
+            $output['previous']['admob']['ESTIMATED_EARNINGS']=$total;
+        }
+        
+        //$output['current']
+        var_dump($output);
+        return [];
+    }
+    
+    
     public function earnings(string $startDate='2021-1-1', string $endDate='2021-1-31', string $pStartDate='2021-1-1', string $pEndDate='2021-1-31') :array {
         $result=[];
         $json_array=['headers'=>[], 'current'=>[], 'previous'=>[]];
@@ -247,9 +566,7 @@ class MCAdSense {
             'limit' => 20,
             'reportingTimeZone' => 'ACCOUNT_TIME_ZONE'
             ];
-   
-        
-        
+           
         $report=$this->service->accounts_reports->generate($this->accountId, $optParams);
         if (isset($report) && isset($report['rows'])) {
             //$result['headers']=$report['headers'];
@@ -328,7 +645,7 @@ class MCAdSense {
         //return $result;      
     }
     
-    
+    /*
     public function salesByCountry(int $year, int $month) : void {
         $startDate=new \DateTime;
         $startDate->setDate($year, $month, 1);
@@ -406,7 +723,7 @@ class MCAdSense {
         
         echo "\n", $script, "\n";
     }
-    
+    */
     
     private function countryName(string $code) : string {
         switch ($code) {
@@ -440,8 +757,13 @@ class MCAdSense {
 
 
 if (php_sapi_name()==='cli') {
+    MCAdSense::ad_earnings();
+    /*
     $mcAdSense=new MCAdSense;
     $mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
         ->setAccountId("accounts/pub-2427907534283641")
-        ->earnings('2021-1-1', '2021-9-10', '2020-1-1', '2020-12-31');
+        ->admob();
+        //->earnings('2021-1-1', '2021-9-10', '2020-1-1', '2020-12-31');
+     * 
+     */
 }
