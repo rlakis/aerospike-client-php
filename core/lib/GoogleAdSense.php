@@ -354,7 +354,7 @@ class MCAdSense {
     }
     
     
-    public static function ad_earnings(string $startDate='2021-1-1', string $endDate='2021-1-31', string $pStartDate='2021-1-1', string $pEndDate='2021-1-31') : array {
+    public static function ad_earnings(string $startDate='2021-1-1', string $endDate='2021-1-31', string $pStartDate='2020-1-1', string $pEndDate='2020-1-31') : array {
         $output=['current'=>['adsense'=>[], 'admob'=>[]], 'previous'=>['adsense'=>[], 'admob'=>[]]];
         $startDateTime=DateTime::createFromFormat('Y-m-j', $startDate);
         $endDateTime=DateTime::createFromFormat('Y-m-j', $endDate);
@@ -499,20 +499,17 @@ class MCAdSense {
             $output['current']['admob']['ESTIMATED_EARNINGS']=$total;
         }
         
-        $adMobStartDate=new \Google_Service_AdMob_Date;
+        
         $adMobStartDate->setDay( intval($prevStartDateTime->format('j')) );
         $adMobStartDate->setMonth( intval($prevStartDateTime->format('n')) );
         $adMobStartDate->setYear( intval($prevStartDateTime->format('Y')) );
-        $adMobEndDate=new \Google_Service_AdMob_Date;
         $adMobEndDate->setDay( intval($prevEndDateTime->format('j')) );
         $adMobEndDate->setMonth( intval($prevEndDateTime->format('n')) );
         $adMobEndDate->setYear( intval($prevEndDateTime->format('Y')) );
-        $dateRange=new \Google_Service_AdMob_DateRange;
         $dateRange->setStartDate($adMobStartDate);
         $dateRange->setEndDate($adMobEndDate);
-        var_dump($dateRange);
+
         $reportSpec->setDateRange($dateRange);
-        $networkReportRequest=new \Google_Service_AdMob_GenerateNetworkReportRequest;
         $networkReportRequest->setReportSpec($reportSpec);
         $networkReportResponse=$admob->accounts_networkReport->generate($account, $networkReportRequest);
 
@@ -532,8 +529,8 @@ class MCAdSense {
         }
         
         //$output['current']
-        var_dump($output);
-        return [];
+        //var_dump($output);
+        return $output;
     }
     
     

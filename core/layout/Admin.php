@@ -253,7 +253,12 @@ class Admin extends Page {
             for ($i=0; $i<count($_devices); $i++) {
                 $_device=$_devices[$i];
                 if (isset($_device['app_prefs'])) {
-                    $_devices[$i]['app_prefs']= \json_decode($_devices[$i]['app_prefs'], true);
+                    if (preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $_device['app_prefs'])) {
+                        $_devices[$i]['app_prefs']=\json_decode(\base64_decode($_devices[$i]['app_prefs']), true);
+                    }
+                    else {
+                        $_devices[$i]['app_prefs']=\json_decode($_devices[$i]['app_prefs'], true);
+                    }
                 }
                 
             }

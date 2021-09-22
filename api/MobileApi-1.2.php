@@ -1703,7 +1703,7 @@ class MobileApi {
                 
         $opts=$this->userStatus($status, $current_name, $device_name);
         $this->result['status']=9;
-        $this->result['d']['level'] = isset($opts->user_level) ? $opts->user_level:0;
+        $this->result['d']['level']=isset($opts->user_level) ? $opts->user_level:0;
         
         if ($this->isIOS()) {
             $this->result['d']['duid'] = $this->user->getID();
@@ -1719,7 +1719,27 @@ class MobileApi {
                 $this->mobileValidator=libphonenumber\PhoneNumberUtil::getInstance();
                 $num=$this->mobileValidator->parse("+{$this->user->getMobile()->getNumber()}", 'LB');
                 $this->result['d']['amcc']=$this->mobileValidator->getRegionCodeForNumber($num);
-            }                        
+            }   
+            
+            if ($this->cfg->serverId===6 && $this->uid>0) {
+                $_aus=\json_decode(\base64_decode($app_prefs), true);
+                if ($this->uid===2||($_aus['country']??0)===0) {
+                    if ($_aus) {
+                        \error_log(PHP_EOL.$this->uuid."\t".$this->uid."/{$this->appVersion}: ". \json_encode($_aus).PHP_EOL);
+                    }
+                    else {
+                        \error_log(PHP_EOL.$this->uuid."\t".$this->uid."{$this->appVersion}: ".\base64_decode($app_prefs).PHP_EOL);
+                    }
+                }
+                
+                /*
+                if ($this->uid===2) {                    
+                    $this->result['d']['change_to_country_id']=1;
+                    $this->result['d']['reload_data']=1;                     
+                }
+                 * 
+                 */
+            }
         }
         
         
@@ -2589,18 +2609,18 @@ class MobileApi {
     }
 
 
-    function done() {
+    function done() : void {
         $this->db->close();
         //if ($this->uuid==="B066D32F-08F6-4C2E-973C-9658CA745F09") {
         //    $this->result['l']=1;
         //}
         //error_log(header('Content-type'));
         if ($this->json) {
-            echo json_encode($this->result, JSON_UNESCAPED_UNICODE);
+            echo \json_encode($this->result, \JSON_UNESCAPED_UNICODE);
             //\error_log(json_encode($this->result, JSON_UNESCAPED_UNICODE).PHP_EOL);
         }
         else {
-            echo msgpack_pack($this->result);
+            echo \msgpack_pack($this->result);
         }
         
         if ($this->result['elapsed-time']>125.0) {

@@ -1832,9 +1832,10 @@ class Bin extends AjaxHandler {
                     $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-31']]);
                     $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2020-1-1']]);
                     $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-31']]);
-                    $mcAdSense = new MCAdSense;
-                    $res=$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
-                            ->setAccountId("accounts/pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
+                    //$mcAdSense = new MCAdSense;
+                    $res= MCAdSense::ad_earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
+                    //$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
+                    //        ->setAccountId("accounts/pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
                     
                     \error_log(var_export($res, true));
                     $this->success($res);
@@ -4892,15 +4893,15 @@ class Bin extends AjaxHandler {
                 $msg = "<style>table{border-collapse:collapse;border-spacing:2px;border-color:gray;} th,td{border: 1px solid #cecfd5;padding: 10px 15px;}</style><table><tr>";
                 if (isset($this->user->info['id']) && $this->user->info['id']>0) {
                     $name=$this->user->info['name'];
-                    $msg.="<td><b>Name</b></td><td><a href='{$this->urlRouter->cfg['host']}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
+                    $msg.="<td><b>Name</b></td><td><a href='{$this->host}/myads/?u={$this->user->info['id']}' target='_blank'>{$name}</a></td>";
                 }
                 $msg.="<td><b>Location</b></td><td>{$geostr}</td>";
                 if (isset($this->user->params['country'])) {
                         if (isset($this->urlRouter->countries[$this->user->params['country']])) {
                             $msg.="<td><b>Target</b></td><td>{$this->urlRouter->countries[$this->user->params['country']]['uri']}";
                             if (isset($this->user->params['city']) && $this->user->params['city']>0) {
-                                if (isset($this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
-                                    $msg.=" - {$this->urlRouter->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
+                                if (isset($this->router->countries[$this->user->params['country']]['cities'][$this->user->params['city']])) {
+                                    $msg.=" - {$this->router->countries[$this->user->params['country']]['cities'][$this->user->params['city']]['uri']}";
                                 }
                                 else {
                                     $msg.=" - {$this->user->params['city']}";
@@ -4921,10 +4922,10 @@ class Bin extends AjaxHandler {
                 }
                 $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
                 $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
-                $msg.="<tr><td colspan='6'><a href='{$this->urlRouter->cfg['host']}/{$id}' target=_blank>{$feed}</a></td></tr>";
+                $msg.="<tr><td colspan='6'><a href='{$this->host}/{$id}' target=_blank>{$feed}</a></td></tr>";
                 $msg.="</table>";
                   
-                $res=$this->sendMail("Mourjan Admin", $this->urlRouter->cfg['admin_email'], ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->urlRouter->cfg['smtp_user']), $subject, $msg, $this->urlRouter->cfg['smtp_contact'], $id, $helpTopic);
+                $res=$this->sendMail("Mourjan Admin", $this->router->config->get('admin_email'), ($name) ? $name : 'Abusive Report', ($userEmail ? $userEmail : $this->router->config->get('smtp_user')), $subject, $msg, $this->router->config->get('smtp_contact'), $id, $helpTopic);
                 $this->success();
                
                 break;

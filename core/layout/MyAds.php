@@ -261,7 +261,7 @@ class MyAds extends UserPage {
         'مضمون هذا الاعلان يتعارض مع مضمون اعلاناتك المنشورة وهذا تحذير قبل ايقاف حسابك بسبب الاحتيال',
         'لا يمكن إضافة صور لاشخاص عشوائياً توافقاً مع قوانين حقوق الملكية وخصوصية الأفراد',
         'يحظر نشر هذا الاعلان ما دمت تتصل بالانترنت بواسطة بروكسي وفي بي ان',
-        'الاعلان مرسل من نطاق انترنت مصنف احتيالي من قبل الوكالات الامنية المختصة'
+        'الاعلان مرسل من نطاق انترنت غير آمن من قبل الوكالات الامنية المختصة'
     ],
     'en':[
         'specify the reason...',
@@ -1129,14 +1129,14 @@ class MyAds extends UserPage {
                 ?><footer><?php
                 if ($state<7) {                 
                     if ($isSuperAdmin) {
-                        ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method=post><?php
+                        ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$cad->id() : '') ?>" method=post><?php
                         ?><input type=hidden name=ad value="<?= $cad->id() ?>" /><?php
                         ?><button onclick="d.edit(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></button><?php
                         ?></form><?php
                     }
                     else if (!$isSystemAd) {
                         if(!$isSuspended) {
-                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$ad['ID'] : '') ?>" method=post><?php
+                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?ad='.$cad->id() : '') ?>" method=post><?php
                             ?><input type=hidden name=ad value="<?= $cad->id() ?>" /><?php
                             ?><button onclick="d.edit(this)"><span class="rj edi"></span><?= $state ? $this->lang['edit_ad']:$this->lang['edit_publish'] ?></button><?php
                             ?></form><?php
