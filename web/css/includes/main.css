@@ -979,18 +979,21 @@ body[dir=rtl] .adsbygoogle {
   min-height: 2em
 }
 .close {
-  color: #f5f5f5;
+  color: var(--mdc);
   float: right;
   font-size: 2.25em;
   font-weight: 700;
   position: absolute;
-  right: -30px;
-  top: -36px;
+  /*right: -30px;
+  top: -36px;*/
+  right: 16px;
+  top: 30px;
+  width: 44px;
   z-index: 1020
 }
 .close:focus,
 .close:hover {
-  color: #ff0;
+  color: var(--mhc);
   text-decoration: none;
   cursor: pointer
 }

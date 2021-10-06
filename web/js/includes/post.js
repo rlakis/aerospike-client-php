@@ -436,7 +436,12 @@ var UI={
         if(dialog.dataset.fullHeight==='true'){
             card.style.setProperty('padding-top', '0');
             card.style.setProperty('padding-bottom', '0');
-            card.style.setProperty('height', window.innerHeight+'px');
+            if (screen.height<window.innerHeight) {
+                card.style.setProperty('max-height', 'fit-content');
+            }
+            else {
+                card.style.setProperty('height', window.innerHeight+'px');
+            }
         }
         if(dialog.dataset.fullWidth==='true' && dialog.id!=='regions'){
             card.style.setProperty('padding-left', '0');
@@ -481,8 +486,9 @@ var UI={
             X.style.setProperty('top', '-42px');
             X.style.setProperty('right', '8px');
         }
-        dialog.style.setProperty('max-width', $.body.clientWidth+'px');
-        console.log('clientWidth', $.body.clientWidth);
+        //dialog.style.setProperty('max-width', $.body.clientWidth+'px');
+        dialog.style.setProperty('max-width', '100%');
+        //console.log('clientWidth', $.body.clientWidth);
 
         if(dialog.id==='map' && (Ad.content.lat!==0||Ad.content.lon!==0) && dialog.dataset.views>'1'){ MAP.adLocation(); }
         if(photo){
@@ -498,7 +504,6 @@ var UI={
     },
     
     chooseRootPurpose:function(){
-
         let _=this, dialog, card;
         if(!_.dialogs.roots){
             dialog=_.createDialog('roots', false, false);
@@ -545,7 +550,12 @@ var UI={
                 let se=r.sindex[i];
                 if(!Prefs.isBlockedSection(se) && r.sections[se]){
                     if(!Prefs.canPostToCountry(Prefs.carrierCountryId, se, _.purposeId)&&!Prefs.canPostToCountry(Prefs.activationCountryId, se, _.purposeId))continue;
-                    if(Prefs.getMovedSection(se))continue;
+                    
+                    if(Prefs.getMovedSection(se)){
+                        console.log(se, 'is moved!');
+                        continue;
+                    }
+                    
                     let li=createElem('li', '', r.sections[se]);
                     li.dataset.se=r.sindex[i];
                     li.onclick=function(e){
@@ -1717,7 +1727,7 @@ var Prefs={
         if(rootPrefs && rootPrefs[kSections][se]){
             for(let i in rootPrefs[kSections][se][kDeny]){
                 let filter=rootPrefs[kSections][se][kDeny][i];
-                if(filter.isBlocked()){
+                if(filter.purposes.includes(UI.purposeId) && filter.isBlocked()){
                     return filter.isMovedTo;
                 }
             }
