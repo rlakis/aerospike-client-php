@@ -72,7 +72,7 @@
 
 .pictures progress{width: 100%;align-self:flex-end; height: 8px;border:0;background-color: lightgrey; order:1;display:none}
 
-.modal .card {max-height: 100%}
+.modal .card {max-height:available;max-height: -moz-available}
 .modal .card .card-footer{display: flex; flex-flow: row; flex: 1 auto; justify-content: space-around}
 .modal .card ul {display:flex; flex:1 auto; flex-wrap: wrap}
 .modal .card li {flex:initial}

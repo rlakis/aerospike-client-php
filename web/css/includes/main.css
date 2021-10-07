@@ -980,15 +980,16 @@ body[dir=rtl] .adsbygoogle {
 }
 .close {
   color: var(--mdc);
-  float: right;
+  /*float: right;*/
   font-size: 2.25em;
   font-weight: 700;
   position: absolute;
   /*right: -30px;
   top: -36px;*/
-  right: 16px;
-  top: 30px;
+  right: 0;
+  top: 0;
   width: 44px;
+  text-align: center;
   z-index: 1020
 }
 .close:focus,

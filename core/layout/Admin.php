@@ -335,6 +335,12 @@ class Admin extends Page {
                 unset($_devices[$i][\Core\Model\ASD\USER_UID]);
                 $_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_DATE_ADDED]);
                 $_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED] = $this->unixTimestampToDateTime($_devices[$i][Core\Model\ASD\USER_DEVICE_LAST_VISITED]);
+                $_devices[$i][Core\Model\ASD\USER_DEVICE_PURCHASE_ENABLED]=$_devices[$i][Core\Model\ASD\USER_DEVICE_PURCHASE_ENABLED] ?? 1;
+                
+                if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_BAN_TRANSACTIONS]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_BAN_TRANSACTIONS]!=0) {
+                    $_devices[$i][Core\Model\ASD\USER_DEVICE_PURCHASE_ENABLED]=0;
+                }   
+                
                 if (isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]) && isset($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0]) && $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS][0] != '{') {
                     $_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS] = base64_decode($_devices[$i][Core\Model\ASD\USER_DEVICE_APP_SETTINGS]);
                 }

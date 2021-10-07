@@ -151,15 +151,15 @@ trait DeviceTrait {
     
     
     public function getUserDevices(int $uid, bool $any=FALSE) : array {
-        $matches = [];
-        $where = \Aerospike::predicateEquals(USER_UID, $uid);
+        $matches=[];
+        $where=\Aerospike::predicateEquals(USER_UID, $uid);
         $this->getConnection()->query(\Core\Model\NoSQL::NS_USER, TS_DEVICE, $where,  
                 function ($record) use (&$matches, $any) {
                     if ($any==FALSE) {
-                        $deleted = $record['bins'][USER_DEVICE_UNINSTALLED] ?? 0;
+                        $deleted=$record['bins'][USER_DEVICE_UNINSTALLED] ?? 0;
                         
                         if (!$deleted) {
-                            $matches[] = $record['bins'];
+                            $matches[]=$record['bins'];
                         }
                         else {
                             /*
@@ -184,6 +184,10 @@ trait DeviceTrait {
                         }*/
                     }
                 });
+        \usort($matches, function($a, $b) {
+            return $b[USER_DEVICE_LAST_VISITED] <=> $a[USER_DEVICE_LAST_VISITED];
+        });
+
         return $matches;
     }
 

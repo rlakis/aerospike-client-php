@@ -436,12 +436,12 @@ var UI={
         if(dialog.dataset.fullHeight==='true'){
             card.style.setProperty('padding-top', '0');
             card.style.setProperty('padding-bottom', '0');
-            if (screen.height<window.innerHeight) {
-                card.style.setProperty('max-height', 'fit-content');
-            }
-            else {
-                card.style.setProperty('height', window.innerHeight+'px');
-            }
+            //if (screen.height<window.innerHeight) {
+                card.style.setProperty('height', 'max-content');
+            //}
+            //else {
+            //    card.style.setProperty('height', window.innerHeight+'px');
+            //}
         }
         if(dialog.dataset.fullWidth==='true' && dialog.id!=='regions'){
             card.style.setProperty('padding-left', '0');
@@ -480,7 +480,7 @@ var UI={
         let fh=(dialog.dataset.fullHeight==='true');
         let X=card.query('span.close');
         if(!fw && fh){            
-            X.style.setProperty('top', '0px');
+            //X.style.setProperty('top', '0px');
         }
         else if(fw && !fh){
             X.style.setProperty('top', '-42px');

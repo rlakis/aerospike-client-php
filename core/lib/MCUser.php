@@ -810,7 +810,7 @@ class MCDevice extends MCJsonMapper {
     
     
     public function isPurchaseEnabled() : int {
-        return $this->pa ? $this->pa : 1;
+        return $this->pa ?? 1;
     }
     
     
