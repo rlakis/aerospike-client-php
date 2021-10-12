@@ -1301,7 +1301,7 @@ var Ad={
             console.log(UI.getCountryByCityId(_.regions[0]));
             UI.regionChanged();
         }
-        console.log('Ad', this);   
+        console.log('Ad', this); 
     },
     
     
@@ -1309,9 +1309,11 @@ var Ad={
         this.setRootId(ro);
         this.setSectionId(se);
         this.setPurposeId(pu);
+        UI.rootId=ro;
+        UI.purposeId=pu;
     },
     
-    setRootId:function(ro){        
+    setRootId:function(ro){
         if(ro!==this.rootId) {
             this.rootId=parseInt(ro);
             this.setSectionId(0);
@@ -1319,7 +1321,7 @@ var Ad={
                 this.setPurposeId(0);
             }
             UI.rootChanged(this.rootId, this.purposeId);
-        }        
+        }
     },
     
     setSectionId:function(se){
@@ -1327,7 +1329,7 @@ var Ad={
         if(this.sectionId!==se){
             this.sectionId=parseInt(se);
             $.body.query('#ad-class').query('a.se').innerHTML=this.getSectionName();
-        }        
+        }
     },
     
     setPurposeId:function(pu){
@@ -1335,7 +1337,7 @@ var Ad={
             this.purposeId=parseInt(pu);
             UI.rootChanged(this.rootId, this.purposeId);
         }
-    },        
+    },     
 
     setGMapAddr(addr, user){        
         if(user){

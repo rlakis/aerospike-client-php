@@ -20,12 +20,16 @@ if ($path['extension']==='ip') {
             $blocked[$addr]=1;
         }
     }
+    $range=\str_replace("-", "/", $path['filename']);
+    if (\str_ends_with($range, "/24")) {
+        $range=\preg_replace('/\\.\\d+\\/24$/', '.0/24', $range);
+    }
     
-    if (!isset($blocked[$path['filename']])) {
+    if (!isset($blocked[$range])) {
         //system("/usr/bin/firewall-cmd --zone=block --add-source={$path['filename']}");
-        \system("/usr/bin/sudo /usr/bin/fail2ban-client set mourjan banip {$path['filename']}");
+        \system("/usr/bin/sudo /usr/bin/fail2ban-client set mourjan banip {$range}");
         //syslog(LOG_INFO, "/usr/bin/firewall-cmd --zone=block --add-source={$path['filename']}");
-        \syslog(\LOG_INFO, "/usr/bin/sudo /usr/bin/fail2ban-client set mourjan banip {$path['filename']}");
+        \syslog(\LOG_INFO, "/usr/bin/sudo /usr/bin/fail2ban-client set mourjan banip {$range}");
     }
     
     \system("mv {$argv[1]} /tmp/");
