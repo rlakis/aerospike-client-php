@@ -332,11 +332,11 @@ class Aqary {
         }
         
         if (\gethostname()!=='h5.mourjan.com') {
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/aqarycrm/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/l/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/l/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/d/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/d/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/m/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/m/");
-            system("sshpass -p '4eDB6WifsxE5sK' rsync -arP /var/db/mourjan-pix/repos/s/p{$groupId} h5.mourjan.com:/var/www/mourjan-pix/repos/s/");
+            system("sshpass -p 'x8p72CYDdweTty' rsync -arP /var/db/mourjan-pix/aqarycrm/p{$groupId} s1.mourjan.com:/var/www/mourjan-pix/aqarycrm/");
+            system("sshpass -p 'x8p72CYDdweTty' rsync -arP /var/db/mourjan-pix/repos/l/p{$groupId} s1.mourjan.com:/var/www/mourjan-pix/repos/l/");
+            system("sshpass -p 'x8p72CYDdweTty' rsync -arP /var/db/mourjan-pix/repos/d/p{$groupId} s1.mourjan.com:/var/www/mourjan-pix/repos/d/");
+            system("sshpass -p 'x8p72CYDdweTty' rsync -arP /var/db/mourjan-pix/repos/m/p{$groupId} s1.mourjan.com:/var/www/mourjan-pix/repos/m/");
+            system("sshpass -p 'x8p72CYDdweTty' rsync -arP /var/db/mourjan-pix/repos/s/p{$groupId} s1.mourjan.com:/var/www/mourjan-pix/repos/s/");
         }
     }
     

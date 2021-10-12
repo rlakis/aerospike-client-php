@@ -3743,14 +3743,27 @@ class Bin extends AjaxHandler {
                 //$lang = filter_input(INPUT_POST, 'hl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'ar']]);
                 $lang=$this->router->language;
                 if ($ad_id>0 && $this->user->id()===$this->user->decodeId($u_key)) {
-                    $this->router->db->setWriteMode();   
-                    $result=$this->router->db->queryResultArray("
+                    $this->router->db->setWriteMode(); 
+                    
+                    if ($this->user->isSuperUser()) {
+                        $result=$this->router->db->queryResultArray("
+                            select a.id, 
+                            IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', featured.ended_date)) feature_end 
+                            from ad_user a 
+                            left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
+                            where a.id=?",
+                            [$ad_id]);                        
+                    }
+                    else {
+                        $result=$this->router->db->queryResultArray("
                             select a.id, 
                             IIF(featured.id is null, 0, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', featured.ended_date)) feature_end 
                             from ad_user a 
                             left join t_ad_featured featured on featured.ad_id=a.id and current_timestamp between featured.added_date and featured.ended_date 
                             where a.id=? and a.web_user_id=?",
                             [$ad_id, $this->user->id()]);
+                    }
+                    
                     if (\is_array($result) && \count($result)>0) {
                         $rs=$this->router->db->queryResultArray("update t_ad_bo set blocked=1 where ad_id=? and blocked!=1", [$ad_id], true);
                         if ($rs) {
