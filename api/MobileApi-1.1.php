@@ -2213,7 +2213,7 @@ class MobileApi {
             //echo $msgpack->pack($this->result);
             echo msgpack_pack($this->result);
         }
-        flush();
+        //flush();
     }
 
     
