@@ -170,8 +170,8 @@ class AdList extends \SplDoublyLinkedList {
         $l=' rows '.(($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
         
         //if ($this->user->isSuperUser()) 
-        if ($this->user->isAdvancedUser()) 
-        Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
+        //if ($this->user->isAdvancedUser()) 
+        //Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
 
         
         $fixes=[];

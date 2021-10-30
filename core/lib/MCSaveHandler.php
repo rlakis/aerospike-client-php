@@ -589,7 +589,7 @@ class MCSaveHandler {
             $desc='';
             $scores[ $res['matches'][$i]['id'] ]=0;
             
-            $attrs = \json_decode($res['matches'][$i]['attrs']);
+            $attrs=\json_decode($res['matches'][$i]['attrs']);
             
             if (isset($attrs->locality) && isset($obj->attrs->locality) && $attrs->locality->id==$obj->attrs->locality->id) {
                 $desc.="G: 100% ";
@@ -635,18 +635,20 @@ class MCSaveHandler {
         
         arsort($scores, SORT_NUMERIC);
 
-        $searchResults = ['body'=>['matches'=>[], 'scores'=>[] ]];
+        $searchResults=['body'=>['matches'=>[], 'scores'=>[] ]];
 
+        $i=0;
         foreach ($scores as $key => $value) {
-            if ($value>=0.25) {
-                $searchResults['body']['scores'][$key] = $messages[$key];
-                $searchResults['body']['matches'][] = $key;
+            if ($value>=0.25 && $i<12) {
+                $searchResults['body']['scores'][$key]=$messages[$key];
+                $searchResults['body']['matches'][]=$key;
+                $i++;
             }
         }
         
         //$searchResults['body']['facet'] = $obj->attrs;
-        $searchResults['body']['total'] = count($searchResults['body']['matches']);
-        $searchResults['body']['total_found'] = $searchResults['body']['total'];
+        $searchResults['body']['total']=count($searchResults['body']['matches']);
+        $searchResults['body']['total_found']=$searchResults['body']['total'];
                 
         //\error_log(PHP_EOL.__FUNCTION__.var_export($searchResults, true));
         return $searchResults;

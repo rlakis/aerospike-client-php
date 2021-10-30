@@ -853,7 +853,7 @@ class Router extends \Core\Model\Singleton {
                             $this->db->countriesDictionary=$record['bins']['data'];
                             break;
                         case 'cities-dic':
-                            $this->db->citiesDictionary=$record['bins']['data'];
+                            $this->db->citiesDictionary=$record['bins']['data'];                            
                             $this->cities=$this->db->citiesDictionary;
                             break;
                         case 'roots':
@@ -872,7 +872,7 @@ class Router extends \Core\Model\Singleton {
             }
             //\error_log($status."\n". \json_encode($cached));
             
-            $result = $this->db->getCache()->getMulti([/*'roots', 'sections', 'purposes', 'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
+            $result=$this->db->getCache()->getMulti([/*'roots', 'sections', 'purposes', 'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
             //if (isset($result['cities-dictionary'])) {
                 //$this->cities = $result['cities-dictionary'];
             //    $this->cities = $this->db->asCitiesDictionary(); 
@@ -881,20 +881,20 @@ class Router extends \Core\Model\Singleton {
             //    $this->roots = $result['roots'];
             //}
             if (isset($result['sections'])) { 
-                $this->sections = $result['sections'];
+                $this->sections=$result['sections'];
             }
             /*if (isset($result['purposes'])) {
                 $this->purposes = $result['purposes'];
             }*/                                   
             if (isset($result[$countries_label])) {
-                $this->countries = $result[$countries_label];
+                $this->countries=$result[$countries_label];
             }
             
             if (isset($result[$roots_label])) {
-                $this->pageRoots = $result[$roots_label];
+                $this->pageRoots=$result[$roots_label];
             }
             
-            if (isset($result['last'])) $this->last_modified = $result['last'][1][2]; 
+            if (isset($result['last'])) $this->last_modified=$result['last'][1][2]; 
         }
         
         if (!$this->last_modified) {
@@ -906,11 +906,11 @@ class Router extends \Core\Model\Singleton {
         }
     
         if ($this->countries===NULL || empty($this->countries)) {
-            $this->countries = $this->db->getCountriesData($this->language);
+            $this->countries=$this->db->getCountriesData($this->language);
         }
                         
         if ($this->roots===NULL) {
-            $this->roots = $this->db->asRoots();
+            $this->roots=$this->db->asRoots();
         }
 
         if ($this->sections===NULL){            
@@ -918,11 +918,13 @@ class Router extends \Core\Model\Singleton {
         }
 
         if ($this->purposes===NULL) {
-            $this->purposes = $this->db->asPurposes();
+            $this->purposes=$this->db->asPurposes();
         }
         
         if ($this->cities===NULL || empty($this->cities)) {
-            $this->cities = $this->db->asCitiesDictionary(); // getCitiesDictionary($force);
+            //$this->db->citiesDictionary=[];
+            $this->cities=$this->db->asCitiesDictionary(); // getCitiesDictionary($force);
+            //\Core\Model\Router::instance()->logger()->debug(var_export($this->db->citiesDictionary, true));
         }
                 
         if (!$this->countryId) {

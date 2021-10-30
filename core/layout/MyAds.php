@@ -485,7 +485,7 @@ class MyAds extends UserPage {
         $comma=$this->router->isArabic()?'،':',';        
         $countriesArray=[];
         $cities=$this->router->cities;
-                
+        
         $content='';
         foreach ($ad->dataset()->getRegions() as $city) {                    
             if (isset($cities[$city]) && isset($cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID])) {
