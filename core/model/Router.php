@@ -123,7 +123,7 @@ class Router extends \Core\Model\Singleton {
         $this->session_key=\session_id();
         $_session_params=$_SESSION['_u']['params'] ?? [];
                         
-        $this->isAcceptWebP=(\strpos(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]), 'image/webp')!==false);
+        $this->isAcceptWebP=(\strpos(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]), 'image/webp')!==false);
 
         if (isset($_SESSION['webp']) && $_SESSION['webp']) {
             $this->isAcceptWebP=true; 
@@ -138,14 +138,14 @@ class Router extends \Core\Model\Singleton {
             $this->_jpeg = ".webp";
         }               
         
-        $this->host=\filter_input(\INPUT_SERVER, 'HTTP_HOST', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'www.mourjan.com']]);
-        $this->referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $this->host=\filter_input(\INPUT_SERVER, 'HTTP_HOST', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'www.mourjan.com']]);
+        $this->referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
         $this->internal_referer=(\strpos($this->referer, 'https://'.$this->config->get('site_domain'))===0);
         
-        $http_accept_language=\substr(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'en']]), 0, 2);
+        $http_accept_language=\substr(\filter_input(\INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'en']]), 0, 2);
         $this->httpAcceptLanguage=\in_array($http_accept_language, ['en', 'ar']) ? $http_accept_language : 'en';
              
-        $user_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+        $user_agent=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
         if ($user_agent) {
             if (\array_key_exists($user_agent, $this->config->get('blocked_agents'))) {
                 \header("HTTP/1.1 403 Forbidden");
@@ -326,7 +326,7 @@ class Router extends \Core\Model\Singleton {
                 switch ($k) {
                     case 'q':
                         $this->force_search=true;
-                        $this->params[$k]= \html_entity_decode(\filter_input(\INPUT_GET, $k, \FILTER_SANITIZE_STRING));
+                        $this->params[$k]= \html_entity_decode(\filter_input(\INPUT_GET, $k, \FILTER_UNSAFE_RAW));
                         break;
                     
                     case 'cmp':
@@ -853,7 +853,7 @@ class Router extends \Core\Model\Singleton {
                             $this->db->countriesDictionary=$record['bins']['data'];
                             break;
                         case 'cities-dic':
-                            $this->db->citiesDictionary=$record['bins']['data'];                            
+                            $this->db->citiesDictionary=$record['bins']['data'];
                             $this->cities=$this->db->citiesDictionary;
                             break;
                         case 'roots':
@@ -872,7 +872,7 @@ class Router extends \Core\Model\Singleton {
             }
             //\error_log($status."\n". \json_encode($cached));
             
-            $result=$this->db->getCache()->getMulti([/*'roots', 'sections', 'purposes', 'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
+            $result = $this->db->getCache()->getMulti([/*'roots', 'sections', 'purposes', 'cities-dictionary',*/ 'last', $countries_label, $roots_label]); 
             //if (isset($result['cities-dictionary'])) {
                 //$this->cities = $result['cities-dictionary'];
             //    $this->cities = $this->db->asCitiesDictionary(); 
@@ -881,36 +881,36 @@ class Router extends \Core\Model\Singleton {
             //    $this->roots = $result['roots'];
             //}
             if (isset($result['sections'])) { 
-                $this->sections=$result['sections'];
+                $this->sections = $result['sections'];
             }
             /*if (isset($result['purposes'])) {
                 $this->purposes = $result['purposes'];
             }*/                                   
             if (isset($result[$countries_label])) {
-                $this->countries=$result[$countries_label];
+                $this->countries = $result[$countries_label];
             }
             
             if (isset($result[$roots_label])) {
-                $this->pageRoots=$result[$roots_label];
+                $this->pageRoots = $result[$roots_label];
             }
             
-            if (isset($result['last'])) $this->last_modified=$result['last'][1][2]; 
+            if (isset($result['last'])) $this->last_modified = $result['last'][1][2]; 
         }
         
         if (!$this->last_modified) {
             $q = $this->db->queryCacheResultSimpleArray('last',
                 "SELECT 1, r.MAX_ID, DATEDIFF(SECOND, timestamp '01-01-1970 00:00:00', r.LAST_UPDATE)
                 FROM SPHINX r
-                where r.SPHINX_NAME='ACTIVE'", null, 0, $this->cfg['ttl_medium'], $force);
+                where r.SPHINX_NAME='ACTIVE'", null, 0, $this->config->get('ttl_medium'), $force);
             $this->last_modified = $q[1][2];
         }
     
         if ($this->countries===NULL || empty($this->countries)) {
-            $this->countries=$this->db->getCountriesData($this->language);
+            $this->countries = $this->db->getCountriesData($this->language);
         }
                         
         if ($this->roots===NULL) {
-            $this->roots=$this->db->asRoots();
+            $this->roots = $this->db->asRoots();
         }
 
         if ($this->sections===NULL){            
@@ -918,13 +918,11 @@ class Router extends \Core\Model\Singleton {
         }
 
         if ($this->purposes===NULL) {
-            $this->purposes=$this->db->asPurposes();
+            $this->purposes = $this->db->asPurposes();
         }
         
         if ($this->cities===NULL || empty($this->cities)) {
-            //$this->db->citiesDictionary=[];
-            $this->cities=$this->db->asCitiesDictionary(); // getCitiesDictionary($force);
-            //\Core\Model\Router::instance()->logger()->debug(var_export($this->db->citiesDictionary, true));
+            $this->cities = $this->db->asCitiesDictionary(); // getCitiesDictionary($force);
         }
                 
         if (!$this->countryId) {
