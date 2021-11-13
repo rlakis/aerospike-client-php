@@ -48,7 +48,7 @@ class AdList extends \SplDoublyLinkedList {
     }
 
 
-    public function cacheProfile(\Core\Lib\MCUser $profile) {
+    public function cacheProfile(\Core\Lib\MCUser $profile) : void {
         $this->profiles[$profile->id]=$profile;
     }
     
@@ -170,10 +170,12 @@ class AdList extends \SplDoublyLinkedList {
         $l=' rows '.(($this->page===0)?1:($this->page*$this->limit)+1) . ' to ' . (($this->page*$this->limit)+$this->limit);
         
         //if ($this->user->isSuperUser()) 
-        //if ($this->user->isAdvancedUser()) 
-        //Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
-
+        if ($this->user->isAdvancedUser()) {
+            Router::instance()->logger()->log(\Psr\Log\LogLevel::DEBUG, $q.$f.$w.$o.$l);
+        }
         
+        $pending=[true=>[], false=>[]];
+        $tag=true;
         $fixes=[];
         $st=$db->prepareQuery($q.$f.$w.$o.$l, [\PDO::ATTR_CURSOR=>\PDO::CURSOR_FWDONLY]);
         if ($st->execute()) {
@@ -184,11 +186,61 @@ class AdList extends \SplDoublyLinkedList {
                     $fixes[$rs['ID']]=$rs['CONTENT'];                   
                 }
                 $ad->setParent($this)->parseDbRow($rs);
-                $this->push($ad);                
+                
+                if ($this->state==1) {                    
+                    $isFeatureBooked=$ad->isBookedFeature();
+                    
+                    if (!$isFeatureBooked && ($ad->state()===4||($ad->dataset()->getBudget()>0))) {
+                        $isFeatureBooked=true;
+                    }
+                    
+                    if ($ad->isFeatured()||$isFeatureBooked) {
+                        $this->push($ad);
+                    }                                       
+                    else if ($this->user->level()!==9) {
+                        $this->push($ad);
+                    }
+                    else {
+                        $pending[$tag][]=$ad;
+                        $tag=!$tag;
+                        //$pending[]=$ad;
+                    }
+                }
+                else {
+                    $this->push($ad);
+                }          
             }
         }
         $st->closeCursor();
         
+        if (\count($pending[true])>0) {
+            $i=\count($pending[false]);
+            foreach ($pending[true] as $nad) {
+                if ($i>0) {
+                    $i--;
+                    $this->push($pending[false][$i]);
+                }
+                $this->push($nad);
+            }
+            /*
+            //\error_log("\n");
+            $t=0;$b=\count($pending)-1;
+            while($t<$b) {
+                $this->push($pending[$b]);
+                $this->push($pending[$t]);
+                //\error_log($pending[$b]->getDateModified()."\t".$pending[$t]->getDateModified()."\n");
+                $t++;
+                $b--;
+            }
+            if ($t===$b) {
+                $this->push($pending[$b]);
+            }
+            */
+            //\shuffle($pending);
+            //foreach ($pending as $ad) {
+            //    $this->push($ad);
+            //}
+        }
         
         $ct=$db->prepareQuery('select count(AD_USER.ID) '.$f.$w);
         if ($ct->execute()) {

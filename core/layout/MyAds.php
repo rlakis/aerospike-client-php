@@ -79,11 +79,10 @@ class MyAds extends UserPage {
         
         if ($sub==='deleted' && $this->user->level()!==9) { $sub = ''; }
                                     
-        $this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId]]);
+        //$this->set_ad(['zone_0'=>['/1006833/PublicRelation', 728, 90, 'div-gpt-ad-1319709425426-0-'.$this->router->config->serverId]]);
           
         if ($this->user->level()===9 && $sub==='pending') {
         
-            //if ($userLevel===9 && $sub==='pending') {
             $this->redis=$redis=new Redis();
             $redis->connect("p1.mourjan.com", 6379, 1, NULL, 100);
             $redis->select(5);
@@ -481,13 +480,16 @@ class MyAds extends UserPage {
         }
 
         $cndic=$this->router->db->asCountriesDictionary();
-
+        
         $comma=$this->router->isArabic()?'،':',';        
         $countriesArray=[];
         $cities=$this->router->cities;
+                
+        //\error_log(\var_export($cities[4], true));
+        
         
         $content='';
-        foreach ($ad->dataset()->getRegions() as $city) {                    
+        foreach ($ad->dataset()->getRegions() as $city) { 
             if (isset($cities[$city]) && isset($cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID])) {
                 $country_id=$cities[$city][\Core\Data\Schema::BIN_COUNTRY_ID];
                         
@@ -552,7 +554,6 @@ class MyAds extends UserPage {
         $this->adList->setState($state)->fetchFromAdUser();
         $count=$this->adList->count();
         $dbCount=$this->adList->dbCount();
-
        
         ?><div class="row viewable"><div class=col-12><?php
 
@@ -572,7 +573,7 @@ class MyAds extends UserPage {
         $this->accountButton($this->router->getLanguagePath('/myads/').'?sub=archive'.($uid>0?'&u='.$uid:''), $this->lang['home_archive'], $sub==='archive', $dbCount, 'btn state archive');
         ?></div><?php
 
-        
+        //
         if ($this->adList->count()>0) {
             $as=\Core\Model\NoSQL::instance();
             $ips=[];
@@ -1282,7 +1283,7 @@ class MyAds extends UserPage {
                 $link = $this->router->uri.($this->router->isArabic()?'':$this->router->language.'/');
                 
                 
-                $sub=filter_input(INPUT_GET, 'sub', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $sub=\filter_input(\INPUT_GET, 'sub', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
                 switch ($sub) {
                     case 'pending':
                         $link.='?sub=pending';
@@ -1387,7 +1388,7 @@ class MyAds extends UserPage {
             
             /*?><p class="ph phb db"><?php*/
             $msg='';
-            $mcUser=null;
+            $mcUser=$this->adList->getCachedProfile($this->adList->userId());
             //$this->renderUserTypeSelector($mcUser);
             
             switch ($state) {
@@ -1397,7 +1398,7 @@ class MyAds extends UserPage {
                     //echo $this->lang['ads_archive'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;
                 case 7:
-                    $msg = $this->lang['no_active'];
+                    $msg= $this->lang['no_active'];
                     //$this->user->info['active_ads']=$count;
                     //echo $this->lang['ads_active'].($count ? ' ('.$count.')':'').' '.$this->renderUserTypeSelector($mcUser);
                     break;

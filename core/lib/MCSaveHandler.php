@@ -709,7 +709,7 @@ class MCSaveHandler {
 }
 
 
-if (php_sapi_name()==='cli' && get_cfg_var('mourjan.server_id')=='99') {
+if (\php_sapi_name()==='cli' && \get_cfg_var('mourjan.server_id')=='99') {
     //$saveHandler = new MCSaveHandler();
     //$saveHandler->getFromDatabase($argv[1]);
     //$saveHandler->searchByAdId($argv[1]);
