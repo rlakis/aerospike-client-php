@@ -10,9 +10,6 @@ use Core\Lib\SphinxQL;
 \set_time_limit(0);
 \ob_implicit_flush();
 
-$address = 'h8.mourjan.com';
-$port = 1337;
-
 
 
 class MCSaveHandler {
@@ -49,7 +46,7 @@ class MCSaveHandler {
         }
     }
 
-
+/*
     function SetConnectTimeout ( $timeout ) {}
     function _Send ( $handle, $data, $length ) {}
     function _Connect() {}
@@ -108,7 +105,7 @@ class MCSaveHandler {
             $this->Close();
         }        
     }
-
+*/
     
     public function checkFromDatabase(int $reference) {
         $db=new DB(true);
@@ -151,7 +148,7 @@ class MCSaveHandler {
         return FALSE;
     }
     
-    
+    /*
     public function testRealEstate($country_id=1) {
         $myfile = fopen("/tmp/testfile.txt", "w") ;
         $db = new DB($this->cfg);
@@ -234,45 +231,52 @@ class MCSaveHandler {
         fclose($myfile);
     }
     
-    
+    */
     
     protected function apiV1normalizer(string $json_encoded) : array {
-        $result = ['status'=>0, 'data'=>[]];
+        $result=['status'=>0, 'data'=>[]];
         try {
-            $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
-            $userAgent.= ' PHP/' . PHP_VERSION;
-            $curl_version = curl_version();
-            $userAgent.= ' curl/' . $curl_version['version'];
+            $userAgent='Mourjan-PHP/h'.Config::instance()->serverId. '-2' . ' (+'.__CLASS__.')';
+            $userAgent.=' PHP/'.PHP_VERSION.' curl/'.\curl_version()['version'];            
             $options = [
-                CURLOPT_URL => "http://h8.mourjan.com:8080/v1/ad/mourjan",
-                CURLOPT_USERAGENT => $userAgent,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_TIMEOUT => 30,
-                CURLOPT_CONNECTTIMEOUT => 30,
-                CURLOPT_HEADER => FALSE,
-                CURLOPT_RETURNTRANSFER => TRUE,
-                CURLOPT_VERBOSE => FALSE];
-            $ch = curl_init();
+                \CURLOPT_URL => "http://h8.mourjan.com:8088/v1/ad/mourjan",
+                \CURLOPT_USERAGENT => $userAgent,
+                \CURLOPT_CUSTOMREQUEST => 'POST',
+                \CURLOPT_TIMEOUT => 30,
+                \CURLOPT_CONNECTTIMEOUT => 30,
+                \CURLOPT_HEADER => FALSE,
+                \CURLOPT_RETURNTRANSFER => TRUE,
+                \CURLOPT_VERBOSE => FALSE];
+            $ch=\curl_init();
             $headers=['Authorization: '.'$this->secretKey'];
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $json_encoded);
-            array_push($headers, "Accept: application/json");
-            array_push($headers, "Content-Type: application/json");
-            array_push($headers, 'Content-Length: '.strlen($json_encoded));
-            $options[CURLOPT_HTTPHEADER] = $headers;
-            \curl_setopt_array($ch, $options);        
-            $resp=\curl_exec($ch);
-            $result['status']=\curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            \curl_setopt($ch, \CURLOPT_POST, true);
+            \curl_setopt($ch, \CURLOPT_POSTFIELDS, $json_encoded);
+            \array_push($headers, "Connection: close");
+            \array_push($headers, "Accept: application/json");
+            \array_push($headers, "Content-Type: application/json");
+            \array_push($headers, 'Content-Length: '.\strlen($json_encoded));
+            $options[\CURLOPT_HTTPHEADER]=$headers;
+            \curl_setopt_array($ch, $options);
+            $repeat=3;
+            while ($repeat>0) {
+                $resp=\curl_exec($ch);
+                $result['status']=\curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $repeat--;
+                if ($result['status']!=502) {  $repeat=0; }
+                if ($repeat>0) {
+                    usleep(1000);
+                }
+            }
             
             $is_json=\is_string($resp) && \is_array(\json_decode($resp, true)) && (\json_last_error()===\JSON_ERROR_NONE) ? true : false;
             if ($is_json) { $result['data']=\json_decode($resp, TRUE); }
         }
-        catch (Exception $ex) {
+        catch (\Exception $ex) {
             $result['error']=1;
             $result['except']=$ex->getMessage();
         }
         finally {
-            if (is_resource($ch)) { curl_close($ch); }
+            if (\is_resource($ch)) { \curl_close($ch); }
         }        
         return $result;        
     }
@@ -464,10 +468,12 @@ class MCSaveHandler {
 
         $searchResults=['body'=>['matches'=>[], 'scores'=>[] ]];
 
+        $row_number=0;
         foreach ($scores as $key => $value) {           
-            if ($value>=0.25) {
+            if ($row_number<12 && $value>=0.25) {
                 $searchResults['body']['scores'][$key]=$messages[$key];
                 $searchResults['body']['matches'][]=$key;
+                $row_number++;
             }
         }
         
@@ -589,7 +595,7 @@ class MCSaveHandler {
             $desc='';
             $scores[ $res['matches'][$i]['id'] ]=0;
             
-            $attrs=\json_decode($res['matches'][$i]['attrs']);
+            $attrs = \json_decode($res['matches'][$i]['attrs']);
             
             if (isset($attrs->locality) && isset($obj->attrs->locality) && $attrs->locality->id==$obj->attrs->locality->id) {
                 $desc.="G: 100% ";
@@ -635,19 +641,19 @@ class MCSaveHandler {
         
         arsort($scores, SORT_NUMERIC);
 
-        $searchResults=['body'=>['matches'=>[], 'scores'=>[] ]];
-
-        $i=0;
-        foreach ($scores as $key => $value) {
-            if ($value>=0.25 && $i<12) {
+        $searchResults = ['body'=>['matches'=>[], 'scores'=>[] ]];
+        
+        $row_number=0;
+        foreach ($scores as $key => $value) {           
+            if ($row_number<12 && $value>=0.25) {
                 $searchResults['body']['scores'][$key]=$messages[$key];
                 $searchResults['body']['matches'][]=$key;
-                $i++;
+                $row_number++;
             }
         }
         
         //$searchResults['body']['facet'] = $obj->attrs;
-        $searchResults['body']['total']=count($searchResults['body']['matches']);
+        $searchResults['body']['total']=\count($searchResults['body']['matches']);
         $searchResults['body']['total_found']=$searchResults['body']['total'];
                 
         //\error_log(PHP_EOL.__FUNCTION__.var_export($searchResults, true));

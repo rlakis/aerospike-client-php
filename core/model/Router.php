@@ -100,7 +100,7 @@ class Router extends \Core\Model\Singleton {
         global $argc;       
         $this->config=\Config::instance();
         $this->db=new DB;
-        if (php_sapi_name()==='cli')  {  return;  }
+        if (\php_sapi_name()==='cli')  {  return;  }
 
         if (\filter_has_var(\INPUT_GET, 'shareapp')) {
             $device=new \Detection\MobileDetect();
