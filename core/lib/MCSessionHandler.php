@@ -79,12 +79,12 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     }
 
     
-    public function close() {
+    public function close() : bool {
         return true;
     }
     
     
-    public function read($id) {
+    public function read($id) : string {
         $status = $this->storage->get($this->as_key($id) , $record);                     
         if ($status===\Aerospike::OK && isset($record['bins'])) {
             return $record['bins']['PHP_SESSION'] ?? '';
@@ -93,7 +93,7 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     }
 
     
-    public function write($id, $data) {        
+    public function write($id, $data) : bool {        
         $key=$this->as_key($id);
         $max_retries=2;
         while ($max_retries>0) {
@@ -110,15 +110,15 @@ class MCSessionHandler extends \Core\Model\Singleton implements \SessionHandlerI
     }
 
     
-    public function destroy($id) {
+    public function destroy($id) : bool {
         $ret=($this->storage->remove($this->as_key($id))===\Aerospike::OK);
         \error_log(__FUNCTION__. " new site ".__FUNCTION__. " ".$id." returned ".$ret);
         return $ret;
     }
 
     
-    public function gc($maxlifetime) {
-        return true;
+    public function gc($maxlifetime) : int|false {
+        return 1;
     }
     
 }

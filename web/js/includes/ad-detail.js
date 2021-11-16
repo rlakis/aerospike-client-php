@@ -438,6 +438,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
 function addScript(filename){
     console.log('aa');
     var head = document.getElementsByTagName('head')[0];
@@ -461,7 +462,7 @@ function reportAd(e, t){
     }
     
     let level=$.body.dataset.level?parseInt($.body.dataset.level):0;
-    console.log(level, e, level);
+    console.log(level, e);
     if(level===0){
         Swal.fire({
             title: 'Report This Ad',
@@ -486,12 +487,25 @@ function reportAd(e, t){
             showCancelButton: true,
             confirmButtonText: 'Yes, stop it!',
             cancelButtonText: 'No, dismiss'
-        }).then((result) => {
-            //if (result.value) {
-                //Swal.fire('Deleted!', 'Your imaginary file has been deleted.', 'success' )
-            //} else if (result.dismiss === Swal.DismissReason.cancel) {
-                //Swal.fire('Cancelled', 'Your imaginary file is safe :)', 'error')
-            //}
+        }).then((result) => {            
+            if (result.isConfirmed) {
+                fetch('/ajax-report/',{method:'POST',mode:'same-origin',credentials:'same-origin',
+                    body:JSON.stringify({id:parseInt(e.dataset.id)}),
+                    headers:{'Accept':'application/json','Content-Type':'application/json'}})
+                .then(res=>res.json())
+                .then(response => {
+                    console.log('Success:', response);
+                    if(response.success===1){
+                        $.body.query('div.col-8.ff-cols.cntnt').style.backgroundColor='lightgray';
+                    }
+                    else {
+                        window.alert(response.error);
+                    }
+                })
+                .catch(error => { 
+                    console.log('Error:', error); 
+                });
+            }
         });
     }
 }

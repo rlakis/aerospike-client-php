@@ -1,5 +1,6 @@
 <?php
-//if (!isset($argc) && \extension_loaded("tideways_xhprof")) {tideways_xhprof_enable();}
+
+if (!isset($argc) && \extension_loaded("tideways_xhprof") && $_SERVER['REQUEST_URI']!=='/api/') {tideways_xhprof_enable();}
 
 include_once __DIR__ . '/config/cfg.php';
 include_once __DIR__ . '/deps/autoload.php';
@@ -10,21 +11,22 @@ Config::instance()->incModelFile('Router')->incModelFile('Db')->incLibFile('MCSe
 
 
 if (\filter_has_var(\INPUT_GET, 'provider') && \filter_has_var(\INPUT_GET, 'connect')) {
-    $connect=\strtolower(\filter_input(\INPUT_GET, 'connect', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
-    $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));    
+    $connect=\strtolower(\filter_input(\INPUT_GET, 'connect', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]));
+    $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]));    
     $uid=\filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
-    $uuid=\urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $uuid=\urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]));
     
     \header("Location: /web/lib/hybridauth/?connect={$connect}&provider={$provider}&uid={$uid}&uuid={$uuid}");
     exit(0);
 }
 
-$isWeb=(php_sapi_name()!=='cli');
+$isWeb=(\php_sapi_name()!=='cli');
 if ($isWeb===true) {
     MCSessionHandler::instance();
-    //require_once( $config['dir'].'/core/model/User.php');
-    //$user = new User(new DB($config), $config, null, 0);
-    //$user->sysAuthById(717151);
+    /*
+    Config::instance()->incModelFile('User');
+    $user=new User(null, 0);
+    $user->sysAuthById(3259181);*/
 }
 
 
@@ -34,7 +36,7 @@ if ($isWeb===true) {
     $router->setLogger(new \Core\Lib\Logger('/var/log/mourjan', \Psr\Log\LogLevel::DEBUG, ['filename' => 'site.log', 'logFormat'=>false]));
     $router->decode();
     $stop=false;
-    $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+    $provider=\strtolower(\filter_input(\INPUT_GET, 'provider', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]));
    
     if (!$stop && \array_key_exists($router->module, $config['modules'])) {
         $mod_class=$config['modules'][$router->module][0];
@@ -48,10 +50,10 @@ if ($isWeb===true) {
     }
     
     $router->close();
-    /*
-    if (($router->user->id()===69905 || PHP_VERSION_ID>80000) && \extension_loaded("tideways_xhprof")) {    
-        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
-        $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI', \FILTER_SANITIZE_STRING);    
+    
+    if (\extension_loaded("tideways_xhprof")) {    
+        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE');
+        $requestURI=\filter_input(\INPUT_SERVER, 'REQUEST_URI');    
 
         if ($contentType!=='application/json' && \strpos($requestURI, 'ajax-')==false) {
             $data=tideways_xhprof_disable();
@@ -62,7 +64,7 @@ if ($isWeb===true) {
             $xhprof_runs=new XHProfRuns_Default();
 
             $run_id=$xhprof_runs->save_run($data, "xhprof_mourjan");
-            echo '<p style="background-color:var(--mlc);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a rel=noopener style="color:white;" target=_blank href="', "https://dv.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
+            echo '<p style="background-color:var(--mlc);height:60px;display:flex;justify-content:center;margin:0">&nbsp;&nbsp;<a rel=noopener style="color:white;" target=_blank href="', "https://dev.mourjan.com/web/xhprof/html/index.php?run=$run_id&source=xhprof_mourjan", '">Page profiler</a></p>';
         }        
-    }*/
+    }
 }

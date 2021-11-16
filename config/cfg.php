@@ -479,8 +479,8 @@ if ($globalSettings!==FALSE) {
 */
 
 if (PHP_VERSION_ID>80000) {
-    $config['host']             = 'https://dv.mourjan.com';
-    $config['site_domain']      = 'dv.mourjan.com';
+    $config['host']             = 'https://dev.mourjan.com';
+    $config['site_domain']      = 'dev.mourjan.com';
 }
 $config['url_base']             = $config['host'];
 $config['url_bin']              = $config['url_base'].'/bin';
@@ -500,11 +500,5 @@ $config['url_uploader']         = 'https://dev.mourjan.com';
 
 $config['server_id']=\get_cfg_var('mourjan.server_id');
 
-if (PHP_VERSION_ID>=80000) {
-    $config['url_resources']    = 'https://dv.mourjan.com';
-    $config['url_js']           = 'https://dv.mourjan.com/js/2020';
-    $config['url_css']          = 'https://dv.mourjan.com/css/2020';
-    $config['url_uploader']     = 'https://dv.mourjan.com';
-}
 
 Config::instance()->init($config);

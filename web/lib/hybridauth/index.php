@@ -53,8 +53,7 @@ $user->populate();
 
 
 if ($user->isLoggedIn()) {   
-    $provider=\filter_input(\INPUT_GET, 'logout', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-    \error_log($provider.PHP_EOL);
+    $provider=\filter_input(\INPUT_GET, 'logout', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
     if ($provider==='mourjan' || $provider==="mourjan-iphone" || $provider==='Android' || $provider==='mourjan-android') {
         $user->logout();
         redirectTo($user);
@@ -68,7 +67,7 @@ $isAndroid=$storage->get('android');
 
 try {
     
-    $_provider=\strtolower(\trim(\filter_input(\INPUT_GET, 'provider', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']])));
+    $_provider=\strtolower(\trim(\filter_input(\INPUT_GET, 'provider', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']])));
     if ($_provider) {        
         if ($_provider==='live') {
             $pro='WindowsLive';
@@ -95,7 +94,7 @@ try {
         $isAndroid=true;
     
         $uid=\filter_input(\INPUT_GET, 'uid', \FILTER_VALIDATE_INT)+0;
-        $uuid=\urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]));
+        $uuid=\urldecode(\filter_input(\INPUT_GET, 'uuid', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]));
         
         $storage->set('uid', $uid);  
         $storage->set('uuid', $uuid);   
@@ -166,7 +165,6 @@ try {
             exit(0);            
         }
         else {
-            \error_log('here'. var_export($user->pending, true));
             
             if (isset($user->pending['redirect_login'])) {
                 $uri=$user->pending['redirect_login'];

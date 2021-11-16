@@ -165,9 +165,10 @@ class PageSide {
     
     public function menu() : PageSide {
         $router=$this->page->router;
+        $balance=$this->page->balance>0?\strval($this->page->balance):'';
         $b= '<ul class=mb-64>';
         $b.="<li><a".($router->module==='myads'?' class=on':'')." href={$router->getLanguagePath('/myads/')}".($this->page->uid>0?'?u='.$this->page->uid:'')."><img class=ifilter src={$router->config->cssURL}/1.0/assets/myads.svg>{$this->page->lang['myAds']}</a></li>";
-        $b.="<li><a".($router->module==='statement'?' class=on':'')." href={$router->getLanguagePath('/statement/')}".($this->page->uid>0?'?u='.$this->page->uid:'')."><img class=ifilter src={$router->config->cssURL}/1.0/assets/m-coin.svg>{$this->page->lang['myBalance']}</a></li>";
+        $b.="<li><a".($router->module==='statement'?' class=on':'')." href={$router->getLanguagePath('/statement/')}".($this->page->uid>0?'?u='.$this->page->uid:'')."><img class=ifilter src={$router->config->cssURL}/1.0/assets/m-coin.svg>{$this->page->lang['myBalance']} {$balance}</a></li>";
         $b.="<li><a href=#><img src={$router->config->cssURL}/1.0/assets/liked.svg>Favorites</a></li>";
         $b.="<li><a href=#><img src={$router->config->cssURL}/1.0/assets/starred.svg>Saved Items</a></li>";
         $b.="<li><a href={$router->getLanguagePath('/account/')}".($this->page->uid>0?'?u='.$this->page->uid:'')."><img src={$router->config->cssURL}/1.0/assets/accinfo.svg>{$this->page->lang['myAccount']}</a></li>";

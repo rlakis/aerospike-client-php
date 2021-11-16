@@ -164,7 +164,7 @@ class User {
         
         if ($init) {
             $this->site=$site;
-            //$this->sysAuthById(44835);
+            //$this->sysAuthById(3259181);
 
             $this->populate();
             //\error_log(PHP_EOL.__CLASS__.'.'.__FUNCTION__.PHP_EOL.\json_encode($_SESSION['_u']['params']).PHP_EOL);
@@ -1210,7 +1210,9 @@ class User {
             $q='select sum(credit-debit) as balance from t_tran where uid=?';
             $res=$this->db->get($q, [$userId]);
             if ($res && isset($res[0]['BALANCE']) && $res[0]['BALANCE']!=null) {
-                $result['balance']=(int)$res[0]['BALANCE'];
+                
+                $result['balance']=0;
+                $result['balance']=\intval( $res[0]['BALANCE']);
                 
                 if (!$balanceOnly) {
                     $rs=$this->db->get("SELECT count(*) as total FROM T_TRAN r where r.UID=?", [$userId]);

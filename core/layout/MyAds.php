@@ -1388,7 +1388,7 @@ class MyAds extends UserPage {
             
             /*?><p class="ph phb db"><?php*/
             $msg='';
-            $mcUser=$this->adList->getCachedProfile($this->adList->userId());
+            $mcUser=$this->adList->userId()>0?$this->adList->getCachedProfile($this->adList->userId()):null;
             //$this->renderUserTypeSelector($mcUser);
             
             switch ($state) {

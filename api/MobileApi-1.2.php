@@ -4482,22 +4482,16 @@ where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
             $this->result['d']['words']=[];
                         
             try {
-                $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
-                $userAgent .= ' PHP/' . PHP_VERSION;
-                $curl_version = curl_version();
-                $userAgent .= ' curl/' . $curl_version['version'];
+                $userAgent='Mourjan-PHP/h'.Config::instance()->serverId. '-2' . ' (+'.__CLASS__.')';
+                $userAgent.=' PHP/'.PHP_VERSION.' curl/'.\curl_version()['version'];
+                                       
                 
-                if (empty($text)) {
-                    return;
-                }
+                if (empty($text)) {  return;  }
                 
                 $ch = curl_init();   
                 
                 $p = [$text];
-                //$arg = curl_escape($ch, $text);
-                //error_log($arg);
-                //curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/text/{$arg}");
-                curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/spell");
+                curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8088/v1/ad/spell");
                 curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);
                 
                 curl_setopt($ch, CURLOPT_TIMEOUT, 3);
@@ -4506,6 +4500,7 @@ where a.web_user_id=? and a.state!=6 and a.state!=8 and x.id>0';
                 curl_setopt($ch, CURLOPT_HTTPHEADER, 
                         ["Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
                          "Content-Type: application/json", "Accept-Encoding: gzip, deflate", 
+                         "Connection: close",
                          "Pragma: no-cache",
                          "Cache-Control: no-cache"]);
                 curl_setopt($ch, CURLOPT_VERBOSE, 0);

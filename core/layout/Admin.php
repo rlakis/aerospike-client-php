@@ -16,9 +16,9 @@ class Admin extends Page {
         parent::__construct();
     
         $this->uid=0;
-        $this->sub=\filter_input(\INPUT_GET, 'sub', \FILTER_SANITIZE_STRING, ['options' => ['default' => '']]);
+        $this->sub=\filter_input(\INPUT_GET, 'sub', \FILTER_UNSAFE_RAW, ['options' => ['default' => '']]);
         $this->aid=filter_input(INPUT_GET, 'r', FILTER_SANITIZE_NUMBER_INT, ['options' => ['default' => 0]]);
-        $this->mobile_param=\filter_input(\INPUT_GET, 't', \FILTER_SANITIZE_STRING, ['options' => ['default' => '']]);
+        $this->mobile_param=\filter_input(\INPUT_GET, 't', \FILTER_UNSAFE_RAW, ['options' => ['default' => '']]);
 
         $this->hasLeadingPane=true;
 
@@ -35,8 +35,8 @@ class Admin extends Page {
         $this->router->config->disableAds();
 
 
-        $parameter=\filter_input(\INPUT_GET, 'p', \FILTER_SANITIZE_STRING);
-        $action=\filter_input(\INPUT_GET, 'action', \FILTER_SANITIZE_STRING);
+        $parameter=\filter_input(\INPUT_GET, 'p');
+        $action=\filter_input(\INPUT_GET, 'action');
 
         if ($action) {
             $redirectWhenDone=true;
@@ -184,14 +184,36 @@ class Admin extends Page {
             } else {
                 if ($this->aid) {
                     $this->userdata=[];
-                    Config::instance()->incLibFile('MCSaveHandler');
-                    $handler = new MCSaveHandler();
-                    $this->userdata=$handler->checkFromDatabase($this->aid);
+                    //Config::instance()->incLibFile('MCSaveHandler');
+                    //$handler=new MCSaveHandler();
+                    //$this->userdata=$handler->checkFromDatabase($this->aid);
+                    $rs=$this->router->db->queryResultArray('select * from ad_user where id=?', [$this->aid]);
+                    //var_dump($rs[0]);
+                    if (\is_array($rs) && \count($rs)) {
+                        $rs[0]['CONTENT']=json_decode($rs[0]['CONTENT'], true);    
+                        
+                        unset( $rs[0]['CONTENT']['extra'] );
+                        unset( $rs[0]['CONTENT']['lat'] );
+                        unset( $rs[0]['CONTENT']['lon'] );
+                        unset( $rs[0]['CONTENT']['user'] );
+                        unset( $rs[0]['CONTENT']['id'] );
+                        unset( $rs[0]['CONTENT']['state'] );
+                        unset( $rs[0]['CONTENT']['pu'] );
+                        unset( $rs[0]['CONTENT']['se'] );
+                        unset( $rs[0]['CONTENT']['rtl'] );
+                        unset( $rs[0]['ACTIVE_CITY_ID'] );
+                        unset( $rs[0]['ACTIVE_COUNTRY_ID'] );
+                        
+                        $this->userdata=$rs[0];
+                        $rs=$this->router->db->queryResultArray('SELECT r.ADMIN_ID, r.TS, r.AD_STATE, u.PROVIDER, u.USER_EMAIL EMAIL FROM AD_USER_ADMIN r LEFT JOIN WEB_USERS u on u.ID=r.ADMIN_ID where r.AD_ID=? order by r.id', [$this->aid]);
+                        $this->userdata['TRACKER']=$rs;
+                        
+                    }
                     //$uids = \Core\Model\NoSQL::instance()->mobileGetLinkedUIDs($parameter);
                     //foreach ($uids as $bins) 
-                    {
+                    //{
                         //$this->userdata[] = $this->parseUserBins(\Core\Model\NoSQL::instance()->fetchUser($bins[Core\Model\ASD\USER_UID]));
-                    }
+                    //}
                 }
             }
         }
@@ -319,7 +341,7 @@ class Admin extends Page {
                                 $rtp['key']=$_record['key']['key'];
                                 $rtp['uid']=$_record['bins']['uuid'];
                                 $rtp['number']=$_record['bins']['number'];
-                                $rtp['date']=date('r', $_record['bins']['date_added']/1000);
+                                $rtp['date']=date('r', (int)($_record['bins']['date_added']/1000));
                                 if (isset($_record['bins']['verified_date'])) {
                                    $rtp['verified_on']= $_record['bins']['verified_date'];
                                 }

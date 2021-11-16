@@ -554,7 +554,7 @@ class PayfortIntegration {
         $total=$amount;
         $decimalPoints=$this->getCurrencyDecimalPoints($currencyCode);
         $new_amount=round($total, $decimalPoints) * (pow(10, $decimalPoints));
-        return $new_amount;
+        return \intval(\round($new_amount, 0));
     }
     
 
@@ -582,6 +582,12 @@ class PayfortIntegration {
 
     public function getUrl(string $path='') : string {  
         $url='https://'.$_SERVER['HTTP_HOST'].$this->projectUrlPath.'/'.($this->language==='ar'?'':$this->language.'/').$path;
+        if (str_contains("?", $url)) {
+            $url.="&newlook=1";
+        }
+        else {
+            $url.="?newlook=1";
+        }
         return $url;
     }
     

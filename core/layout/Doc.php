@@ -25,7 +25,7 @@ class Doc extends Page{
                 $this->countryCode=$ip['ipquality']['country_code']??'XX'; 
                 
                 if ($this->router->module==='buy') {
-                    $allow=($tor===0 && $vpn===0 && \in_array($this->countryCode, ['AE', 'SA', 'BH', 'KW', 'QA']));
+                    $allow=($tor===0 && $vpn===0 && \in_array($this->countryCode, ['AE', 'SA', 'BH', 'KW', 'QA', 'LB']));
                 }
                 else {
                     $allow=($tor===0 && \in_array($this->countryCode, ['AE', 'SA', 'BH', 'KW', 'QA', 'EG', 'JO', 'LB', 'MA', 'SD', 'OM']));
@@ -230,13 +230,13 @@ class Doc extends Page{
     */
     
     private function paypalButton($name, $price) {
-        $sandbox = $this->urlRouter->cfg['server_id']==99 ? true : false;
-        $business = $sandbox ? 'nooralex-facilitator@gmail.com' : 'nooralex@gmail.com';
-        $webscr = $sandbox ? 'https://www.sandbox.paypal.com/cgi-bin/webscr' : 'https://www.paypal.com/cgi-bin/webscr';
-        $logo = $this->urlRouter->cfg['url_resources'] . '/img/mourjan-logo-120'.$this->urlRouter->_png;
-        $return_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=success&item='.$name;
-        $notify_url = $this->urlRouter->cfg['host'] . '/bin/ppipn.php';
-        $cancel_url = $this->urlRouter->cfg['host'] . '/buy/' . ($this->urlRouter->siteLanguage!='ar' ? $this->urlRouter->siteLanguage . '/' : '') . '?paypal=cancel';
+        $sandbox=$this->router->config->serverId===99?true:false;
+        $business=$sandbox?'nooralex-facilitator@gmail.com':'nooralex@gmail.com';
+        $webscr=$sandbox?'https://www.sandbox.paypal.com/cgi-bin/webscr':'https://www.paypal.com/cgi-bin/webscr';
+        $logo=$this->router->config->get('url_resources').'/img/mourjan-logo-120'.$this->router->_png;
+        $return_url=$this->router->config->host.'/buy/'.($this->router->isArabic()===false?$this->router->language.'/':'').'?paypal=success&item='.$name;
+        $notify_url=$this->router->config->host.'/bin/ppipn.php';
+        $cancel_url=$this->router->config->host.'/buy/'.($this->router->isArabic()===false?$this->router->language.'/':'').'?paypal=cancel';
         
         echo "<form action='{$webscr}' method='post'>";
         
@@ -277,10 +277,12 @@ class Doc extends Page{
             case 'buy':
                 if (!$this->user()->isLoggedIn()) { 
                     echo '<div>';
-                    if (!$this->isMobile) { $this->renderLoginPage(); }
+                    $this->renderLoginPage();
+                    return;
                 }
                 else {
-                    if ($this->router->isMobile) {                        
+                    //\error_log("robert 1");
+                    //if ($this->router->isMobile) {                        
                         $uid=$this->user->id();
                         $data = $this->user->getStatement($uid, 0, false, null, $this->router->language);
                         $hasError = 0;
@@ -293,7 +295,7 @@ class Doc extends Page{
                         ?><p class="ph phb db bph"><?php
                             echo $subHeader.' ';
                         ?></p><?php 
-                    }
+                    //}
                     if ($this->router->language==='ar') {
                         echo '<div class="doc ar">';
                     }
@@ -320,14 +322,14 @@ class Doc extends Page{
                     }*/
                     
                 
-                    $products = $this->urlRouter->db->queryCacheResultSimpleArray("products",
+                    $products=$this->router->db->queryCacheResultSimpleArray("products",
                                         "select product_id, name_ar, name_en, usd_price, mcu  
                                         from product 
                                         where iphone=0 
                                         and blocked=0 
-                                        and usd_price > 3 
+                                        and usd_price>3 
                                         order by mcu asc",
-                                        null, 0, $this->urlRouter->cfg['ttl_long'], TRUE);
+                                        null, 0, $this->router->config->get('ttl_long'), TRUE);
                     
                     //$products['100.gold'] = ['100.gold', '100 ذهبية', '100 gold', 49.99, 100];
                     echo '<ul class="table">';
@@ -338,7 +340,7 @@ class Doc extends Page{
                         //<form action='/checkout/' METHOD='POST'><input type='image' name='paypal_submit' id='sub{$j}'  
                         //src='https://www.paypal.com/en_US/i/btn/btn_dg_pay_w_paypal.gif' border='0' align='top' alt='Pay with PayPal'/>
                         //<input type='hidden' name='product' value='{$product[0]}' /></form></li>";
-                        echo "<li>{$product[ $this->urlRouter->siteLanguage == 'ar' ? 1 : 2]}</li><li>".number_format($product[3],2)." USD</li><li class='tt'>";
+                        echo "<li>{$product[ $this->router->language==='ar'?1:2]}</li><li>".number_format($product[3],2)." USD</li><li class='tt'>";
                         $this->paypalButton($product[0], $product[3]);
                         echo "</li>";
                         $j++;
@@ -582,7 +584,7 @@ class Doc extends Page{
         ?><div class="inline-flex w100 ff-cols"><?php
         ?><ul class=gm><?php
         
-        ?><li><a href="javascript:chapter(1)"><?=$rtl?'كيف يعمل؟ وما هو؟':'How it works'?><span class=disclosure>›</span></a><?php
+        ?><li class=open><a href="javascript:chapter(1)"><?=$rtl?'كيف يعمل؟ وما هو؟':'How it works'?><span class=disclosure>›</span></a><?php
         ?><div id=chapter1><?php
         /*?><p><?=$this->lang['gold_p2']?></p><?php*/
         ?><p><span class=fw-500>Buy days of</span> <span class=fw-500 style="color:var(--premium);text-decoration:underline">premium ad listing</span> and make your ad more prominent and highlighted to attract a greater level of interest and make it easier to be found.</p><?php
@@ -721,12 +723,12 @@ class Doc extends Page{
         }
         else {                        
             if (!empty( \filter_input_array(\INPUT_POST) ) ) {                
-                $response_code=\filter_input(\INPUT_POST, 'response_code', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                $response_amount=\filter_input(\INPUT_POST, 'amount', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                $response_currency=\filter_input(\INPUT_POST, 'currency', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                $response_message=\filter_input(\INPUT_POST, 'response_message', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                $response_description=\filter_input(\INPUT_POST, 'order_description', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
-                $response_status=\filter_input(\INPUT_POST, 'status', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $response_code=\filter_input(\INPUT_POST, 'response_code', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
+                $response_amount=\filter_input(\INPUT_POST, 'amount', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
+                $response_currency=\filter_input(\INPUT_POST, 'currency', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
+                $response_message=\filter_input(\INPUT_POST, 'response_message', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
+                $response_description=\filter_input(\INPUT_POST, 'order_description', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
+                $response_status=\filter_input(\INPUT_POST, 'status', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
                 
                 if ($response_status==='14') {
                     $alert_class.=' alert-success ff-cols';
@@ -736,7 +738,7 @@ class Doc extends Page{
                 }
                 else {
                     $alert_class.=' alert-warning';
-                    $alert=\filter_input(\INPUT_POST, 'response_message', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                    $alert=\filter_input(\INPUT_POST, 'response_message', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
                 }
             }
             

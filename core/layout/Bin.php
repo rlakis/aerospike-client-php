@@ -102,7 +102,7 @@ class Bin extends AjaxHandler {
     
     function __construct(){
         parent::__construct();
-        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+        $contentType=\filter_input(\INPUT_SERVER, 'CONTENT_TYPE');
         if ($contentType==='application/json') {
             $content=\trim(\file_get_contents("php://input"));
             if ($content) {
@@ -230,7 +230,7 @@ class Bin extends AjaxHandler {
 
     
     private function getPostedJson() : array {
-        $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+        $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE');
         if ($contentType==='application/json') {
             $content = trim(file_get_contents("php://input"));
             return json_decode($content, true);
@@ -263,7 +263,7 @@ class Bin extends AjaxHandler {
                 }
                     
                 if (isset($_GET['fraud']) && \is_numeric($_GET['fraud'])){
-                    $content=\json_decode(\file_get_contents('http://h8.mourjan.com:8080/v1/fraud/ad/'.$_GET['fraud']), true); 
+                    $content=\json_decode(\file_get_contents('http://h8.mourjan.com:8088/v1/fraud/ad/'.$_GET['fraud'].'?h='.Config::instance()->serverId), true); 
                     /*
                     if (isset($content['fraud_score'])) {
                         $content['message']='Failed!';
@@ -445,7 +445,7 @@ class Bin extends AjaxHandler {
                 
             case 'number-info':
                 $this->authorize(false);
-                $country_code=\strtoupper(\trim(\filter_input(\INPUT_GET, 'key', FILTER_SANITIZE_STRING)));
+                $country_code=\strtoupper(\trim(\filter_input(\INPUT_GET, 'key')));
                 $phone_number=\filter_input(\INPUT_GET, 'num', FILTER_SANITIZE_NUMBER_INT);
                 if (\is_numeric($phone_number)) { $phone_number= \intval($phone_number); }
                 
@@ -1254,18 +1254,19 @@ class Bin extends AjaxHandler {
                             if(isset($_GET['rotate'])){
                                 $rotate = $this->get("rotate", 'uint');
                                 if($rotate == 2){
-                                    $userAgent = 'Edigear-PHP/' . '1.0' . ' (+https://github.com/edigear/edigear-php)';
-                                    $userAgent .= ' PHP/' . PHP_VERSION;
-                                    $curl_version = curl_version();
-                                    $userAgent .= ' curl/' . $curl_version['version'];                        
+                                    $userAgent='Mourjan-PHP/' . '1.0' . ' (+'.__CLASS__.')';
+                                    $userAgent.=' PHP/'.PHP_VERSION;
+                                    $curl_version=\curl_version();
+                                    $userAgent.=' h'.Config::instance()->serverId.' curl/'.$curl_version['version'];                        
                                     $ch = curl_init();   
-                                    curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8080/v1/ad/touch/dic");
-                                    curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);                
+                                    curl_setopt($ch, CURLOPT_URL, "http://h8.mourjan.com:8088/v1/ad/touch/dic");
+                                    curl_setopt($ch, CURLOPT_USERAGENT, $userAgent);  
                                     curl_setopt($ch, CURLOPT_TIMEOUT, 3);
                                     curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
                                     curl_setopt($ch, CURLOPT_HTTPHEADER, 
                                         ["Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
                                          "Content-Type: application/json", "Accept-Encoding: gzip, deflate", 
+                                         "Connection: close",
                                          "Pragma: no-cache",
                                          "Cache-Control: no-cache"]);
                                     curl_setopt($ch, CURLOPT_VERBOSE, 0);
@@ -1665,7 +1666,7 @@ class Bin extends AjaxHandler {
                    
                     $result=['r'=>[],  'qs'=>[], 'qr'=>[]];
                                         
-                    $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER', \FILTER_SANITIZE_STRING);
+                    $referer=\filter_input(\INPUT_SERVER, 'HTTP_REFERER');
                     $path=\parse_url($referer, \PHP_URL_PATH);
                     if (\strlen($path)>5) { $path=\substr($path, 0, 6); }
                     $forPostAd=($path==='/post/');
@@ -1828,16 +1829,16 @@ class Bin extends AjaxHandler {
                 
                 if ($this->getGetInt('adsense')===1) {
                     \Config::instance()->incLibFile('GoogleAdSense');
-                    $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-1']]);
-                    $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-31']]);
-                    $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2020-1-1']]);
-                    $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_SANITIZE_STRING, ['options'=>['default'=>'2021-1-31']]);
+                    $cStartDate = \filter_input(\INPUT_GET, 'cfd', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'2021-1-1']]);
+                    $cEndDate = \filter_input(\INPUT_GET, 'ctd', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'2021-1-31']]);
+                    $pStartDate = \filter_input(\INPUT_GET, 'pfd', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'2020-1-1']]);
+                    $pEndDate = \filter_input(\INPUT_GET, 'ptd', \FILTER_UNSAFE_RAW, ['options'=>['default'=>'2021-1-31']]);
                     //$mcAdSense = new MCAdSense;
                     $res= MCAdSense::ad_earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
                     //$mcAdSense->setAdClientId("313743502213-delb6cit3u4jrjvrsb4dsihpsoak2emm.apps.googleusercontent.com")
                     //        ->setAccountId("accounts/pub-2427907534283641")->earnings($cStartDate, $cEndDate, $pStartDate, $pEndDate);
                     
-                    \error_log(var_export($res, true));
+                    //\error_log(var_export($res, true));
                     $this->success($res);
                 }
                 $this->error(self::ERR_DATA_INVALID_PARAM);                
@@ -2628,7 +2629,7 @@ class Bin extends AjaxHandler {
                 if ($ad['user']===$this->user()->id()) {
                     $ipQuality=IPQuality::fetch($ad['mobile']===1);
                     $this->router->logToFile($err_file, \json_encode($ipQuality, JSON_PRETTY_PRINT));
-                    $ad['agent']=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT', \FILTER_SANITIZE_STRING);
+                    $ad['agent']=\filter_input(\INPUT_SERVER, 'HTTP_USER_AGENT');
                     $ad['userLOC']=''; //parse $ipQuality
                     $ad['profile']=$adUser=$this->user()->getProfile();
                 }
@@ -3564,7 +3565,7 @@ class Bin extends AjaxHandler {
                 
             case 'approve':
                 $this->authorize(true, 9);
-                $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_SANITIZE_STRING);
+                $contentType = \filter_input(\INPUT_SERVER, 'CONTENT_TYPE', \FILTER_UNSAFE_RAW);
                 if ($contentType!=='application/json') { $this->error(self::ERR_DATA_INVALID_META); }
                 
                 $id=$this->_JPOST['i']??0;
@@ -3681,7 +3682,7 @@ class Bin extends AjaxHandler {
                 if (!isset($this->_JPOST['mc'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 $ad_id=\filter_var($this->_JPOST['id'], \FILTER_VALIDATE_INT)+0;
                 $coins=\filter_var($this->_JPOST['mc'], \FILTER_VALIDATE_INT)+0;
-                $u_key=\filter_var($this->_JPOST['uk'], \FILTER_SANITIZE_STRING);
+                $u_key=\filter_var($this->_JPOST['uk']);
                 
                 if ($ad_id>0 && $coins>0 && $this->user->id()===$this->user->decodeId($u_key)) {
                     $this->router->db->setWriteMode();
@@ -3737,7 +3738,7 @@ class Bin extends AjaxHandler {
                 if (!isset($this->_JPOST['id'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 if (!isset($this->_JPOST['uk'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 $ad_id=\filter_var($this->_JPOST['id'], \FILTER_VALIDATE_INT)+0;
-                $u_key=\filter_var($this->_JPOST['uk'], \FILTER_SANITIZE_STRING);
+                $u_key=\filter_var($this->_JPOST['uk']);
                 //$ad_id=\filter_var('id')  filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) + 0;
                 //$user = filter_input(INPUT_POST, 'uk', FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
                 //$lang = filter_input(INPUT_POST, 'hl', FILTER_SANITIZE_STRING, ['options'=>['default'=>'ar']]);
@@ -3935,7 +3936,7 @@ class Bin extends AjaxHandler {
                 if (!isset($this->_JPOST['currency'])) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 
                 $product_id=\filter_var($this->_JPOST['product'], \FILTER_SANITIZE_NUMBER_INT)+0;
-                $currency_id=\filter_var($this->_JPOST['currency'], \FILTER_SANITIZE_STRING);
+                $currency_id=\filter_var($this->_JPOST['currency']);
                 
                 $lang=$this->router->language;                    
                 $product=$this->router->db->queryResultArray("select ID, PRODUCT_ID, MCU, USD_PRICE, AED_PRICE from product where id=? and web=1 and blocked=0", [$product_id], true);
@@ -4567,7 +4568,7 @@ class Bin extends AjaxHandler {
                 foreach ($keys as $key) {
                     switch ($key) {
                         case 'lang':
-                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_STRING);
+                            $value=\filter_var($this->_JPOST[$key]);
                             if (\in_array($value, ['ar', 'en'])) {
                                 $this->user->info['options']['lang']=$value;
                                 $this->user->update();
@@ -4577,7 +4578,7 @@ class Bin extends AjaxHandler {
                             break;
                             
                         case 'name':
-                            $value=\filter_var($this->_JPOST[$key], FILTER_SANITIZE_STRING);
+                            $value=\filter_var($this->_JPOST[$key]);
                             if (NoSQL::instance()->setUserBin($this->user->id(), \Core\Model\ASD\USER_FULL_NAME , $value)) {
                                 $this->user->info['name']=$value;
                                 $this->user->update();
@@ -4693,11 +4694,11 @@ class Bin extends AjaxHandler {
                 
                 $lang=$this->_JPOST['lang'];
                 $this->router->language=$lang;
-                $name=\filter_var($this->_JPOST['name'], FILTER_SANITIZE_STRING);
+                $name=\filter_var($this->_JPOST['name']);
                 $email=\filter_var($this->_JPOST['email'], FILTER_VALIDATE_EMAIL);
                 if (!$email) { $this->error(self::ERR_DATA_INVALID_EMAIL); }
                 //$email=\filter_var($this->_JPOST['email'], \FILTER_SANITIZE_EMAIL);
-                $feed=\filter_var($this->_JPOST['msg'], \FILTER_SANITIZE_STRING);
+                $feed=\filter_var($this->_JPOST['msg']);
                 $this->load_lang(array('contact'), $lang);
                 $subject = 'User Feedback';
                 			           
@@ -4744,8 +4745,8 @@ class Bin extends AjaxHandler {
 
                     $msg.="</td></tr>";
                 } else $msg.="</tr>";
-                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
-                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE')."</td>";
+                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')."</td></tr>";
                 $msg.="<td><b>Email:</b></td><td colspan='3'>".$email."</td></tr>";
                 $msg.="<tr><td colspan='6'>{$feed}</td></tr>";
                 $msg.="</table>";
@@ -4861,13 +4862,13 @@ class Bin extends AjaxHandler {
                 
                 $flag = $this->_JPOST['flag'] ?? -1;
                 if (!is_int($flag)) { $flag=-1; }
-                $name = \filter_var($this->_JPOST['name']??'', \FILTER_SANITIZE_STRING);
+                $name = \filter_var($this->_JPOST['name']??'');
                 $userEmail = \filter_var($this->_JPOST['email']??'', \FILTER_SANITIZE_EMAIL);
                 $helpTopic=4;
                 //if(isset($_POST['flag']) && in_array($_POST['flag'],[0,1,2,3,4,5])){
                 //    $flag=$this->post('flag', 'int');
                 //}
-                $feed= \trim(\filter_var($this->_JPOST['msg'] ?? '', \FILTER_SANITIZE_STRING));
+                $feed= \trim(\filter_var($this->_JPOST['msg'] ?? ''));
                 switch ($flag) {
                     case 0:
                         $subject = 'Expired/Sold/Rented';
@@ -4933,8 +4934,8 @@ class Bin extends AjaxHandler {
                 else {
                     $msg.="</tr>";
                 }
-                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE', FILTER_SANITIZE_STRING)."</td>";
-                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT', FILTER_SANITIZE_STRING)."</td></tr>";
+                $msg.="<tr><td><b>Locale</b></td><td>".filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE')."</td>";
+                $msg.="<td><b>Browser</b></td><td colspan='3'>".filter_input(INPUT_SERVER, 'HTTP_USER_AGENT')."</td></tr>";
                 $msg.="<tr><td colspan='6'><a href='{$this->host}/{$id}' target=_blank>{$feed}</a></td></tr>";
                 $msg.="</table>";
                   
@@ -4948,7 +4949,7 @@ class Bin extends AjaxHandler {
                 $this->authorize(true, 9);
                 $id=\intval(\filter_var($this->_JPOST['i'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
                 $hours=\intval(\filter_var($this->_JPOST['v'], \FILTER_SANITIZE_NUMBER_INT, ['options'=>['default'=>0]]));
-                $reason=\filter_var($this->_JPOST['m'], \FILTER_SANITIZE_STRING, ['options'=>['default'=>'']]);
+                $reason=\filter_var($this->_JPOST['m'], \FILTER_UNSAFE_RAW, ['options'=>['default'=>'']]);
                 
                 if ($id<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }
                 if ($hours<=0) { $this->error(self::ERR_DATA_INVALID_PARAM); }

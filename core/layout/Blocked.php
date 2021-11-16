@@ -74,7 +74,10 @@ class Blocked extends Page {
     
 
     function mainMobile(){
+        /*
         echo '<div class="str"><img class="ina" height="168px" width="100px" src="'.$this->urlRouter->cfg['url_css_mobile'].'/i/na.jpg" />'.($this->urlRouter->module=='held'? $this->lang['desc_held'].preg_replace('/rc sh/','',$this->lang['desc_held_reasons']) : ($this->urlRouter->module=='suspended' ? $this->lang['desc_suspended'].preg_replace('/rc sh/','',$this->lang['desc_suspended_reasons']) : $this->lang['desc_blocked'].preg_replace('/rc sh/','',$this->lang['desc_blocked_reasons']))).'</div>';
+         
+         */
     }
     
     function side_pane(){
@@ -88,16 +91,21 @@ class Blocked extends Page {
         $this->pageBody();
     }
 
+    
     function pageBody(){
-        ?><div class="hbn"><span class="om fl"></span><?php
-        if($this->urlRouter->module=='held'){
-            ?><p><?= $this->lang['desc_held'] ?></p><?php
+        ?><div class="viewable va-center ff-cols mb-64"><?php
+        
+        
+        if ($this->router->module==='held'){
+            ?><p class=mb-32><?= $this->lang['desc_held'] ?></p><?php
             echo $this->lang['desc_held_reasons'];
-        }elseif($this->urlRouter->module=='suspended'){
-            ?><p><?= $this->lang['desc_suspended'] ?></p><?php
+        }
+        elseif($this->router->module==='suspended'){
+            ?><p class=mb-32><?= $this->lang['desc_suspended'] ?></p><?php
             echo $this->lang['desc_suspended_reasons'];
-        }else{
-            ?><p><?= $this->lang['desc_blocked'] ?></p><?php
+        }
+        else{
+            ?><p class=mb-32><?= $this->lang['desc_blocked'] ?></p><?php
             echo $this->lang['desc_blocked_reasons'];
         }
         ?></div><?php

@@ -58,7 +58,25 @@ $.onkeyup = function () {
     MULTI = false;
 };
 
-
+/*
+if (typeof (EventSource) !== 'undefined') {
+    const source = new EventSource('https://dev.mourjan.com/web/sse.php');
+    source.onopen = function (event) {
+        console.log('onopen', event);
+    };
+    source.onerror = function (event) {
+        console.log('onerror', event);
+    };
+    // source.onmessage = function(event) {
+    // 	newsList.innerHTML += event.data + '<br />';
+    // };
+    source.addEventListener('news', function (event) {
+        console.log(event.data);
+        //newsList.innerHTML += event.data + '<br />';
+        source.close(); // disconnect stream
+    });
+}
+*/
 
 var d = {
     currentId: 0, n: 0, panel: null, ad: null, slides: null, roots: null,

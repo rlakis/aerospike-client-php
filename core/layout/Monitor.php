@@ -30,7 +30,7 @@ class Monitor extends Page {
         $this->router->config->disableAds();
         
         
-        $action=\filter_input(\INPUT_GET, 'action', \FILTER_SANITIZE_STRING);
+        $action=\filter_input(\INPUT_GET, 'action', \FILTER_UNSAFE_RAW);
         
         if ($action) {
             $redirectWenDone=true;
@@ -64,16 +64,24 @@ class Monitor extends Page {
     
     public function getData() {
         $tasks=[];
-        //$options=[\Aerospike::OPT_SCAN_PRIORITY=>\Aerospike::SCAN_PRIORITY_MEDIUM, \Aerospike::OPT_SCAN_NOBINS=>false, \Aerospike::OPT_READ_TIMEOUT=>0, \Aerospike::OPT_SCAN_RPS_LIMIT=>20];
+        $where = Aerospike::predicateBetween("server_id", 1, 98);
+        $status=NoSQL::instance()->getConnection()->query(Core\Data\NS_USER, "services", $where, function ($record)  use (&$tasks) {
+            $tasks[$record['bins']['task'].$record['bins']['server_id']]=$record['bins'];
+        });
+        //\error_log("as query status {$status}\tError: ".NoSQL::instance()->getConnection()->errorno()."\t".NoSQL::instance()->getConnection()->error()."\n");
+
+        /*
+        $options=[\Aerospike::OPT_SCAN_PRIORITY=>\Aerospike::SCAN_PRIORITY_MEDIUM, \Aerospike::OPT_SCAN_NOBINS=>false, \Aerospike::OPT_READ_TIMEOUT=>0, \Aerospike::OPT_SCAN_RPS_LIMIT=>20];
         $status=NoSQL::instance()->getConnection()->scan("users", "services", function ($record) use (&$tasks) {
             //\error_log('calledback');
             //\error_log(var_export($record, true));
             $tasks[$record['bins']['task'].$record['bins']['server_id']]=$record['bins'];
-        });
+        }, [], $options);
+         */
         $keys=\array_keys($tasks);
         \asort($keys);
         
-        \error_log("as scan status {$status}\tError: ".NoSQL::instance()->getConnection()->errorno()."\t".NoSQL::instance()->getConnection()->error()."\n");
+        //\error_log("as scan status {$status}\tError: ".NoSQL::instance()->getConnection()->errorno()."\t".NoSQL::instance()->getConnection()->error()."\n");
         //NoSQL::instance()->close();
         
         ?><style>table{direction:ltr;width:100%;margin-top:40px;margin-bottom:60px} tr{height:42px;} th,td{padding: 15px} td,th{border-bottom: 1px solid var(--mdc30)}</style><?php

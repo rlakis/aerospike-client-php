@@ -430,7 +430,7 @@ class Detail extends Search {
        
         ?></div><?php
         
-        ?><div class=row><div class=tail><div class="<?=$this->detailAd->isFeatured()?"col-12":"col-8"?> ff-cols report" onclick="reportAd(this)"><p><?=$this->lang['report_ad']?></p></div><?php
+        ?><div class=row><div class=tail><div class="<?=$this->detailAd->isFeatured()?"col-12":"col-8"?> ff-cols report" data-id="<?= $this->detailAd->id()?>" onclick="reportAd(this)"><p><?=$this->lang['report_ad']?></p></div><?php
         if (!$this->detailAd->isFeatured()) {
             ?><div class=col-4></div><?php
         }

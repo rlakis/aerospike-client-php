@@ -75,7 +75,9 @@ class MCUser extends MCJsonMapper {
         $this->metadata=['devices'=>'MCDevice'];
         $this->opts=new MCUserOptions;
         $this->mobile=new MCMobile;
-
+        $this->fn='';
+        $this->dn='';
+        $this->lvl=0;
         if ($source_data!==FALSE) {
             if (\is_numeric($source_data)) {
                 $this->parseArray(NoSQL::instance()->fetchUser($source_data));

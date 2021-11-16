@@ -34,6 +34,7 @@ $st=$fb->prepareQuery('UPDATE ad_user set content=? where id=?');
 
 $normalizer=new MCSaveHandler;
 foreach ($bad as $id => $content) {
+    echo $id, "\n";
     $normalized=$normalizer->getFromContentObject($content, false);
     if ($normalized!==false) {
         $content[Core\Model\Content::ATTRIBUTES]=$normalized[Core\Model\Content::ATTRIBUTES];
@@ -44,6 +45,7 @@ foreach ($bad as $id => $content) {
         
         var_dump($content);
         $fb->executeStatement($st, [\json_encode($content), $id]);
+        
         //$st->bindValue(1, \json_encode($content), \PDO::PARAM_STR);
         //$st->bindValue(2, $id, \PDO::PARAM_INT);
         //$st->execute();

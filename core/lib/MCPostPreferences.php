@@ -337,7 +337,7 @@ class MCPostPreferences implements \JsonSerializable {
     private $items;
     private $countries;
     
-    public function jsonSerialize() {
+    public function jsonSerialize() : mixed {
         return get_object_vars($this);
     }
 
@@ -665,7 +665,7 @@ class MCFilter implements \JsonSerializable {
     private function __construct() {
     }
     
-    public function jsonSerialize() {
+    public function jsonSerialize() : mixed {
         return get_object_vars($this);
     }
     
@@ -760,7 +760,7 @@ class MCPreference implements \JsonSerializable {
     private $sections = [];
     private $tail = [];
     
-    public function jsonSerialize() {
+    public function jsonSerialize() : mixed {
         return get_object_vars($this);
     }
     

@@ -123,12 +123,39 @@ class Home extends Page {
         ?></section><?php
         
         echo '<main>';
-        
-        $this->recommendedForYou();
-        $this->searchingNow();
-        $this->recentUploads();
-        $this->mostPopular();
-        
+        /*
+        if (PHP_VERSION_ID>=80100) {
+            
+            $recommended=new \Fiber(function() : string { 
+                \error_log(PHP_EOL.'recommendedForYou started'.PHP_EOL);
+                return $this->recommendedForYou($this->router->db->ql);
+            });
+            
+            
+            $searchingNow=new \Fiber(function() : string {
+                \error_log('searchingNow started'.PHP_EOL);
+                return $this->searchingNow();
+            });
+            
+            
+            $recentUploads=new \Fiber(function() :string {
+                \error_log('recentUploads started'.PHP_EOL);
+                return $this->recentUploads($this->router->db->ql);//new \Core\Lib\SphinxQL(\Config::instance()->get('sphinxql'), \Config::instance()->get('search_index')));
+            });
+            $recommended->start();
+            $searchingNow->start();
+            $recentUploads->start();
+            \error_log('working...'.PHP_EOL);
+            echo $recommended->getReturn();
+            echo $searchingNow->getReturn();
+            echo $recentUploads->getReturn();
+        }
+        else {*/
+            echo $this->recommendedForYou($this->router->db->ql);
+            echo $this->searchingNow();
+            echo $this->recentUploads($this->router->db->ql);
+            $this->mostPopular();
+        //}
 
         echo '<!--googleon: snippet-->';
         $this->inlineJS('util.js')->inlineJS('home.js');
@@ -193,7 +220,8 @@ class Home extends Page {
     }
     
     
-    public function searchingNow() : void {                       
+    public function searchingNow() : string {
+        $block='';
         if ($this->router->countryId>0) {
             //var_dump($this->rootWidget(1));
             /*
@@ -226,9 +254,10 @@ class Home extends Page {
             $label='top-'.($this->router->cityId>0?'city-'.$this->router->cityId:$this->router->countryId);
             if ($this->router->db->as->getCacheData($label, $record)===\Aerospike::OK) {
                 $key=Core\Model\NoSQL::instance()->initStringKey(Core\Data\NS_MOURJAN, \Core\Data\TS_CACHE, $label);
-                ?><div class="row viewable"><div class=col-12><div class=hscard><?php
-                ?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4></header><?php
-                /* <a href="#"><?=$this->lang['more']?></a> */
+                $block.='<div class="row viewable"><div class=col-12><div class=hscard>';
+                
+                $block.='<header class=plain><h4>'.($this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...').'</h4></header>';
+                /*?><header class="plain"><h4><?=$this->router->isArabic()?'الأكثر طلباً من القراء':'What other people are looking for...'?></h4></header><?php*/
                 $q='select id,rand() as r from ad where hold=0 and canonical_id=0 and media=1 ';
                 if ($this->router->cityId>0) {
                     $q.='and city_id='.$this->router->cityId;
@@ -261,46 +290,55 @@ class Home extends Page {
                 }
                 */
                 $i=0;
-                ?><div class="col-12 wad wse"><?php
+                $block.='<div class="col-12 wad wse">';
+                /*?><div class="col-12 wad wse"><?php*/
                 foreach ($record as $f) {
-                    $this->sectionWidget($f['se'], $f['pu']);
+                    $block.=$this->sectionWidget($f['se'], $f['pu']);
+                    //$this->sectionWidget($f['se'], $f['pu']);
                     $i++;
-                    //if ($i>3) { break; }
                 }
-                ?><div class=space></div><?php
-                ?></div></div></div></div><?php
+                
+                $block.='<div class=space></div></div></div></div></div>';
+                /*?><div class=space></div></div></div></div></div><?php*/
+                
             }
         }
+        
+        return $block;
     }
     
     
-    public function recommendedForYou() : void {        
-        $ql=$this->router->db->ql->resetFilters()->setSelect('id')
+    public function recommendedForYou(\Core\Lib\SphinxQL $ql) : string {
+        $block='';
+        $ql->resetFilters()->setSelect('id')
                 ->region($this->router->countryId, $this->router->cityId)
                 ->media()
                 ->setSortBy('rand()')
                 ->setLimits(0, 5, 100)
                 ;
         $rs=$ql->query();
-        /*
-        $query=new Core\Lib\MCSearch($this->router->db->manticore);
-        $rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort('rand()')->limit(5)->setSource(['id'])->result();
-        */
+       
         if ($rs['total_found']>0) {
+            $block.='<div class="row viewable"><div class=col-12><div class=hscard><header class=plain><h4>'.($this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you').'</h4></header><div class="col-12 wad">';
+            /*
             ?><div class="row viewable"><div class=col-12><div class=hscard><header class=plain><h4><?=$this->router->isArabic()?'اعلانات قد تهمك':'Recommended for you'?></h4></header><?php
-            ?><div class="col-12 wad"><?php
+            ?><div class="col-12 wad"><?php*/
             foreach ($rs['matches'] as $id) {
-                $this->adWidget($id);
+                //$widget=$this->adWidget($id);
+                //echo $widget;
+                $block.= $this->adWidget($id);
             }
-            ?><div class=space></div><?php
-            ?></div><?php
-            ?></div></div></div><?php
-        }                  
+            /*?><div class=space></div></div></div></div></div><?php   */
+            $block.='<div class=space></div></div></div></div></div>';
+        }       
+        
+        return $block;
     }
 
     
-    public function recentUploads() : void {
-        $ql=$this->router->db->ql->resetFilters()->setSelect('id')
+    public function recentUploads(\Core\Lib\SphinxQL $ql) : string {
+        $block='';
+        $ql->resetFilters()->setSelect('id')
                 ->region($this->router->countryId, $this->router->cityId)
                 ->media()
                 ->setSortBy(Core\Lib\MCSearch::DATE_ADDED.' desc')
@@ -308,55 +346,72 @@ class Home extends Page {
                 ;
         $rs=$ql->query();
 
-         //$query=new Core\Lib\MCSearch($this->router->db->manticore);
-         //$rs=$query->mediaFilter()->regionFilter($this->router->countryId, $this->router->cityId)->sort(Core\Lib\MCSearch::DATE_ADDED, 'desc')->limit(5)->setSource(['id'])->result();
          if ($rs['total_found']>0) {
-             ?><div class="row viewable mb-64"><div class=col-12><div class=hscard><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
-             ?><div class="col-12 wad"><?php
+            $block='<div class="row viewable mb-64"><div class=col-12><div class=hscard><header class=plain><h4>'.($this->router->isArabic()?'أحدث المنشورات':'Latest uploads').'</h4></header><div class="col-12 wad">';
+            /*?><div class="row viewable mb-64"><div class=col-12><div class=hscard><header class="plain"><h4><?=$this->router->isArabic()?'أحدث المنشورات':'Latest uploads'?></h4></header><?php
+            ?><div class="col-12 wad"><?php*/
             foreach ($rs['matches'] as $id) {
-                $this->adWidget($id);
+                $block.=$this->adWidget($id);
             }
-            ?><div class=space></div><?php
+            /*?><div class=space></div><?php
             ?></div><?php             
-            ?></div></div></div><?php
-         }                 
+            ?></div></div></div><?php*/
+            
+            $block.='<div class=space></div></div></div></div></div>';
+         } 
+    
+         return $block;
     }
     
     
-    private function sectionWidget(int $section_id, int $purpose_id) : void {
-        //style="background-color:var(--mpc<?=$purpose_id)"
-        $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);        
-        /*?><div class=ad><div class=widget><?php*/
-        ?><div class=ad><a class=widget href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
-        /*?><a class=ff-cols href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php*/
-        ?><div class="image seclogo"><?php
-        ?><div class=icon><img src="<?=$this->router->config->imgURL?>/se/<?=$section_id?>.svg" /></div><?php
+    private function sectionWidget(int $section_id, int $purpose_id) : string {
+        $widget='';
+        $status=$this->router->db->as->getCacheData("section-dat-{$this->router->countryId}-{$this->router->cityId}-{$this->router->sections[$section_id]['root_id']}-{$this->router->language}", $root);  
+        
+        $widget.='<div class=ad><a class=widget href='.$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id).'>';
+        $widget.='<div class="image seclogo">';
+        $widget.='<div class=icon><img src='.$this->router->config->imgURL.'/se/'.$section_id.'.svg /></div>';
+        $widget.='<i style="background-color:var(--mpc<?=$purpose_id?>)"><img src='.$this->router->config->imgURL.'/pu/'.$purpose_id.'.svg /></i>';
+        $widget.='<div class="box hint">';
         /*
-        ?><i><img class="fpu<?=$purpose_id?>" src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
-         * 
-         */
-        ?><i style="background-color:var(--mpc<?=$purpose_id?>)"><img src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php
-        ?><div class="box hint"><?php
+        ?><div class=ad><a class=widget href="<?=$this->router->getURL($this->router->countryId, $this->router->cityId, $this->router->sections[$section_id]['root_id'], $section_id, $purpose_id)?>"><?php
+        ?><div class="image seclogo"><?php        
+        ?><div class=icon><img src="<?=$this->router->config->imgURL?>/se/<?=$section_id?>.svg" /></div><?php        
+        ?><i style="background-color:var(--mpc<?=$purpose_id?>)"><img src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /></i><?php        
+        ?><div class="box hint"><?php*/
+        
         if (isset($root[$section_id]) && isset($root[$section_id]['purposes']) && isset($root[$section_id]['purposes'][$purpose_id])) {            
-            ?><div><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php
-            ?><div><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php
+            $widget.='<div>'.Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang).'</div>';
+            $widget.='<div>'.\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads'].'</div>';
+/*
+            ?><div><?=Ad::FormatSinceDate($root[$section_id]['purposes'][$purpose_id]['unixtime'], $this->lang)?></div><?php            
+            ?><div><?=\number_format($root[$section_id]['purposes'][$purpose_id]['counter']).' '.$this->lang['ads']?></div><?php*/
         }
-        ?></div></div><?php
-        ?><div class="content section"><?php
+        
+        $widget.='</div></div><div class="content section">';
+        /*?></div></div><?php
+        ?><div class="content section"><?php*/
         
         if ($status===\Aerospike::OK) {
-            ?><img src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /><?php
-            echo $this->sectionLabel($section_id, $purpose_id); 
+            $widget.='<img src='.$this->router->config->imgURL.'/pu/'.$purpose_id.'.svg />';
+            $widget.=$this->sectionLabel($section_id, $purpose_id);
+
+           /*?><img src="<?=$this->router->config->imgURL?>/pu/<?=$purpose_id?>.svg" /><?php            
+            echo $this->sectionLabel($section_id, $purpose_id); */
         }
-        ?></div></a></div><?php
+        $widget.='</div></a></div>';
+        /*?></div></a></div><?php*/
+        
+        return $widget;
     }
     
     
-    private function adWidget(int $id) : void {
-        $ad = new Ad($this->classifieds->getById($id));
+    private function adWidget(int $id) : string {
+        $widget='';
+        $ad=new Ad($this->classifieds->getById($id));
                  
-        $pic = null;
-        $this->appendLocation = true;
+        $pic=null;
+        $this->appendLocation=true;
             
         if (!($this->user()->level()===9||$this->user->info['id']==$ad->uid())) {
             $this->stat['ad-imp'][]=$id;
@@ -375,8 +430,7 @@ class Home extends Page {
             }
         }
         
-        $itemScope = '';
-        $itemDesc = '';
+        $itemScope=$itemDesc='';
         $hasSchema = false;
         if ($ad->isRealEstate()||$ad->isCar()) {
             $hasSchema = true;
@@ -385,10 +439,10 @@ class Home extends Page {
         }
             
         $isNewToUser = (isset($this->user->params['last_visit']) && $this->user->params['last_visit']>0 && $this->user->params['last_visit'] < $ad->epoch());            
-        $textClass = "en";
+        $textClass=$ad->rtl()?"ar":"en";
         $liClass = "";
             
-        if ($ad->rtl()) { $textClass = "ar"; }
+        //if ($ad->rtl()) { $textClass = "ar"; }
             
         if ($this->router->siteTranslate) { $textClass = ''; }
             
@@ -431,7 +485,7 @@ class Home extends Page {
             
         $pic.='<div class="cbox cbl">'.$ad->formattedSinceDate($this->lang).'</div></div>';            
             
-        $favLink = '';
+        $favLink='';
 
         if ($this->user()->isLoggedIn()) {
             if ($this->userFavorites) {
@@ -446,49 +500,65 @@ class Home extends Page {
             }
         }
                 
-        $isBot = preg_match('/googlebot/i',$_SERVER['HTTP_USER_AGENT']);
+        $isBot=\preg_match('/googlebot/i',$_SERVER['HTTP_USER_AGENT']);
         if ($isBot) {
             if ($this->router->countryId) {
-                $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);
+                $this->formatNumbers=\strtoupper($this->router->countries[$this->router->countryId]['uri']);
             }
             elseif ($this->user->params['user_country']) {
-                $this->formatNumbers=strtoupper($this->user->params['user_country']);                    
+                $this->formatNumbers=\strtoupper($this->user->params['user_country']);                    
             }
         }
         else {
             if ($this->user->params['user_country']??0) {   
-                $this->formatNumbers=strtoupper($this->user->params['user_country']);
+                $this->formatNumbers=\strtoupper($this->user->params['user_country']);
             } elseif($this->router->countryId) {
-                $this->formatNumbers=strtoupper($this->router->countries[$this->router->countryId]['uri']);
+                $this->formatNumbers=\strtoupper($this->router->countries[$this->router->countryId]['uri']);
             }
         }
         
-        echo '<div class=', $ad->isFeatured()?'"ad p" ':'ad ';
-        echo $ad->htmlDataAttributes($this->formatNumbers), '>';
-        echo '<div class=widget id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>';
+        $widget.='<div class='.($ad->isFeatured()?'"ad p" ':'ad ');
+        //echo '<div class=', $ad->isFeatured()?'"ad p" ':'ad ';
+        
+        $widget.=$ad->htmlDataAttributes($this->formatNumbers).'>';
+        //echo $ad->htmlDataAttributes($this->formatNumbers), '>';
+        
+        $widget.='<div class=widget id='.$ad->id().' itemprop="itemListElement" '.$itemScope.'>';
+        //echo '<div class=widget id=', $ad->id(), ' itemprop="itemListElement" ',  $itemScope, '>';
+        
         if ($ad->isFeatured()) {
+            $widget.='<img class=mark src='.$this->router->config->imgURL.'/prtag-en.svg" />';
+            /*
             ?><img class=mark src="<?=$this->router->config->imgURL?>/prtag-en.svg" /><?php
+             */
         }
-        echo $pic;
+        
+        $widget.=$pic;
+        //echo $pic;
             
-        ?><div class=content><p class=<?=$textClass?> <?=$itemDesc?>><?php
+        $widget.="<div class=content><p class={$textClass} {$itemDesc}>";
+        /*?><div class=content><p class=<?=$textClass?> <?=$itemDesc?>><?php*/
+        
         if ($ad->latitude()||$ad->longitude()) {
-            echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a>';
-            echo $ad->text(); 
+            $widget.='<a href="#" title="'. $ad->location(). '"><i class="icn icnsmall icn-map-marker"></i></a>';
+            //echo '<a href="#" title="', $ad->location(), '"><i class="icn icnsmall icn-map-marker"></i></a>';
         }
-        else {
-            echo $ad->text();
-        }
-
-        ?></p></div><?php
-        //if ($this->user()->isSuperUser() && isset($this->searchResults['body']['scores'][$ad->id()])) {
-        //        echo '<span style="direction:ltr;display:block;padding-left:20px">', $this->searchResults['body']['scores'][$ad->id()], '</span>';
-        //    }
-        echo '<div class=tail>';    
-        echo $this->getAdSection($ad->data(), $hasSchema);
-        //echo '<div title="', $this->lang['reportAbuse'], '" class=abuse onclick="event.stopPropagation();report(this);"><i class="icn icn-ban"></i></div>';
-        echo $favLink, '</div></div>';
-        echo '</div>', "\n";
+ 
+        $widget.=$ad->text();
+        //echo $ad->text();
+        
+        $widget.='</p></div><div class=tail>';
+        /*?></p></div><?php
+        echo '<div class=tail>';*/
+        
+        $widget.=$this->getAdSection($ad->data(), $hasSchema);
+        //echo $this->getAdSection($ad->data(), $hasSchema);
+        
+        $widget.=$favLink.'</div></div></div>';
+        //echo $favLink, '</div></div>';
+        //echo '</div>', "\n";
+        
+        return $widget;
     }
     
     
