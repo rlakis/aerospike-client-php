@@ -1182,23 +1182,24 @@ class MyAds extends UserPage {
                     }                            
                 }
                 elseif ($state===9) {
-                    if (!$isSystemAd) {
-                        if (!$isSuspended) {
-                            ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$cad->id() : '') ?>" method="post"><?php
-                            ?><input type="hidden" name="adr" value="<?= $cad->id() ?>" /><?php
-                            ?><button onclick="d.edit(this)"><?= $this->lang['edit_republish'] ?></button><?php
-                            /*?><span class="lnk" onclick="fsub(this)"><span class="rj edi"></span><?= $this->lang['edit_republish'] ?></span><?php*/
-                            ?></form><?php 
-                            if($this->isUserMobileVerified && isset($content['version']) && $content['version']==2) {
-                                ?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php
-                            }
+                    if (!$isSystemAd && !$isSuspended) {
+                        ?><form action="/post/<?= $linkLang.(!$this->isUserMobileVerified ?'?adr='.$cad->id() : '') ?>" method="post"><?php
+                        ?><input type=hidden name=adr value=<?= $cad->id() ?> /><?php
+                        ?><button onclick="d.edit(this)"><?= $this->lang['edit_republish'] ?></button><?php
+                        ?></form><?php 
+                                                        
+                        if ($this->isUserMobileVerified && $cad->dataset()->getVerion()>1) {
+                            ?><button onclick="d.renew(this)"><?= $this->lang['renew'] ?></button><?php
+                            /*?><span class="lnk" onclick="are(this)"><span class="rj ren"></span><?= $this->lang['renew'] ?></span><?php*/
                         }
                     }
+
                     if (!$isSystemAd && (!$isAdmin || ($isAdmin && $isAdminOwner))) {
                         ?><button onclick="d.del(this)"><?= $this->lang['delete'] ?></button><?php
                     }
+                    
                     if ($this->router->config->get('enabled_ad_stats') && !$isAdminProfiling) {
-                        ?><span class="stad load"></span><?php
+                        ?><button onclick="d.chart(this)" class=stad></button><?php
                     }
                 }
                 

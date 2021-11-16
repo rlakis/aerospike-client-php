@@ -1457,7 +1457,6 @@ class Bin extends AjaxHandler {
                     
                     if ($aid>0) {
                         $count=0;                     
-                        
                         $res=$redis->hGetAll('AI'.$aid);
                         \ksort($res, \SORT_STRING);
                     

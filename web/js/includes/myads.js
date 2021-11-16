@@ -731,82 +731,82 @@ var d = {
         fetch('/ajax-ga/', _options('POST', {u: uid, x: 0}))
             .then(res => res.json())
             .then(response => {
-                console.log(response);
                 if (response.success===1) {
                     let monthNames=["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                     let canvas=document.getElementById('canvas');
-                    let ctx=canvas.getContext('2d');
-                                                
-                    response.result.d/=1000;
-                    let point=new Date(0);
-                    point.setUTCSeconds(response.result.d);                        
+                    if (canvas) {
+                        let ctx=canvas.getContext('2d');                                                
+                        response.result.d/=1000;
+                        let point=new Date(0);
+                        point.setUTCSeconds(response.result.d);                        
                         
-                    let dates=[];
-                    response.result.c.forEach(function(){                            
-                        dates.push(point.getUTCDate()+" "+monthNames[point.getMonth()]);
-                        point.setDate(point.getDate()+1);
-                    });
+                        let dates=[];
+                        response.result.c.forEach(function(){                            
+                            dates.push(point.getUTCDate()+" "+monthNames[point.getMonth()]);
+                            point.setDate(point.getDate()+1);
+                        });
                         
-                    let config={
-                        type: 'line',
-                        data: {
-                            labels:dates,
-                            datasets:[{
-                                    label: 'Impressions',
-                                    backgroundColor: window.chartColors.red,
-                                    borderColor: window.chartColors.red,
-                                    data: response.result.c,                                       
-                                    fill: false,                                
-                                }, {
-                                    label: 'Interactions',
-                                    fill: false,
-                                    backgroundColor: window.chartColors.blue,
-                                    borderColor: window.chartColors.blue,
-                                    data: response.result.k,
+                        let config={
+                            type: 'line',
+                            data: {
+                                labels:dates,
+                                datasets:[{
+                                        label: 'Impressions',
+                                        backgroundColor: window.chartColors.red,
+                                        borderColor: window.chartColors.red,
+                                        data: response.result.c,                                       
+                                        fill: false,                                
+                                    }, {
+                                        label: 'Interactions',
+                                        fill: false,
+                                        backgroundColor: window.chartColors.blue,
+                                        borderColor: window.chartColors.blue,
+                                        data: response.result.k,
+                                    }
+                                ],
+                            },
+                            options: {
+                                responsive:true,
+                                title: {
+                                    display:true,
+                                    position:'top',
+                                    text:response.result.t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' overall impressions'
+                                },
+                                tooltips: {
+                                    mode: 'index',
+                                    intersect: false,
+                                },
+                                hover: {
+                                    mode: 'nearest',
+                                    intersect: true
+                                },
+                                scales: {
+                                    xAxes: [{
+                                        display: true,
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: 'Day'
+                                        }
+                                    }],
+                                    yAxes: [{
+                                        display: true,
+                                        scaleLabel: {
+                                            display: true,
+                                            labelString: 'Value'
+                                        }
+                                    }]
                                 }
-                            ],
-                        },
-                        options: {
-                            responsive:true,
-                            title: {
-                                display:true,
-                                position:'top',
-                                text:response.result.t.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")+' overall impressions'
-                            },
-                            tooltips: {
-                                mode: 'index',
-                                intersect: false,
-                            },
-                            hover: {
-                                mode: 'nearest',
-                                intersect: true
-                            },
-                            scales: {
-                                xAxes: [{
-                                    display: true,
-                                    scaleLabel: {
-                                        display: true,
-                                        labelString: 'Day'
-                                    }
-                                }],
-                                yAxes: [{
-                                    display: true,
-                                    scaleLabel: {
-                                        display: true,
-                                        labelString: 'Value'
-                                    }
-                                }]
-                            }
-                        }                            
-                    };
+                            }                            
+                        };
                     
-                    if (dates.length>0){
-                        window.statictics=new Chart(ctx, config);
-                        let rbt=document.getElementById('refreshChart');
-                        if(rbt){
-                            rbt.style.display='inline';
-                            rbt.style.top=(canvas.offsetTop+1)+"px";
-                            rbt.style.left=(canvas.offsetLeft+canvas.offsetWidth-68)+"px";
+                        if (dates.length>0){
+                            window.statictics=new Chart(ctx, config);
+                            let rbt=document.getElementById('refreshChart');
+                            if(rbt){
+                                rbt.style.display='inline';
+                                rbt.style.top=(canvas.offsetTop+1)+"px";
+                                rbt.style.left=(canvas.offsetLeft+canvas.offsetWidth-68)+"px";
+                            }
                         }
                     }
                     
@@ -1659,8 +1659,9 @@ $.addEventListener("DOMContentLoaded", function () {
         d.queryParams[item[0]]=decodeURIComponent(item[1]);
     });
     
-    let canvas=document.querySelector('canvas#canvas');
-    if (canvas && window.location.pathname.startsWith('/myads/', 0)) {        
+    console.log(d.queryParams);
+    
+    if (window.location.pathname.startsWith('/myads/', 0)) {        
         d.userStatistics(d.queryParams.u?d.queryParams.u:0);
     }
 });

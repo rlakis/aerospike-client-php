@@ -23,10 +23,12 @@ if (\filter_has_var(\INPUT_GET, 'provider') && \filter_has_var(\INPUT_GET, 'conn
 $isWeb=(\php_sapi_name()!=='cli');
 if ($isWeb===true) {
     MCSessionHandler::instance();
-    /*
-    Config::instance()->incModelFile('User');
-    $user=new User(null, 0);
-    $user->sysAuthById(3259181);*/
+    
+    if (0) {
+        Config::instance()->incModelFile('User');
+        $user=new User(null, 0);
+        $user->sysAuthById(3259181);
+    }
 }
 
 
