@@ -23,7 +23,12 @@ extern zend_module_entry aerospike_module_entry;
 #include "aerospike/as_error.h"
 #include "pthread.h"
 
-
+#if PHP_VERSION_ID >= 80000
+#   define TSRMLS_DC
+#   define TSRMLS_D
+#   define TSRMLS_CC
+#   define TSRMLS_C
+#endif
 
 ZEND_BEGIN_MODULE_GLOBALS(aerospike)
 	int nesting_depth;

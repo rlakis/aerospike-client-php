@@ -51,20 +51,11 @@ PHP_METHOD(Aerospike, get)
 		update_client_error(getThis(), err.code, err.message, err.in_doubt);
 	}
 	aerospike* as_ptr = client->as_client;
-#if PHP_VERSION_ID < 80000
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "hz/|z!z",
 		&z_key_hash, &get_record, &z_filter, &z_read_policy) != SUCCESS) {
 			update_client_error(getThis(), AEROSPIKE_ERR_PARAM, "Invalid parameters to Aerospike::get", false);
 			RETURN_LONG(AEROSPIKE_ERR_PARAM);
 	}
-#else
-	if (zend_parse_parameters(ZEND_NUM_ARGS(), "hz/|z!z",
-		&z_key_hash, &get_record, &z_filter, &z_read_policy) != SUCCESS) {
-			update_client_error(getThis(), AEROSPIKE_ERR_PARAM, "Invalid parameters to Aerospike::get", false);
-			RETURN_LONG(AEROSPIKE_ERR_PARAM);
-	}
-
-#endif
 	zval_dtor(get_record);
 	ZVAL_NULL(get_record);
 
