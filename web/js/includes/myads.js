@@ -1654,14 +1654,13 @@ $.addEventListener("DOMContentLoaded", function () {
     $.body.append(script);
     script.onload=function(){ reqSIO(); }
     
+    d.queryParams.sub='active';
     location.search.substr(1).split("&").forEach(function(part) {
         var item=part.split("=");
         d.queryParams[item[0]]=decodeURIComponent(item[1]);
     });
-    
-    console.log(d.queryParams);
-    
-    if (window.location.pathname.startsWith('/myads/', 0)) {        
+        
+    if (window.location.pathname.startsWith('/myads/', 0) && (d.queryParams.sub==='active'||d.queryParams.sub==='archive')) {        
         d.userStatistics(d.queryParams.u?d.queryParams.u:0);
     }
 });
