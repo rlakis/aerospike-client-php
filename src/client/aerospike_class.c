@@ -248,8 +248,16 @@ PHP_METHOD(Aerospike, __construct)
 	zend_update_property_long(aerospike_ce, getThis(), "errorno", sizeof("errorno") - 1, AEROSPIKE_OK);
 	zend_update_property_string(aerospike_ce, getThis(), "error", sizeof("error") - 1, "");
 #else
-	zend_update_property_long(aerospike_ce, Z_OBJ_P(getThis()), "errorno", sizeof("errorno") - 1, AEROSPIKE_OK);
-	zend_update_property_string(aerospike_ce, Z_OBJ_P(getThis()), "error", sizeof("error") - 1, "");
+	//zend_update_property_long(aerospike_ce, Z_OBJ_P(getThis()), "errorno", sizeof("errorno") - 1, AEROSPIKE_OK);
+	//zend_update_property_string(aerospike_ce, Z_OBJ_P(getThis()), "error", sizeof("error") - 1, "");
+	zend_declare_property_long(
+	    aerospike_ce, "errorno", sizeof("errorno") - 1, AEROSPIKE_OK, ZEND_ACC_PUBLIC | ZEND_ACC_STATIC TSRMLS_CC
+	    );
+
+	zend_declare_property_string(
+	    aerospike_ce, "error", sizeof("error") - 1, "", ZEND_ACC_PUBLIC | ZEND_ACC_STATIC TSRMLS_CC
+	    );
+
 #endif
 	zend_replace_error_handling(EH_THROW, NULL, &error_handling TSRMLS_CC); // fail to construct here must raise error
         if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "h|bh",
