@@ -140,7 +140,7 @@ else
     LDFLAGS="$LDFLAGS $LIBCRYPTO -lrt"
 fi
 
-make clean all "CFLAGS=$CFLAGS" "EXTRA_INCLUDES+=-I$CLIENTREPO_3X/include -I$CLIENTREPO_3X/../include $AS_OSX_OPENSSL_INC" "EXTRA_LDFLAGS=$LDFLAGS $AS_OSX_OPENSSL_LINK"
+make clean all "CFLAGS=$CFLAGS" "EXTRA_INCLUDES+=-I$CLIENTREPO_3X/include -I$CLIENTREPO_3X/../src/include $AS_OSX_OPENSSL_INC" "EXTRA_LDFLAGS=$LDFLAGS $AS_OSX_OPENSSL_LINK"
 
 if [ $? -gt 0 ] ; then
     echo "The build has failed...exiting"
