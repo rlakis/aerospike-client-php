@@ -17,11 +17,11 @@
 
 export CLIENTREPO_3X=${PWD}/../aerospike-client-c
 
-export AEROSPIKE_C_VERSION=${AEROSPIKE_C_CLIENT:-4.6.23}
+export AEROSPIKE_C_VERSION=${AEROSPIKE_C_CLIENT:-6.6.4}
 export DOWNLOAD_C_CLIENT=${DOWNLOAD_C_CLIENT:-1}
 export LUA_USRPATH=${LUA_USRPATH:-/usr/local/aerospike/usr-lua}
 
-echo "This Aerospike client requires PHP7"
+echo "This Aerospike client requires PHP8"
 
 if [[ ! -d $CLIENTREPO_3X || ! `ls $CLIENTREPO_3X/package/aerospike-client-c-devel-${AEROSPIKE_C_CLIENT}* 2> /dev/null` ]]; then
     rm -rf $CLIENTREPO_3X/package
