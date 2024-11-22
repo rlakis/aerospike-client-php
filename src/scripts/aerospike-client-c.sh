@@ -103,7 +103,7 @@ if [ $DOWNLOAD ] && [ $DOWNLOAD == 1 ]; then
   ##############################################################################
 
   PKG_VERSION=${AEROSPIKE_C_VERSION}
-  PKG_BUILD="${AEROSPIKE_C_FLAVOR:+-$AEROSPIKE_C_FLAVOR}-devel"
+  PKG_BUILD="${AEROSPIKE_C_FLAVOR:+-$AEROSPIKE_C_FLAVOR}"
 
   sysname=$(uname | tr '[:upper:]' '[:lower:]')
 
@@ -126,7 +126,7 @@ if [ $DOWNLOAD ] && [ $DOWNLOAD == 1 ]; then
           PKG_TYPE="rpm"
           ;;
         "debian"* )
-          PKG_SUFFIX="${PKG_DIST}.x86_64.deb"
+          PKG_SUFFIX="${PKG_DIST}_x86_64.tgz"
           PKG_TYPE="deb"
           ;;
         "ubuntu12" )
@@ -152,7 +152,7 @@ if [ $DOWNLOAD ] && [ $DOWNLOAD == 1 ]; then
           ;;
       esac
 
-      PKG_ARTIFACT="aerospike-client-c${PKG_BUILD}-${PKG_VERSION}.${PKG_SUFFIX}"
+      PKG_ARTIFACT="aerospike-client-c${PKG_BUILD}_${PKG_VERSION}_${PKG_SUFFIX}"
 
       LIB_PATH=${AEROSPIKE}/package/usr
       ;;
@@ -217,6 +217,8 @@ if [ $DOWNLOAD ] && [ $DOWNLOAD == 1 ]; then
         rpm2cpio ${PKG_ARTIFACT} | cpio -idmu --no-absolute-filenames --quiet
         ;;
       "deb" )
+        tar --strip-components=1 -xzf ${PKG_ARTIFACT}
+        dpkg -x aerospike-client-c-devel_${PKG_VERSION}*.deb .
         dpkg -x ${PKG_ARTIFACT} .
         ;;
       "pkg" )
