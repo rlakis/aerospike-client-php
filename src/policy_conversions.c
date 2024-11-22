@@ -509,6 +509,7 @@ as_status set_scan_options_from_policy_hash(as_scan* scan, zval* z_policy) {
 	zval* setting_val = NULL;
 	z_policy_ary = Z_ARRVAL_P(z_policy);
 
+	/* not supported in client version 6
 	setting_val = zend_hash_index_find(z_policy_ary, OPT_SCAN_PRIORITY);
 	if (setting_val) {
 		if (Z_TYPE_P(setting_val) == IS_LONG) {
@@ -528,6 +529,7 @@ as_status set_scan_options_from_policy_hash(as_scan* scan, zval* z_policy) {
 		}
 		setting_val = NULL;
 	}
+        */
 
 /* Concurrent scans run into issues with thread local heap allocations,
  * run by threads not created by php, only allow them when running
@@ -900,7 +902,9 @@ as_status set_scan_policy_from_hash(HashTable* z_policy_hash, as_policy_scan* sc
 	}
 
 	set_bool_policy_value_from_hash_index(z_policy_hash, &scan_policy->durable_delete, OPT_POLICY_DURABLE_DELETE);
+	/* c client version 6 not supported 
 	set_bool_policy_value_from_hash_index(z_policy_hash, &scan_policy->fail_on_cluster_change, OPT_FAIL_ON_CLUSTER_CHANGE);
+	*/
 	set_uint32t_policy_value_from_hash_index(z_policy_hash, &scan_policy->records_per_second, OPT_SCAN_RPS_LIMIT);
 	set_base_policy_from_hash(z_policy_hash, &scan_policy->base);
 	return AEROSPIKE_OK;
